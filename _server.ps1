@@ -139,7 +139,8 @@ try {
 
             # ── Directory: redirect to trailing slash ────────
             if ((Test-Path $filePath -PathType Container) -and -not $urlPath.EndsWith('/')) {
-                $location = $urlPath + '/'
+                $qs       = $req.Url.Query   # сохраняем query string (?2, ?project-id=2, ...)
+                $location = $urlPath + '/' + $qs
                 $resp.StatusCode = 301
                 $resp.Headers.Add('Location', $location)
                 $resp.ContentLength64 = 0
