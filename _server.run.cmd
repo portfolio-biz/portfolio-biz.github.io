@@ -1,0 +1,1 @@
+@powershell -ExecutionPolicy Bypass -File _server.ps1
