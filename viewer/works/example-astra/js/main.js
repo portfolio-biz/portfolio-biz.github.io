@@ -179,3 +179,49 @@ window.addEventListener('mousemove', e => {
 
     sectionObs.observe(container.closest('section') || container);
 })();
+
+// ─── Custom Select ─────────────────────────────────────────────
+(function initCustomSelects() {
+    document.querySelectorAll('select').forEach(sel => {
+        const wrap = document.createElement('div');
+        wrap.className = 'custom-select-wrap';
+        sel.parentNode.insertBefore(wrap, sel);
+        wrap.appendChild(sel);
+        sel.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0;';
+        const trigger = document.createElement('div');
+        trigger.className = 'custom-select-trigger';
+        trigger.innerHTML = `<span>${sel.options[0]?.text || ''}</span><svg class="cs-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        wrap.appendChild(trigger);
+        const panel = document.createElement('div');
+        panel.className = 'custom-select-panel';
+        Array.from(sel.options).forEach((opt, i) => {
+            const item = document.createElement('div');
+            item.className = 'custom-select-option' + (i === 0 ? ' placeholder' : '');
+            item.textContent = opt.text;
+            item.dataset.value = opt.value;
+            item.addEventListener('click', () => {
+                sel.value = opt.value;
+                trigger.querySelector('span').textContent = opt.text;
+                trigger.classList.toggle('has-value', opt.value !== '');
+                panel.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('active'));
+                item.classList.add('active');
+                panel.classList.remove('open'); trigger.classList.remove('open');
+            });
+            panel.appendChild(item);
+        });
+        wrap.appendChild(panel);
+        trigger.addEventListener('click', e => {
+            e.stopPropagation();
+            const wasOpen = panel.classList.contains('open');
+            document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+                p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+            });
+            if (!wasOpen) { panel.classList.add('open'); trigger.classList.add('open'); }
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+            p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+        });
+    });
+})();

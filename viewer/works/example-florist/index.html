@@ -1674,6 +1674,83 @@
             background: var(--bg3);
         }
 
+        /* custom select component */
+        .custom-select-wrap {
+            position: relative;
+        }
+
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg3);
+            border: 1px solid rgba(232, 96, 122, 0.15);
+            border-radius: 10px;
+            padding: 0.85rem 1.1rem;
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .custom-select-trigger .cs-arrow {
+            color: var(--pink);
+            flex-shrink: 0;
+            transition: transform 0.25s;
+        }
+
+        .custom-select-trigger.open {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(232, 96, 122, 0.12);
+        }
+
+        .custom-select-trigger.open .cs-arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-select-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--bg3);
+            border: 1px solid rgba(232, 96, 122, 0.25);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .custom-select-panel.open {
+            display: block;
+        }
+
+        .custom-select-option {
+            padding: 0.75rem 1.1rem;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .custom-select-option.placeholder {
+            color: var(--text-muted);
+        }
+
+        .custom-select-option:hover {
+            background: rgba(232, 96, 122, 0.1);
+            color: var(--pink);
+        }
+
+        .custom-select-option.active {
+            color: var(--pink);
+            background: rgba(232, 96, 122, 0.08);
+        }
+
         .form-submit {
             width: 100%;
             padding: 1rem;
@@ -2635,6 +2712,52 @@
         document.querySelectorAll('#mob-panel a').forEach(a => {
             a.addEventListener('click', () => { if (mobileOpen) setMobileMenu(false); });
         });
+
+        // ─── Custom Select ───────────────────────────────────────
+        (function initCustomSelects() {
+            document.querySelectorAll('select').forEach(sel => {
+                const wrap = document.createElement('div');
+                wrap.className = 'custom-select-wrap';
+                sel.parentNode.insertBefore(wrap, sel);
+                wrap.appendChild(sel);
+                sel.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0;';
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.innerHTML = `<span>${sel.options[0]?.text || ''}</span><svg class="cs-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                wrap.appendChild(trigger);
+                const panel = document.createElement('div');
+                panel.className = 'custom-select-panel';
+                Array.from(sel.options).forEach((opt, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'custom-select-option' + (i === 0 ? ' placeholder' : '');
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('click', () => {
+                        sel.value = opt.value;
+                        trigger.querySelector('span').textContent = opt.text;
+                        trigger.classList.toggle('has-value', opt.value !== '');
+                        panel.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('active'));
+                        item.classList.add('active');
+                        panel.classList.remove('open'); trigger.classList.remove('open');
+                    });
+                    panel.appendChild(item);
+                });
+                wrap.appendChild(panel);
+                trigger.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const wasOpen = panel.classList.contains('open');
+                    document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+                        p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+                    });
+                    if (!wasOpen) { panel.classList.add('open'); trigger.classList.add('open'); }
+                });
+            });
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+                    p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+                });
+            });
+        })();
 
         // ─── Form submit ─────────────────────────────────────────
         function handleSubmit(e) {

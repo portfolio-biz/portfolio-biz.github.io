@@ -1038,6 +1038,84 @@
             min-height: 130px;
         }
 
+        /* custom select component */
+        .custom-select-wrap {
+            position: relative;
+        }
+
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            padding: .9rem 1.1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            transition: border-color .3s;
+        }
+
+        .custom-select-trigger .cs-arrow {
+            color: var(--gold);
+            flex-shrink: 0;
+            transition: transform 0.25s;
+        }
+
+        .custom-select-trigger.open {
+            border-color: var(--gold);
+        }
+
+        .custom-select-trigger.open .cs-arrow {
+            transform: rotate(180deg);
+        }
+
+        .custom-select-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--off-white);
+            border: 1px solid var(--border);
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-select-panel.open {
+            display: block;
+        }
+
+        .custom-select-option {
+            padding: .75rem 1.1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: .95rem;
+            color: var(--text);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .custom-select-option:last-child {
+            border-bottom: none;
+        }
+
+        .custom-select-option.placeholder {
+            color: var(--text-muted);
+        }
+
+        .custom-select-option:hover {
+            background: rgba(201, 168, 76, 0.08);
+            color: var(--gold);
+        }
+
+        .custom-select-option.active {
+            color: var(--gold);
+            background: rgba(201, 168, 76, 0.06);
+        }
+
         .form-submit {
             display: inline-flex;
             align-items: center;
@@ -2204,7 +2282,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Направление</label>
-                <select class="form-input" style="cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 fill=%27none%27 %3E%3Cpath d=%27M1 1l5 5 5-5%27 stroke=%27%23C9A84C%27 stroke-width=%271.2%27 stroke-linecap=%27round%27 /%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 1rem center">
+                <select class="form-input">
                     <option value="">Выберите направление</option>
                     <option>Уголовная защита</option>
                     <option>Корпоративное право</option>
@@ -2449,6 +2527,52 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
         document.getElementById('pmodalCta').addEventListener('click', closeModal);
+
+        // ─── Custom Select ───────────────────────────────────────
+        (function initCustomSelects() {
+            document.querySelectorAll('select').forEach(sel => {
+                const wrap = document.createElement('div');
+                wrap.className = 'custom-select-wrap';
+                sel.parentNode.insertBefore(wrap, sel);
+                wrap.appendChild(sel);
+                sel.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0;';
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.innerHTML = `<span>${sel.options[0]?.text || ''}</span><svg class="cs-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                wrap.appendChild(trigger);
+                const panel = document.createElement('div');
+                panel.className = 'custom-select-panel';
+                Array.from(sel.options).forEach((opt, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'custom-select-option' + (i === 0 ? ' placeholder' : '');
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('click', () => {
+                        sel.value = opt.value;
+                        trigger.querySelector('span').textContent = opt.text;
+                        trigger.classList.toggle('has-value', opt.value !== '');
+                        panel.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('active'));
+                        item.classList.add('active');
+                        panel.classList.remove('open'); trigger.classList.remove('open');
+                    });
+                    panel.appendChild(item);
+                });
+                wrap.appendChild(panel);
+                trigger.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const wasOpen = panel.classList.contains('open');
+                    document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+                        p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+                    });
+                    if (!wasOpen) { panel.classList.add('open'); trigger.classList.add('open'); }
+                });
+            });
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-panel.open').forEach(p => {
+                    p.classList.remove('open'); p.previousElementSibling.classList.remove('open');
+                });
+            });
+        })();
     </script>
 </body>
 

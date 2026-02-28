@@ -1242,6 +1242,76 @@ section.contact {
     background: var(--bg4);
 }
 
+/* custom select component */
+.custom-select-wrap {
+    position: relative;
+}
+.custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    font-family: var(--font);
+    font-size: 0.88rem;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s;
+}
+.custom-select-trigger .cs-arrow {
+    color: var(--red);
+    flex-shrink: 0;
+    transition: transform 0.25s;
+}
+.custom-select-trigger.open {
+    border-color: rgba(229, 0, 0, 0.5);
+}
+.custom-select-trigger.open .cs-arrow {
+    transform: rotate(180deg);
+}
+.custom-select-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg4);
+    border: 1px solid rgba(229, 0, 0, 0.25);
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+.custom-select-panel.open {
+    display: block;
+}
+.custom-select-option {
+    padding: 10px 14px;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    color: var(--white);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+.custom-select-option:last-child {
+    border-bottom: none;
+}
+.custom-select-option.placeholder {
+    color: var(--text-dim);
+}
+.custom-select-option:hover {
+    background: rgba(229, 0, 0, 0.1);
+    color: var(--red);
+}
+.custom-select-option.active {
+    color: var(--red);
+    background: rgba(229, 0, 0, 0.07);
+}
+
 .form-submit {
     width: 100%;
     padding: 15px;
