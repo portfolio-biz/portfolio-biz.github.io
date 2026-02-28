@@ -519,6 +519,11 @@
             document.addEventListener('mousemove', e => {
                 trailActive = true;
                 mx = e.clientX; my = e.clientY;
+                // восстанавливаем видимость, если курсор был скрыт (выход из devtools и т.п.)
+                if (dot.style.opacity === '0') {
+                    dot.style.opacity = '1';
+                    if (trailCanvas) trailCanvas.style.opacity = '1';
+                }
                 if (cur === 0) {
                     blobPx = (e.clientX / window.innerWidth - .5) * 2;
                     blobPy = (e.clientY / window.innerHeight - .5) * 2;
@@ -575,6 +580,7 @@
             const TRAIL_LEN = 22; // balance of quality and perf
             const TRAIL = [];     // start empty — no pre-fill
             let trailCanvas = null, trailCtx = null; // declared here — null on mobile (no pointer:fine)
+            let trailW = 0, trailH = 0; // logical (CSS-pixel) canvas dimensions for clearRect
 
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
@@ -582,13 +588,17 @@
                     'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;';
                 document.body.appendChild(trailCanvas);
                 trailCtx = trailCanvas.getContext('2d');
-                const resizeTrail = () => {
+                const applyTrailResize = () => {
+                    // запускаем ПОСЛЕ layout — window.innerWidth гарантированно актуален
                     const dpr = window.devicePixelRatio || 1;
-                    trailCanvas.width  = window.innerWidth  * dpr;
-                    trailCanvas.height = window.innerHeight * dpr;
+                    trailW = window.innerWidth;
+                    trailH = window.innerHeight;
+                    trailCanvas.width  = Math.round(trailW * dpr);
+                    trailCanvas.height = Math.round(trailH * dpr);
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 };
-                resizeTrail();
+                const resizeTrail = () => requestAnimationFrame(applyTrailResize);
+                applyTrailResize(); // первый запуск — layout уже известен
                 window.addEventListener('resize', resizeTrail, { passive: true });
             }
 
@@ -647,7 +657,7 @@
                     TRAIL.push({ x: mx, y: my, t: performance.now() });
                     if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
 
-                    trailCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                    trailCtx.clearRect(0, 0, trailW, trailH);
                     const now  = performance.now();
                     const LIFE = 380; // point lifetime, ms
                     const len  = TRAIL.length;
