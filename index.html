@@ -492,9 +492,15 @@
                 else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL - 1); }
             });
 
-            /* ── Touch ── */
-            window.addEventListener('touchstart', e => { tyY = e.touches[0].clientY; tyX = e.touches[0].clientX; }, { passive: true });
+            /* ── Touch (slide navigation) ── */
+            window.addEventListener('touchstart', e => {
+                // ignore touches inside the services carousel
+                if (e.target.closest('.svc-carousel-wrap')) return;
+                tyY = e.touches[0].clientY;
+                tyX = e.touches[0].clientX;
+            }, { passive: true });
             window.addEventListener('touchend', e => {
+                if (e.target.closest('.svc-carousel-wrap')) return;
                 const dy = tyY - e.changedTouches[0].clientY;
                 const dx = tyX - e.changedTouches[0].clientX;
                 if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 42) goTo(cur + (dy > 0 ? 1 : -1));
@@ -569,6 +575,7 @@
             }
             const TRAIL_LEN = 22; // balance of quality and perf
             const TRAIL = [];     // start empty — no pre-fill
+            let trailCanvas = null, trailCtx = null; // declared here — null on mobile (no pointer:fine)
 
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
@@ -737,6 +744,7 @@
 
         /* ── Carousel ── */
         const svcTrack = document.getElementById('svc-track');
+        const svcWrap  = svcTrack ? svcTrack.closest('.svc-carousel-wrap') : null;
         const svcPips  = document.querySelectorAll('.svc-pip');
         let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
 
@@ -748,19 +756,20 @@
             svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
         }
 
-        if (document.getElementById('svc-prev'))
-            document.getElementById('svc-prev').addEventListener('click', () => svcGoTo(svcIdx - 1));
-        if (document.getElementById('svc-next'))
-            document.getElementById('svc-next').addEventListener('click', () => svcGoTo(svcIdx + 1));
+        // click works instantly on mobile when touch-action:manipulation is set in CSS
+        const svcPrevEl = document.getElementById('svc-prev');
+        const svcNextEl = document.getElementById('svc-next');
+        if (svcPrevEl) svcPrevEl.addEventListener('click', () => svcGoTo(svcIdx - 1));
+        if (svcNextEl) svcNextEl.addEventListener('click', () => svcGoTo(svcIdx + 1));
 
-        // swipe — on the track itself, distinguish horizontal vs vertical
-        if (svcTrack) {
+        // swipe — global window handler already ignores .svc-carousel-wrap touches
+        if (svcWrap) {
             let cTX = 0, cTY = 0;
-            svcTrack.addEventListener('touchstart', e => {
+            svcWrap.addEventListener('touchstart', e => {
                 cTX = e.touches[0].clientX;
                 cTY = e.touches[0].clientY;
             }, { passive: true });
-            svcTrack.addEventListener('touchend', e => {
+            svcWrap.addEventListener('touchend', e => {
                 const dx = cTX - e.changedTouches[0].clientX;
                 const dy = cTY - e.changedTouches[0].clientY;
                 if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)

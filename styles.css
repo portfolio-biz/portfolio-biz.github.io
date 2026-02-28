@@ -1023,6 +1023,8 @@
                 flex-shrink: 0;
                 box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
                 transition: opacity .2s;
+                touch-action: manipulation; /* removes 300ms tap delay on mobile */
+                cursor: pointer;
             }
             .svc-nav-btn:disabled { opacity: .3; }
             .svc-nav-btn svg { width: 20px; height: 20px; }
