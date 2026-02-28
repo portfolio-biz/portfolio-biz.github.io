@@ -4,6 +4,16 @@
    — Инициализация приложения
    ──────────────────────────────────────────────── */
 
+/** Экранирование HTML-спецсимволов для безопасной вставки в innerHTML */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 async function init() {
     try {
         window.TANDEM_SITES = await window.__dbReady;
@@ -22,20 +32,12 @@ async function init() {
         return;
     }
 
-    // Функция экранирования
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
     // Строим кастомный дропдаун
     TANDEM_SITES.forEach((site, idx) => {
-        const item = document.createElement('div'), escapedTitle = escapeHtml(site.title), escapedDesc = escapeHtml(site.description);
-        item.className = 'dropdown-item';
+        const item = document.createElement('div'),
+            escapedTitle = escapeHtml(site.title),
+            escapedDesc  = escapeHtml(site.description);
+        item.className  = 'dropdown-item';
         item.dataset.idx = idx;
         item.innerHTML = `
       ${site.id > 0
@@ -46,10 +48,7 @@ async function init() {
         <span class="di-desc">${escapedDesc}</span>
       </div>
     `;
-        item.addEventListener('click', () => {
-            closeDropdown();
-            selectSite(idx);
-        });
+        item.addEventListener('click', () => { closeDropdown(); selectSite(idx); });
         App.UI.dropdownEl.appendChild(item);
     });
 
@@ -58,7 +57,7 @@ async function init() {
         if (!App.UI.selectWrap.contains(e.target)) closeDropdown();
     });
 
-    // Блокируем действия на неактивных кнопках
+    // Кнопки действий
     App.UI.openBtn.addEventListener('click', e => { if (App.UI.openBtn.classList.contains('disabled')) e.preventDefault(); });
     App.UI.copyBtn.addEventListener('click', () => { if (!App.UI.copyBtn.classList.contains('disabled')) copyLink(); });
     App.UI.phoneToggle.addEventListener('click', () => { if (!App.UI.phoneToggle.classList.contains('disabled')) togglePhonePreview(); });

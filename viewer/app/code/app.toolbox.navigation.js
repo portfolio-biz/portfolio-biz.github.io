@@ -7,14 +7,14 @@
 // первый вызов syncUrl использует replaceState (чтобы не дублировать запись при загрузке)
 let _isInitialLoad = true;
 
-function loadSite(index) {
+function loadSite(index, skipSync = false) {
     if (index < 0 || index >= TANDEM_SITES.length) return;
 
     App.state.currentIndex = index;
     const site = TANDEM_SITES[index];
     const isHome = site.id === 0;
 
-    syncUrl(site.id);
+    if (!skipSync) syncUrl(site.id);
 
     // Прогресс
     App.UI.loader.classList.remove('hidden');
@@ -98,35 +98,13 @@ function syncUrl(siteId) {
 }
 
 // popstate: обрабатываем кнопку "Назад"/"Вперёд" браузера
-window.addEventListener('popstate', e => {
+window.addEventListener('popstate', () => {
     if (typeof TANDEM_SITES === 'undefined') return;
     const urlId = new URLSearchParams(location.search).get('project-id');
-    // нет project-id → вернулись к начальному состоянию вьюера (home/project 0)
     const targetId = urlId !== null ? parseInt(urlId, 10) : 0;
     const idx = TANDEM_SITES.findIndex(s => s.id === targetId);
-    if (idx !== -1 && idx !== App.state.currentIndex) {
-        // меняем проект без вызова syncUrl — запись уже в истории
-        App.state.currentIndex = idx;
-        const site = TANDEM_SITES[idx];
-        const isHome = site.id === 0;
-        App.UI.loader.classList.remove('hidden');
-        startProgress();
-        triggerInfoAnimation(() => {
-            App.UI.titleEl.textContent = site.title;
-            App.UI.descEl.textContent = site.description;
-            const nonHomePos = TANDEM_SITES.filter((s, i) => s.id !== 0 && i <= idx).length;
-            const nonHomeTotal = TANDEM_SITES.filter(s => s.id !== 0).length;
-            App.UI.counterEl.textContent = `${nonHomePos} / ${nonHomeTotal}`;
-        });
-        App.UI.btnPrev.disabled = (idx === 0);
-        App.UI.btnNext.disabled = (idx === TANDEM_SITES.length - 1);
-        App.UI.openBtn.classList.toggle('disabled', isHome);
-        App.UI.copyBtn.classList.toggle('disabled', isHome);
-        App.UI.phoneToggle.classList.toggle('disabled', isHome);
-        App.UI.counterEl.style.display = isHome ? 'none' : '';
-        updateDropdownState(idx);
-        reloadFrame(site.path);
-    }
+    // skipSync=true — URL уже актуален, повторно не пишем
+    if (idx !== -1 && idx !== App.state.currentIndex) loadSite(idx, true);
 });
 
 function triggerInfoAnimation(cb) {
