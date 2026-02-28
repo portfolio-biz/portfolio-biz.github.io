@@ -494,15 +494,14 @@
 
             /* ── Touch (slide navigation) ── */
             window.addEventListener('touchstart', e => {
-                // ignore touches inside the services carousel
-                if (e.target.closest('.svc-carousel-wrap')) return;
                 tyY = e.touches[0].clientY;
                 tyX = e.touches[0].clientX;
             }, { passive: true });
             window.addEventListener('touchend', e => {
-                if (e.target.closest('.svc-carousel-wrap')) return;
                 const dy = tyY - e.changedTouches[0].clientY;
                 const dx = tyX - e.changedTouches[0].clientX;
+                // внутри карусели горизонтальные свайпы — её дело; вертикальные — переключают слайд
+                if (e.target.closest('.svc-carousel-wrap') && Math.abs(dx) >= Math.abs(dy)) return;
                 if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 42) goTo(cur + (dy > 0 ? 1 : -1));
             }, { passive: true });
 
