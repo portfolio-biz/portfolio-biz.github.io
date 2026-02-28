@@ -232,8 +232,8 @@
                             </svg>
                         </button>
                         <div class="svc-pips">
-                            <span class="svc-pip svc-pip-active"></span>
                             <span class="svc-pip"></span>
+                            <span class="svc-pip svc-pip-active"></span>
                             <span class="svc-pip"></span>
                         </div>
                         <button class="svc-nav-btn" id="svc-next" type="button" aria-label="Вперёд">
@@ -738,7 +738,7 @@
         /* ── Carousel ── */
         const svcTrack = document.getElementById('svc-track');
         const svcPips  = document.querySelectorAll('.svc-pip');
-        let svcIdx = 0;
+        let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
 
         function svcGoTo(idx) {
             const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
@@ -748,30 +748,24 @@
             svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
         }
 
-        const svcPrev = document.getElementById('svc-prev');
-        const svcNext = document.getElementById('svc-next');
-        if (svcPrev) svcPrev.addEventListener('click', () => svcGoTo(svcIdx - 1));
-        if (svcNext) svcNext.addEventListener('click', () => svcGoTo(svcIdx + 1));
+        if (document.getElementById('svc-prev'))
+            document.getElementById('svc-prev').addEventListener('click', () => svcGoTo(svcIdx - 1));
+        if (document.getElementById('svc-next'))
+            document.getElementById('svc-next').addEventListener('click', () => svcGoTo(svcIdx + 1));
 
-        // touch-swipe on carousel track
-        let cTouchX = 0;
-        const svcMQ = window.matchMedia('(max-width: 900px)');
+        // swipe — on the track itself, distinguish horizontal vs vertical
         if (svcTrack) {
-            svcTrack.addEventListener('touchstart', e => { cTouchX = e.touches[0].clientX; }, { passive: true });
-            svcTrack.addEventListener('touchend', e => {
-                if (!svcMQ.matches) return;
-                const dx = cTouchX - e.changedTouches[0].clientX;
-                if (Math.abs(dx) > 40) svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
+            let cTX = 0, cTY = 0;
+            svcTrack.addEventListener('touchstart', e => {
+                cTX = e.touches[0].clientX;
+                cTY = e.touches[0].clientY;
             }, { passive: true });
-
-            // mobile only: init without animation
-            if (svcMQ.matches) {
-                svcTrack.style.transition = 'none';
-                svcTrack.style.transform = 'translateX(-100%)';
-                requestAnimationFrame(() => {
-                    svcTrack.style.transition = 'transform .4s cubic-bezier(.76,0,.24,1)';
-                });
-            }
+            svcTrack.addEventListener('touchend', e => {
+                const dx = cTX - e.changedTouches[0].clientX;
+                const dy = cTY - e.changedTouches[0].clientY;
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
+                    svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
+            }, { passive: true });
         }
 
         })();
