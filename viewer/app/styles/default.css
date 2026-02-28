@@ -1,7 +1,7 @@
 ﻿/* ================================================
-   Tandem Portfolio Viewer — Engine v1.0
+   Tandem Sites — Viewer
    app/styles/default.css
-   — Entry point: imports all style modules
+   — Точка входа: импорт всех стилевых модулей
    ================================================ */
 
 @import url("default.app-base.css");

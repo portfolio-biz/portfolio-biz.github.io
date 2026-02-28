@@ -1,5 +1,5 @@
-/* ────────────────────────────────────────────────
-   Tandem Portfolio Viewer — Engine v1.0
+﻿/* ────────────────────────────────────────────────
+   Tandem Sites — Viewer
    app/code/modules/xfetcher.js
    — Умная обёртка над fetch: retry, backoff, jitter
    ──────────────────────────────────────────────── */

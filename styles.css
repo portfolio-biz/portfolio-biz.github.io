@@ -1669,12 +1669,13 @@ body.s4 #cursor-dot {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    padding: 15px 30px;
+    padding: 15px 30px 17px;
     background: var(--black);
     color: #fff;
     border-radius: 50px;
     font-size: 14px;
     font-weight: 700;
+    line-height: 1.4;
     letter-spacing: 0.02em;
     cursor: pointer;
     border: none;
@@ -1791,6 +1792,8 @@ body.s4 #cursor-dot {
     font-size: 12.5px;
     font-weight: 700;
     color: var(--black);
+    line-height: 1.4;
+    padding-bottom: 3px;
     margin-bottom: 2px;
 }
 

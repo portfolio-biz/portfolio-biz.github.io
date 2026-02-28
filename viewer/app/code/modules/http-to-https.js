@@ -1,7 +1,8 @@
-/**
- * Automatically redirects HTTP protocol to HTTPS.
- * Checks the current window location protocol and redirects to HTTPS if it's HTTP.
- */
+﻿/* ────────────────────────────────────────────────
+   Tandem Sites — Viewer
+   app/code/modules/http-to-https.js
+   — Редирект с HTTP на HTTPS при необходимости
+   ──────────────────────────────────────────────── */
 (function httpToHttps() {
     if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
         try {
