@@ -11,7 +11,7 @@ $PREFERRED_PORT = 7777
 $PORT_RANGE_MIN = 3000
 $PORT_RANGE_MAX = 9999
 $PORT_MAX_TRIES = 20
-$root           = $PSScriptRoot
+$root           = $PSScriptRoot.TrimEnd('\') + '\'
 
 # ── MIME types ────────────────────────────────────────────────
 $mime = @{
@@ -99,7 +99,7 @@ try {
 }
 
 Write-Host ""
-Write-Host "  Tandem Portfolio - Dev Server" -ForegroundColor Cyan
+Write-Host "  Tandem Sites - Dev Server" -ForegroundColor Cyan
 Write-Host "  http://localhost:$port" -ForegroundColor Cyan
 Write-Host "  Root: $root" -ForegroundColor Cyan
 Write-Host "  Stop: Ctrl+C" -ForegroundColor Cyan
@@ -131,6 +131,7 @@ try {
                 $resp.ContentType     = "text/plain; charset=utf-8"
                 $resp.ContentLength64 = $body.Length
                 $resp.OutputStream.Write($body, 0, $body.Length)
+                $resp.OutputStream.Close()
                 Write-Host "  [$ts]  403  $urlPath  [traversal blocked]" -ForegroundColor Red
                 continue
             }
@@ -144,6 +145,7 @@ try {
                 $resp.StatusCode = 301
                 $resp.Headers.Add('Location', $location)
                 $resp.ContentLength64 = 0
+                $resp.OutputStream.Close()
                 Write-Host "  [$ts]  301  $urlPath -> $location" -ForegroundColor DarkYellow
                 continue
             }
