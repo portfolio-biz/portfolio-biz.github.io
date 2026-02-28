@@ -67,18 +67,24 @@ function clearFramePhoneStyles() {
 /**
  * Мгновенно скрыть iframe без transition-мигания,
  * затем через двойной rAF сменить src и начать реальную загрузку.
+ * Используем location.replace() — не добавляет запись в историю браузера,
+ * поэтому кнопка «Назад» работает корректно.
  */
 function reloadFrame(src) {
     App.UI.frame.style.transition = 'none';
     App.UI.frame.classList.add('loading');
     void App.UI.frame.offsetWidth;
     App.UI.frame.style.transition = '';
-    App.state.isRealLoad = false;
-    App.UI.frame.src = '';
+    App.state.isRealLoad = true;
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            App.state.isRealLoad = true;
-            App.UI.frame.src = src;
+            // replace() не создаёт лишнюю запись в истории в отличие от src=
+            try {
+                App.UI.frame.contentWindow.location.replace(src);
+            } catch (e) {
+                // fallback для cross-origin (на боевом домене)
+                App.UI.frame.src = src;
+            }
         });
     });
 }

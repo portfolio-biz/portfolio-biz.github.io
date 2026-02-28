@@ -1,248 +1,781 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 
-<!-- 
-    Разработано с любовью студией Tandem Sites.
-    Вы достойны лучшего лендинга, — и мы его сделаем!
-    И не копайтесь в нашем коде, пожалуйста. Мы стесняемся.
--->
+<!-- Built with love by Tandem Sites -->
 
 <head>
     <meta charset="UTF-8" />
-    <script src="app/code/modules/http-to-https.js"></script>
-    <script src="app/code/modules/xfetcher.js"></script>
-    <script>window.__dbReady = xfetch.json('projects.db.json');</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Tandem Portfolio Viewer — Engine v1.0</title>
-    <link rel="icon" type="image/png" href="app/logo.png" />
-    <link rel="stylesheet" href="app/styles/default.css" />
+    <meta name="description" content="Tandem Sites — профессиональная разработка премиальных лендингов любой сложности. HTML, CSS, JS с нуля.">
+    <meta name="theme-color" content="#ffffff" />
+    <title>Tandem Sites — Разработка премиальных лендингов</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- async font load — non-render-blocking (LCP fix) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" />
+    </noscript>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
+    <div id="grain"></div>
+    <div id="cursor-dot"></div>
 
-    <!-- ── TOP NAVIGATION PANEL ── -->
-    <header id="panel" style="opacity:0">
+    <button id="site-logo" onclick="window.location.href='/'" title="Tandem Sites" type="button">
+        <img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" />
+    </button>
 
-        <!-- Logo -->
-        <a id="panel-logo" href="#" onclick="return false;" title="Tandem Sites">
-            <img src="app/logo.png" style="height:26px;width:auto;display:block;object-fit:contain" alt="Tandem Sites" />
-        </a>
+    <div id="progress"></div>
 
-        <div class="panel-divider"></div>
+    <nav id="dots" aria-label="Слайды">
+        <div class="dot active" onclick="goTo(0)" data-label="Главная" title="Главная"></div>
+        <div class="dot" onclick="goTo(1)" data-label="Что умеем" title="Возможности"></div>
+        <div class="dot" onclick="goTo(2)" data-label="Услуги" title="Услуги"></div>
+        <div class="dot" onclick="goTo(3)" data-label="Портфолио" title="Портфолио"></div>
+        <div class="dot" onclick="goTo(4)" data-label="Контакты" title="Контакты"></div>
+    </nav>
 
-        <!-- Custom site selector -->
-        <div id="site-select-wrap">
-            <button id="select-trigger" onclick="toggleDropdown()" title="Выбрать сайт из галереи">
-                <span id="select-label">Выбрать сайт</span>
-                <svg class="select-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 6l4 4 4-4" />
-                </svg>
-            </button>
-            <div id="site-dropdown">
-                <!-- >> index.db.js <<  -->
-            </div>
-        </div>
+    <div id="slide-counter">01 / 05</div>
 
-        <div class="panel-divider"></div>
-
-        <!-- Nav group: Back + Next -->
-        <div class="nav-group">
-            <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" data-tip="Предыдущий сайт">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 12L6 8l4-4" />
-                </svg>
-                <span>Назад</span>
-            </button>
-            <button class="nav-btn" id="btn-next" onclick="navigate(1)" data-tip="Следующий сайт">
-                <span>Далее</span>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 4l4 4-4 4" />
-                </svg>
-            </button>
-        </div>
-
-        <div class="panel-divider"></div>
-
-        <!-- Site info -->
-        <div id="site-info">
-            <div id="site-title">—</div>
-            <div id="site-meta">
-                <span id="site-counter">1 / 1</span>
-                <span id="site-description">Загрузка...</span>
-            </div>
-        </div>
-
-        <!-- Actions: open + copy URL + smartphone mode -->
-        <div class="panel-actions">
-            <button id="phone-toggle" data-tip="Режим смартфона">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="1" width="8" height="14" rx="2" />
-                    <path d="M7 12.5h2" />
-                </svg>
-            </button>
-            <div class="actions-divider"></div>
-            <a id="open-btn" href="#" target="_blank" rel="noopener" data-tip="Открыть в новой вкладке">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9" />
-                    <path d="M10 2h4v4M14 2l-6 6" />
-                </svg>
-            </a>
-            <button id="copy-btn" data-tip="Копировать ссылку на проект">
-                <svg class="icon-copy" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="5" width="8" height="9" rx="1.5" />
-                    <path d="M3 11V3a1 1 0 0 1 1-1h7" />
-                </svg>
-                <svg class="icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 8l4 4 6-6" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- Мобайл: одна кнопка вместо panel-actions -->
-        <button id="mobile-actions-btn" aria-label="Действия">
-            <svg viewBox="0 0 16 16" fill="currentColor">
-                <circle cx="3.5" cy="8" r="1.3" />
-                <circle cx="8" cy="8" r="1.3" />
-                <circle cx="12.5" cy="8" r="1.3" />
-            </svg>
-        </button>
-
-    </header>
-
-    <!-- ── TOOLTIP ── -->
-    <div id="tip"></div>
-
-    <!-- ── PHONE PREVIEW SHELL ── -->
-    <div id="phone-backdrop"></div>
-    <div id="frame-placeholder">
-        <div class="ph-loader">
-            <div class="ph-loader-wrap">
-                <div class="ph-loader-bar" id="ph-bar"></div>
-            </div>
-            <span class="ph-loader-text" id="ph-label"></span>
-        </div>
-    </div>
-    <div id="phone-shell">
-        <div class="ps-island"></div>
-        <div class="ps-btn ps-mute"></div>
-        <div class="ps-btn ps-vol-up"></div>
-        <div class="ps-btn ps-vol-dn"></div>
-        <div class="ps-btn ps-power"></div>
-        <div class="ps-bar"></div>
+    <div id="scroll-hint">
+        <div class="scroll-wheel"></div>
+        <span class="scroll-hint-text">Прокрутите вниз</span>
     </div>
 
-    <!-- ── PHONE PREVIEW SIDE PANELS ── -->
-    <div id="pp-left">
-        <div class="pp-header">Устройства</div>
-        <div class="pp-sep"></div>
-        <div id="pp-devices"></div>
-    </div>
-    <div id="pp-right">
-        <div class="pp-header">Формат</div>
-        <div class="pp-sep"></div>
-        <div id="pp-formats"></div>
-        <div class="pp-sep pp-sep--mt"></div>
-        <button class="pp-exit-btn" onclick="togglePhonePreview()">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
-                <path d="M10 11l3-3-3-3M13 8H6" />
-            </svg>
-            Выйти из режима
-        </button>
-    </div>
+    <div id="fp-wrap">
 
-    <!-- ── LOADER ── -->
-    <div id="loader">
-        <div class="loader-progress-wrap">
-            <div class="loader-progress-bar" id="progress-bar"></div>
-        </div>
-        <span class="loader-text" id="loader-label">Загрузка ресурсов...</span>
-    </div>
+        <!-- ════════════════════════════ SLIDE 1 — HERO ════════════════════════════ -->
+        <div class="slide" id="s1" style="top:0">
+            <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+            <div class="hero-blob hero-blob-3"></div>
+            <canvas id="neural-canvas" aria-hidden="true"></canvas>
+            <div class="hero-dots"></div>
 
-    <!-- ── IFRAME VIEWER ── -->
-    <iframe id="viewer-frame" src="about:blank" class="loading" allowfullscreen title="Portfolio Viewer"></iframe>
-
-
-    <!-- ── MOBILE ACTIONS MODAL ── -->
-    <div id="actions-modal" role="dialog" aria-modal="true" aria-label="Действия с проектом">
-        <div class="am-backdrop" onclick="closeActionsModal()"></div>
-        <div class="am-sheet">
-            <div class="am-drag-handle"></div>
-            <div class="am-header">
-                <span class="am-title">Действия</span>
-                <span class="am-site-name" id="am-site-name">—</span>
-            </div>
-            <div class="am-body">
-
-                <!-- Открыть в новой вкладке -->
-                <a id="am-open-btn" class="am-action" href="#" target="_blank" rel="noopener">
-                    <div class="am-action-icon">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M7 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9" />
-                            <path d="M10 2h4v4M14 2l-6 6" />
-                        </svg>
-                    </div>
-                    <div class="am-action-text">
-                        <span class="am-action-label">Открыть в новой вкладке</span>
-                        <span class="am-action-sub">Откроет проект в отдельном окне</span>
-                    </div>
-                    <svg class="am-action-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 4l4 4-4 4" />
-                    </svg>
-                </a>
-
-                <!-- Скопировать ссылку -->
-                <button id="am-copy-btn" class="am-action">
-                    <div class="am-action-icon">
-                        <svg class="am-icon-copy" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="5" y="5" width="8" height="9" rx="1.5" />
-                            <path d="M3 11V3a1 1 0 0 1 1-1h7" />
-                        </svg>
-                        <svg class="am-icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 8l4 4 6-6" />
-                        </svg>
-                    </div>
-                    <div class="am-action-text">
-                        <span class="am-action-label">Скопировать ссылку</span>
-                        <span class="am-action-sub">Ссылка на текущий проект</span>
-                    </div>
-                </button>
-
-                <div class="am-sep"></div>
-
-                <!-- Режим смартфона — только на десктопе -->
-                <div class="am-action am-action--disabled">
-                    <div class="am-action-icon">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="1" width="8" height="14" rx="2" />
-                            <path d="M7 12.5h2" />
-                        </svg>
-                    </div>
-                    <div class="am-action-text">
-                        <span class="am-action-label">Режим смартфона</span>
-                        <span class="am-action-sub">Сайт уже открыт с телефона — функция доступна на ПК</span>
-                    </div>
+            <div class="slide-inner">
+                <div class="hero-tag">
+                    <span class="live-dot"></span>
+                    Берём новые заказы
                 </div>
 
+                <h1 class="hero-h1">
+                    TANDEM<br>
+                    <span class="accent-line">SITES</span>
+                </h1>
+
+                <p class="hero-sub">
+                    Разрабатываем премиальные лендинги любой сложности — с нуля,
+                    без шаблонов. Любой стиль, любые анимации, любой каприз.
+                </p>
+
+                <div class="hero-actions">
+                    <button onclick="window.location.href='/viewer'" class="btn btn-primary" type="button">
+                        Смотреть портфолио
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                            <path d="M3 8h10M9 4l4 4-4 4" />
+                        </svg>
+                    </button>
+                    <button onclick="window.open('https://t.me/tandem_sites','_blank','noopener,noreferrer')" class="btn btn-outline" type="button">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px">
+                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                        </svg>
+                        Написать нам
+                    </button>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">100%</span>
+                        <span class="hero-stat-label">Уникальный код</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">HTML/CSS/JS</span>
+                        <span class="hero-stat-label">Без фреймворков. Оптимизация — приоритет</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">от 1 дня</span>
+                        <span class="hero-stat-label">Скорость сдачи</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-scroll-down" onclick="goTo(1)" aria-label="Прокрутить вниз">
+                <svg class="scroll-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 7l6 6 6-6"/>
+                    <path d="M4 11l6 6 6-6" opacity="0.35"/>
+                </svg>
             </div>
         </div>
-    </div>
 
-    <!-- ── ENGINE (порядок важен!) ── -->
-    <!-- viewer: state, utils, loader, phone-preview -->
-    <script src="app/code/app.viewer.js"></script>
-    <script src="app/code/app.viewer.loader.js"></script>
-    <script src="app/code/app.viewer.mobile.js"></script>
-    <!-- toolbox: navigation, modal, events -->
-    <script src="app/code/app.toolbox.navigation.js"></script>
-    <script src="app/code/app.toolbox.modal.js"></script>
-    <script src="app/code/app.toolbox.events.js"></script>
-    <!-- init -->
-    <script src="app/code/app.viewer.init.js"></script>
+        <!-- ════════════════════════════ SLIDE 2 — CAPABILITIES ═══════════════════ -->
+        <div class="slide" id="s2" style="top:100vh">
+            <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
+            <div class="s2-grid-bg"></div>
+            <div class="slide-inner">
+                <span class="eyebrow">Возможности</span>
+                <h2 class="big-h">Реализуем<br><em>любой</em> дизайн!</h2>
+                <p style="font-size:15px;color:var(--muted);max-width:530px;line-height:1.75;margin-top:10px;font-family:'Inter',sans-serif">
+                    Хотите снегопад зимой и огненный курсор летом? Или совершенно нестандартный стиль?
+                    Задайте любую планку — мы её поднимем.
+                </p>
+                <div class="cap-grid">
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg></div>
+                        <h3>Чистый код</h3>
+                        <p>Только HTML, CSS и JS. Никаких конструкторов и раздутых фреймворков — пишем с нуля.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3" />
+                                <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
+                            </svg></div>
+                        <h3>Авторский дизайн</h3>
+                        <p>Индивидуальный дизайн под вас: любой стиль, цветовая палитра, атмосфера и настроение.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" />
+                                <line x1="12" y1="18" x2="12.01" y2="18" />
+                            </svg></div>
+                        <h3>Полная адаптивность</h3>
+                        <p>От iPhone mini до холодильника — сайт отображается корректно на любом экране.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                            </svg></div>
+                        <h3>Анимации &amp; эффекты</h3>
+                        <p>Параллакс, кастомный курсор, сезонные эффекты, плавные переходы — всё что угодно.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg></div>
+                        <h3>Качество и скорость</h3>
+                        <p>Быстрая загрузка, семантика, базовое SEO — в каждом проекте без исключений.</p>
+                    </div>
+                    <div class="cap-card">
+                        <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg></div>
+                        <h3>Кому это нужно?</h3>
+                        <p>Бизнесу, фрилансерам, студентам с курсовой, специалистам — всем, кто хочет сайт мечты.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- ════════════════════════════ SLIDE 3 — SERVICES ═══════════════════════ -->
+        <div class="slide" id="s3" style="top:200vh">
+            <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
+            <div class="s3-blob"></div>
+            <div class="slide-inner">
+                <span class="eyebrow">Прайс-лист</span>
+                <h2 class="big-h">Наши услуги</h2>
+                <div class="svc-carousel-wrap">
+                    <div class="svc-carousel-track" id="svc-track">
+                        <div class="svc-card">
+                            <span class="svc-badge" aria-hidden="true" style="visibility:hidden">·</span>
+                            <div class="svc-price">Бесплатно</div>
+                            <div class="svc-price-note">всегда, без условий</div>
+                            <div class="svc-title">Консультация</div>
+                            <div class="svc-desc">Расскажем что реализуемо, сколько займёт и во что обойдётся. Честно и без давления.</div>
+                            <ul class="svc-features">
+                                <li>Разбор идеи и концепции</li>
+                                <li>Ответы на все вопросы</li>
+                                <li>Примерная смета</li>
+                                <li>Без обязательств</li>
+                            </ul>
+                        </div>
+                        <div class="svc-card featured">
+                            <span class="svc-badge">Популярное</span>
+                            <div class="svc-price">от 1.000 ₽</div>
+                            <div class="svc-price-note">цена договорная</div>
+                            <div class="svc-title">Разработка лендинга</div>
+                            <div class="svc-desc">Создадим сайт с нуля под ваш продукт или услугу. Полностью индивидуально — никаких шаблонов.</div>
+                            <ul class="svc-features">
+                                <li>Индивидуальный дизайн</li>
+                                <li>Адаптация под все устройства</li>
+                                <li>Анимации и спецэффекты</li>
+                                <li>Исходные файлы в комплекте</li>
+                                <li>Скидка 10% для курсовых работ</li>
+                            </ul>
+                        </div>
+                        <div class="svc-card">
+                            <span class="svc-badge">Под ключ</span>
+                            <div class="svc-price">+ 2.000 ₽</div>
+                            <div class="svc-price-note">сверх стоимости разработки</div>
+                            <div class="svc-title">Размещение</div>
+                            <div class="svc-desc">Настроим домен и разместим на хостинге. Вам останется только наслаждаться результатом.</div>
+                            <ul class="svc-features">
+                                <li>Настройка домена</li>
+                                <li>Размещение на хостинге</li>
+                                <li>Возможен бесплатный хостинг</li>
+                                <li>Поддержка после запуска</li>
+                            </ul>
+                        </div>
+                    </div><!-- /svc-carousel-track -->
+                    <!-- carousel nav — mobile only -->
+                    <div class="svc-carousel-nav">
+                        <button class="svc-nav-btn" id="svc-prev" type="button" aria-label="Назад">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+                        <div class="svc-pips">
+                            <span class="svc-pip svc-pip-active"></span>
+                            <span class="svc-pip"></span>
+                            <span class="svc-pip"></span>
+                        </div>
+                        <button class="svc-nav-btn" id="svc-next" type="button" aria-label="Вперёд">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+                    </div>
+                </div><!-- /svc-carousel-wrap -->
+                <div class="svc-prepay-note">
+                    <span class="prepay-title">Без предоплаты.</span>
+                    <span class="prepay-body">Первые результаты покажем сразу после согласования</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════ SLIDE 4 — PORTFOLIO ══════════════════════ -->
+        <div class="slide" id="s4" style="top:300vh">
+            <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
+            <div class="s4-glow"></div>
+            <div class="s4-grid"></div>
+            <div class="slide-inner">
+                <div class="portfolio-eyebrow">Наши работы</div>
+                <h2 class="portfolio-h2">
+                    НАШЕ<br>
+                    <span class="grad-line">ПОРТФОЛИО</span>
+                </h2>
+                <p class="portfolio-sub">
+                    Вместо тысячи слов. Листайте коллекцию реальных проектов — с живым просмотром
+                    в браузере и режимом смартфона прямо в окне.
+                </p>
+                <button onclick="window.location.href='/viewer'" class="btn-pf" type="button">
+                    Открыть портфолио
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                        <path d="M3 8h10M9 4l4 4-4 4" />
+                    </svg>
+                </button>
+                <div class="pf-row">
+                    <div class="pf-thumb">
+                        <div class="pf-inner">
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                        </div>
+                    </div>
+                    <div class="pf-thumb">
+                        <div class="pf-inner">
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                        </div>
+                    </div>
+                    <div class="pf-thumb">
+                        <div class="pf-inner">
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                            <div class="pf-bar"></div>
+                        </div>
+                    </div>
+                    <span class="pf-more">и ещё →</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════ SLIDE 5 — CONTACT ════════════════════════ -->
+        <div class="slide" id="s5" style="top:400vh">
+            <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
+            <div class="s5-blob"></div>
+            <div class="slide-inner">
+                <div class="contact-layout">
+                    <div>
+                        <span class="eyebrow">Контакты</span>
+                        <h2 class="contact-h2">Готовы<br><em>начать?</em></h2>
+                        <p class="contact-sub">
+                            Нет ни одного вопроса, который нельзя обсудить.
+                            Напишите — ответим быстро, честно и по делу.
+                        </p>
+                        <button onclick="window.open('https\:\/\/t.me/tandem_sites','_blank','noopener,noreferrer')" class="tg-btn" type="button">
+                            <span class="tg-icon-wrap">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                                </svg>
+                            </span>
+                            Написать в Telegram
+                        </button>
+                    </div>
+                    <div class="contact-cards">
+                        <div class="c-card">
+                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg></div>
+                            <div>
+                                <div class="c-card-title">Telegram</div>
+                                <div class="c-card-text">@tandem_sites — отвечаем быстро</div>
+                            </div>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg></div>
+                            <div>
+                                <div class="c-card-title">Сроки</div>
+                                <div class="c-card-text">Работаем быстро. Базовый лендинг — от 1–3 дней</div>
+                            </div>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg></div>
+                            <div>
+                                <div class="c-card-title">Без рисков</div>
+                                <div class="c-card-text">Без предоплаты. Начинаем сразу после согласования</div>
+                            </div>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg></div>
+                            <div>
+                                <div class="c-card-title">Гарантия</div>
+                                <div class="c-card-text">Правки до вашего полного довольства</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-note">© 2026 TANDEM SITES — все сайты с любовью</div>
+            <!-- cliff effect -->
+            <div class="s5-cliff" aria-hidden="true">
+                <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,40 C180,80 360,0 540,40 C720,80 900,10 1080,44 C1260,78 1380,20 1440,38 L1440,80 L0,80 Z" fill="rgba(15,14,23,.06)" />
+                    <path d="M0,55 C200,30 400,72 600,52 C800,32 1000,68 1200,50 C1320,38 1400,60 1440,56 L1440,80 L0,80 Z" fill="rgba(15,14,23,.05)" />
+                    <path d="M0,64 C160,50 320,76 480,62 C640,48 800,74 960,60 C1120,46 1300,70 1440,64 L1440,80 L0,80 Z" fill="rgba(15,14,23,.08)" />
+                </svg>
+            </div>
+        </div>
+
+    </div><!-- /fp-wrap -->
+
+    <script>
+        (function () {
+            const TOTAL = 5;
+            const DARK = new Set([3]); // slides with dark bg (0-indexed)
+
+            let cur = 0, busy = false, tyY = 0, tyX = 0;
+
+            const wrap = document.getElementById('fp-wrap');
+            const bar = document.getElementById('progress');
+            const counter = document.getElementById('slide-counter');
+            const dotEls = document.querySelectorAll('.dot');
+            const inners = document.querySelectorAll('.slide-inner');
+            // bg layers move at 0.6x — real parallax
+            const bgLayers = [
+                document.querySelector('#s1 .hero-blob-wrap'),
+                document.querySelector('#s2 .s2-grid-bg'),
+                document.querySelector('#s3 .s3-lines'),
+                document.querySelector('#s4 .s4-glow'),
+                document.querySelector('#s5 .s5-blob')
+            ];
+
+            // fallback: ensure correct initial positions
+            document.querySelectorAll('.slide').forEach((el, i) => { el.style.top = (i * 100) + 'vh'; });
+
+            function goTo(idx) {
+                if (busy || idx === cur || idx < 0 || idx >= TOTAL) return;
+                busy = true;
+                const prev = cur;
+                cur = idx;
+                const dir = cur > prev ? 1 : -1;
+
+                // OUT: outgoing content
+                if (inners[prev]) {
+                    inners[prev].style.transform = `translateY(${dir * -60}px)`;
+                    inners[prev].style.opacity = '0';
+                }
+
+                // outgoing bg: opposite direction at 0.6x
+                const bgEl = bgLayers[prev];
+                if (bgEl) {
+                    bgEl.style.transition = `transform var(--dur) var(--ease)`;
+                    bgEl.style.transform = `translateY(${dir * -36}px)`;
+                }
+
+                // incoming bg: starts offset, then settles
+                const bgIn = bgLayers[cur];
+                if (bgIn) {
+                    bgIn.style.transition = 'none';
+                    bgIn.style.transform = `translateY(${dir * 36}px)`;
+                }
+
+                // IN: incoming content
+                if (inners[cur]) {
+                    inners[cur].style.transition = 'none';
+                    inners[cur].style.transform = `translateY(${dir * 60}px)`;
+                    inners[cur].style.opacity = '0';
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        if (bgIn) {
+                            bgIn.style.transition = `transform var(--dur) var(--ease)`;
+                            bgIn.style.transform = 'translateY(0)';
+                        }
+                        inners[cur].style.transition = '';
+                        inners[cur].style.transform = 'translateY(0)';
+                        inners[cur].style.opacity = '1';
+                    }));
+                }
+
+                wrap.style.transform = `translateY(${-cur * 100}vh)`;
+                bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+                counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+
+                dotEls.forEach((d, i) => d.classList.toggle('active', i === cur));
+                document.body.classList.toggle('s4', DARK.has(cur));
+                document.body.classList.toggle('on-home', cur === 0);
+
+                setTimeout(() => {
+                    if (inners[prev]) {
+                        inners[prev].style.transform = 'translateY(0)';
+                        inners[prev].style.opacity = '1';
+                    }
+                    if (bgEl) { bgEl.style.transform = 'translateY(0)'; }
+                    busy = false;
+                }, 820);
+            }
+
+            window.goTo = goTo;
+            bar.style.width = '0%';
+
+            // hide non-first slides before first animation
+            inners.forEach((el, i) => {
+                if (i > 0) {
+                    el.style.transition = 'none';
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(60px)';
+                }
+            });
+            // delay on-home so CSS transition fires
+            setTimeout(() => document.body.classList.add('on-home'), 50);
+
+
+            /* ── Wheel ── */
+            let wA = 0, wT = null;
+            window.addEventListener('wheel', e => {
+                e.preventDefault();
+                wA += e.deltaY;
+                clearTimeout(wT);
+                wT = setTimeout(() => { wA = 0; }, 130);
+                if (Math.abs(wA) >= 55) { wA = 0; goTo(cur + (e.deltaY > 0 ? 1 : -1)); }
+            }, { passive: false });
+
+            /* ── Keyboard ── */
+            window.addEventListener('keydown', e => {
+                if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(e.key)) { e.preventDefault(); goTo(cur + 1); }
+                else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); goTo(cur - 1); }
+                else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+                else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL - 1); }
+            });
+
+            /* ── Touch ── */
+            window.addEventListener('touchstart', e => { tyY = e.touches[0].clientY; tyX = e.touches[0].clientX; }, { passive: true });
+            window.addEventListener('touchend', e => {
+                const dy = tyY - e.changedTouches[0].clientY;
+                const dx = tyX - e.changedTouches[0].clientX;
+                if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 42) goTo(cur + (dy > 0 ? 1 : -1));
+            }, { passive: true });
+
+            /* ── Custom cursor — pointer devices only ── */
+            const dot = document.getElementById('cursor-dot');
+            let mx = -200, my = -200;
+            let hovering = false, clicking = false, blobPx = 0, blobPy = 0;
+            let sd = 1;
+            const blobs = document.querySelectorAll('.hero-blob');
+            const isPointerFine = window.matchMedia('(pointer: fine)').matches;
+
+            // skip trail until mouse moves — prevents corner-shoot on load
+            let trailActive = false;
+
+            document.addEventListener('mousemove', e => {
+                trailActive = true;
+                mx = e.clientX; my = e.clientY;
+                if (cur === 0) {
+                    blobPx = (e.clientX / window.innerWidth - .5) * 2;
+                    blobPy = (e.clientY / window.innerHeight - .5) * 2;
+                }
+            }, { passive: true });
+
+            /* ── Particles (S1 only) ── */
+            const particleCanvas = document.getElementById('neural-canvas');
+            let pCtx = null, particles = [], pW = 0, pH = 0;
+
+            if (particleCanvas) {
+                pCtx = particleCanvas.getContext('2d');
+
+                function initParticles() {
+                    pW = particleCanvas.offsetWidth;
+                    pH = particleCanvas.offsetHeight;
+                    const dpr = window.devicePixelRatio || 1;
+                    particleCanvas.width  = pW * dpr;
+                    particleCanvas.height = pH * dpr;
+                    pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    const count = Math.min(Math.floor(pW * pH / 10000), 80);
+                    particles = Array.from({ length: count }, () => ({
+                        x:    Math.random() * pW,
+                        y:    Math.random() * pH,
+                        vx:   (Math.random() - 0.5) * 0.18,
+                        vy:   (Math.random() - 0.5) * 0.18,
+                        r:    0.8 + Math.random() * 1.6,
+                        phase: Math.random() * Math.PI * 2, // opacity pulse phase
+                    }));
+                }
+
+                initParticles();
+                window.addEventListener('resize', initParticles, { passive: true });
+                setTimeout(() => document.getElementById('s1').classList.add('neural-ready'), 600);
+            }
+
+            function drawParticles() {
+                if (!pCtx || !particles.length) return;
+                pCtx.clearRect(0, 0, pW, pH);
+                const t = performance.now() * 0.001;
+                for (const p of particles) {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < -10) p.x = pW + 10;
+                    else if (p.x > pW + 10) p.x = -10;
+                    if (p.y < -10) p.y = pH + 10;
+                    else if (p.y > pH + 10) p.y = -10;
+                    const a = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
+                    pCtx.beginPath();
+                    pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
+                    pCtx.fillStyle = `rgba(124,110,245,${a.toFixed(3)})`;
+                    pCtx.fill();
+                }
+            }
+            const TRAIL_LEN = 22; // balance of quality and perf
+            const TRAIL = [];     // start empty — no pre-fill
+
+            if (isPointerFine) {
+                trailCanvas = document.createElement('canvas');
+                trailCanvas.style.cssText =
+                    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;';
+                document.body.appendChild(trailCanvas);
+                trailCtx = trailCanvas.getContext('2d');
+                const resizeTrail = () => {
+                    const dpr = window.devicePixelRatio || 1;
+                    trailCanvas.width  = window.innerWidth  * dpr;
+                    trailCanvas.height = window.innerHeight * dpr;
+                    trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                };
+                resizeTrail();
+                window.addEventListener('resize', resizeTrail, { passive: true });
+            }
+
+            /* ── Dot proximity — cache positions so scale doesn't shift center ── */
+            let dotCache = [];
+            function cacheDots() {
+                // reset transforms before measuring
+                dotEls.forEach(d => { d.style.transform = ''; d.style.background = ''; });
+                // defer so browser applies reset first
+                requestAnimationFrame(() => {
+                    dotCache = Array.from(dotEls).map(d => {
+                        const r = d.getBoundingClientRect();
+                        return { el: d, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+                    });
+                });
+            }
+            cacheDots();
+            window.addEventListener('resize', cacheDots, { passive: true });
+
+            function updateDotMag() {
+                const PROX = 60;
+                dotCache.forEach(({ el, cx, cy }) => {
+                    if (el.classList.contains('active')) { el.style.background = ''; return; }
+                    const dist = Math.hypot(mx - cx, my - cy);
+                    if (dist < PROX) {
+                        const t = 1 - dist / PROX;
+                        el.style.background = `rgba(124,110,245,${(t * 0.65).toFixed(2)})`;
+                    } else {
+                        el.style.background = '';
+                    }
+                });
+            }
+
+            /* single RAF loop */
+            let rafId;
+            function tick() {
+                const tsd = hovering ? 0.5 : 1;
+                sd += (tsd - sd) * 0.18;
+                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
+
+                if (cur === 0) {
+                    const t = performance.now() * 0.001;
+                    const b1x = Math.sin(t * 0.2856) * 20, b1y = Math.cos(t * 0.2856) * 14;
+                    const b1s = 1 + Math.sin(t * 0.5712) * 0.04;
+                    const b2x = Math.sin(t * 0.2244 + 1.2) * 19, b2y = Math.cos(t * 0.2244 + 0.7) * 14;
+                    const b2s = 1 + Math.sin(t * 0.1122) * 0.065;
+                    const b3x = Math.sin(t * 0.3491 + 2.1) * 16, b3y = Math.cos(t * 0.3491 + 0.5) * 19;
+                    if (blobs[0]) blobs[0].style.transform = `translate(${blobPx * 20 + b1x}px,${blobPy * 13 + b1y}px) scale(${b1s})`;
+                    if (blobs[1]) blobs[1].style.transform = `translate(${blobPx * -13 + b2x}px,${blobPy * 9 + b2y}px) scale(${b2s})`;
+                    if (blobs[2]) blobs[2].style.transform = `translate(${blobPx * 9 + b3x}px,${blobPy * -16 + b3y}px)`;
+                    drawParticles();
+                }
+
+                /* ── Trail ── */
+                if (trailCtx && trailActive) {
+                    TRAIL.push({ x: mx, y: my, t: performance.now() });
+                    if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
+
+                    trailCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                    const now  = performance.now();
+                    const LIFE = 380; // point lifetime, ms
+                    const len  = TRAIL.length;
+
+                    if (len > 1) {
+                        trailCtx.lineCap  = 'round';
+                        trailCtx.lineJoin = 'round';
+
+                        // pass 1 — wide soft glow (lines only, no circles)
+                        for (let i = 1; i < len; i++) {
+                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / LIFE);
+                            if (a <= 0) continue;
+                            const prog = i / (len - 1); // 0=tail … 1=head
+                            trailCtx.beginPath();
+                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
+                            trailCtx.lineTo(TRAIL[i].x,     TRAIL[i].y);
+                            trailCtx.strokeStyle = `rgba(104,60,240,${+(a * prog * 0.28).toFixed(3)})`;
+                            trailCtx.lineWidth   = 2 + prog * 16;
+                            trailCtx.stroke();
+                        }
+
+                        // pass 2 — bright core spine
+                        for (let i = 1; i < len; i++) {
+                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / LIFE);
+                            if (a <= 0) continue;
+                            const prog = i / (len - 1);
+                            trailCtx.beginPath();
+                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
+                            trailCtx.lineTo(TRAIL[i].x,     TRAIL[i].y);
+                            trailCtx.strokeStyle = `rgba(200,170,255,${+(a * prog * 0.75).toFixed(3)})`;
+                            trailCtx.lineWidth   = 0.8 + prog * 2.5;
+                            trailCtx.stroke();
+                        }
+                    }
+                }
+
+                /* dot proximity magnetism */
+                if (isPointerFine) updateDotMag();
+
+                rafId = requestAnimationFrame(tick);
+            }
+            tick();
+
+            /* pause RAF when tab hidden; restart reliably on show */
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                } else if (!rafId) {
+                    // clear stale trail so no ghost
+                    TRAIL.length = 0;
+                    trailActive = false;
+                    tick();
+                }
+            });
+
+            // bfcache restore (back/forward navigation)
+            window.addEventListener('pageshow', e => {
+                if (e.persisted) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                    TRAIL.length = 0;
+                    trailActive = false;
+                    tick();
+                }
+            });
+
+            document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
+            document.addEventListener('mouseup', () => { clicking = false; }, { passive: true });
+            document.addEventListener('mouseleave', () => {
+                dot.style.opacity = '0';
+                if (trailCanvas) trailCanvas.style.opacity = '0';
+            }, { passive: true });
+            document.addEventListener('mouseenter', () => {
+                dot.style.opacity = '1';
+                if (trailCanvas) trailCanvas.style.opacity = '1';
+            }, { passive: true });
+
+            /* ── Scroll hint ── */
+            const hint = document.getElementById('scroll-hint');
+            if (hint) {
+                const hideHint = () => {
+                    hint.style.transition = 'opacity .4s';
+                    hint.style.opacity = '0';
+                    setTimeout(() => hint.remove(), 500);
+                };
+                setTimeout(() => {
+                    window.addEventListener('wheel', hideHint, { once: true });
+                    window.addEventListener('keydown', hideHint, { once: true });
+                    window.addEventListener('touchend', hideHint, { once: true });
+                }, 2400);
+            }
+
+        /* ── Carousel ── */
+        const svcTrack = document.getElementById('svc-track');
+        const svcPips  = document.querySelectorAll('.svc-pip');
+        let svcIdx = 0;
+
+        function svcGoTo(idx) {
+            const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
+            if (idx < 0 || idx >= cards.length) return;
+            svcIdx = idx;
+            svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
+            svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
+        }
+
+        const svcPrev = document.getElementById('svc-prev');
+        const svcNext = document.getElementById('svc-next');
+        if (svcPrev) svcPrev.addEventListener('click', () => svcGoTo(svcIdx - 1));
+        if (svcNext) svcNext.addEventListener('click', () => svcGoTo(svcIdx + 1));
+
+        // touch-swipe on carousel track
+        let cTouchX = 0;
+        const svcMQ = window.matchMedia('(max-width: 900px)');
+        if (svcTrack) {
+            svcTrack.addEventListener('touchstart', e => { cTouchX = e.touches[0].clientX; }, { passive: true });
+            svcTrack.addEventListener('touchend', e => {
+                if (!svcMQ.matches) return;
+                const dx = cTouchX - e.changedTouches[0].clientX;
+                if (Math.abs(dx) > 40) svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
+            }, { passive: true });
+
+            // mobile only: init without animation
+            if (svcMQ.matches) {
+                svcTrack.style.transition = 'none';
+                svcTrack.style.transform = 'translateX(-100%)';
+                requestAnimationFrame(() => {
+                    svcTrack.style.transition = 'transform .4s cubic-bezier(.76,0,.24,1)';
+                });
+            }
+        }
+
+        })();
+    </script>
 </body>
 
 </html>

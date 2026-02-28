@@ -4,6 +4,9 @@
    — Загрузка сайтов, навигация, дропдаун
    ──────────────────────────────────────────────── */
 
+// первый вызов syncUrl использует replaceState (чтобы не дублировать запись при загрузке)
+let _isInitialLoad = true;
+
 function loadSite(index) {
     if (index < 0 || index >= TANDEM_SITES.length) return;
 
@@ -84,8 +87,47 @@ function syncUrl(siteId) {
     siteId === 0
         ? url.searchParams.delete('project-id')
         : url.searchParams.set('project-id', siteId);
-    history.replaceState(null, '', url);
+    // первый запуск — replaceState (заменяем текущую URL без добавления записи)
+    // последующие — pushState, чтобы кнопка "Назад" работала корректно
+    if (_isInitialLoad) {
+        history.replaceState({ projectId: siteId }, '', url);
+        _isInitialLoad = false;
+    } else {
+        history.pushState({ projectId: siteId }, '', url);
+    }
 }
+
+// popstate: обрабатываем кнопку "Назад"/"Вперёд" браузера
+window.addEventListener('popstate', e => {
+    if (typeof TANDEM_SITES === 'undefined') return;
+    const urlId = new URLSearchParams(location.search).get('project-id');
+    // нет project-id → вернулись к начальному состоянию вьюера (home/project 0)
+    const targetId = urlId !== null ? parseInt(urlId, 10) : 0;
+    const idx = TANDEM_SITES.findIndex(s => s.id === targetId);
+    if (idx !== -1 && idx !== App.state.currentIndex) {
+        // меняем проект без вызова syncUrl — запись уже в истории
+        App.state.currentIndex = idx;
+        const site = TANDEM_SITES[idx];
+        const isHome = site.id === 0;
+        App.UI.loader.classList.remove('hidden');
+        startProgress();
+        triggerInfoAnimation(() => {
+            App.UI.titleEl.textContent = site.title;
+            App.UI.descEl.textContent = site.description;
+            const nonHomePos = TANDEM_SITES.filter((s, i) => s.id !== 0 && i <= idx).length;
+            const nonHomeTotal = TANDEM_SITES.filter(s => s.id !== 0).length;
+            App.UI.counterEl.textContent = `${nonHomePos} / ${nonHomeTotal}`;
+        });
+        App.UI.btnPrev.disabled = (idx === 0);
+        App.UI.btnNext.disabled = (idx === TANDEM_SITES.length - 1);
+        App.UI.openBtn.classList.toggle('disabled', isHome);
+        App.UI.copyBtn.classList.toggle('disabled', isHome);
+        App.UI.phoneToggle.classList.toggle('disabled', isHome);
+        App.UI.counterEl.style.display = isHome ? 'none' : '';
+        updateDropdownState(idx);
+        reloadFrame(site.path);
+    }
+});
 
 function triggerInfoAnimation(cb) {
     App.UI.infoBlock.classList.remove('info-animate');
