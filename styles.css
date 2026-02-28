@@ -1669,7 +1669,7 @@ body.s4 #cursor-dot {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    padding: 15px 30px 17px;
+    padding: 15px 30px;
     background: var(--black);
     color: #fff;
     border-radius: 50px;
@@ -1729,7 +1729,7 @@ body.s4 #cursor-dot {
     gap: 0;
     border: 1.5px solid rgba(0, 0, 0, 0.1);
     border-radius: 14px;
-    overflow: hidden;
+    /* overflow: hidden убран — срезал descenders (g, p, y) в Syne */
 }
 
 .c-card {
@@ -1740,11 +1740,19 @@ body.s4 #cursor-dot {
     background: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 0;
-    /* padding-left = layout every frame; replaced with translateX — compositor */
     transition: transform 0.22s ease;
-    will-change: transform;
+    /* will-change убран — compositor layer клипает ink overflow (descenders) в Safari */
     box-shadow: none;
     position: relative;
+    overflow: visible;
+}
+
+/* скруглённые углы вместо overflow:hidden на родителе */
+.c-card:first-child {
+    border-radius: 12px 12px 0 0;
+}
+.c-card:last-child {
+    border-radius: 0 0 12px 12px;
 }
 
 /* background hover via opacity — no paint */
@@ -1793,7 +1801,6 @@ body.s4 #cursor-dot {
     font-weight: 700;
     color: var(--black);
     line-height: 1.4;
-    padding-bottom: 3px;
     margin-bottom: 2px;
 }
 
@@ -1816,23 +1823,53 @@ body.s4 #cursor-dot {
     z-index: 1;
 }
 
-/* cliff wave — inline SVG mask */
+/* cliff waves — три анимированных SVG-слоя */
 .s5-cliff {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 80px;
+    height: 120px;
     z-index: 3;
     pointer-events: none;
     overflow: hidden;
 }
 
-.s5-cliff svg {
+/* каждый SVG вдвое шире контейнера — два периода волны для бесшовного цикла */
+.s5-cliff .s5-wave {
     position: absolute;
     bottom: 0;
-    width: 100%;
-    height: auto;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    will-change: transform;
+}
+
+@keyframes s5-wave-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.s5-wave-1 {
+    animation: s5-wave-scroll 12s linear infinite;
+}
+.s5-wave-2 {
+    animation: s5-wave-scroll 8s linear infinite reverse;
+    animation-delay: -3s;
+}
+.s5-wave-3 {
+    animation: s5-wave-scroll 5s linear infinite;
+    animation-delay: -1.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .s5-wave {
+        animation: none;
+    }
 }
 
 .footer-note {
@@ -1840,6 +1877,7 @@ body.s4 #cursor-dot {
     bottom: 26px;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 4; /* поверх волн */
     font-size: 10.5px;
     color: rgba(0, 0, 0, 0.38);
     white-space: nowrap;
@@ -1919,24 +1957,23 @@ body.s4 #cursor-dot {
     .cap-grid {
         grid-template-columns: repeat(2, 1fr);
         margin-top: 14px;
-        gap: 0;
+        /* gap + background = гарантированные разделители во всех браузерах */
+        gap: 1px;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(0, 0, 0, 0.18);
+    }
+    /* сбрасываем все десктопные border-правила — разделители теперь через gap */
+    .cap-card,
+    .cap-card:nth-child(odd),
+    .cap-card:nth-child(even),
+    .cap-card:nth-child(3n),
+    .cap-card:nth-child(n + 5),
+    .cap-card:last-child {
+        border-right: none;
+        border-bottom: none;
     }
     .cap-card {
-        border-right: none;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         padding: 14px 12px 12px;
-    }
-    .cap-card:nth-child(odd) {
-        border-right: 1px solid rgba(0, 0, 0, 0.08);
-    }
-    .cap-card:nth-child(n + 5) {
-        border-bottom: none;
-    }
-    .cap-card:last-child {
-        border-bottom: none;
-    }
-    .cap-card:nth-child(3n) {
-        border-right: none;
     }
     .cap-card h3 {
         font-size: 13px;
@@ -1964,7 +2001,7 @@ body.s4 #cursor-dot {
         margin-top: 14px;
     }
     .svc-card {
-        padding: 16px 16px 14px;
+        padding: 26px 22px 24px;
     }
     .svc-card.featured,
     .svc-card.featured:hover {
@@ -2062,7 +2099,7 @@ body.s4 #cursor-dot {
         gap: 5px;
     }
     .svc-card {
-        padding: 12px 13px 10px;
+        padding: 22px 18px 20px;
     }
     .svc-badge {
         font-size: 8px;

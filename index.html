@@ -362,12 +362,19 @@
                 </div>
             </div>
             <div class="footer-note">© 2026 TANDEM SITES — все сайты с любовью</div>
-            <!-- cliff effect -->
+            <!-- cliff waves — animated -->
             <div class="s5-cliff" aria-hidden="true">
-                <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                    <path d="M0,40 C180,80 360,0 540,40 C720,80 900,10 1080,44 C1260,78 1380,20 1440,38 L1440,80 L0,80 Z" fill="rgba(15,14,23,.06)" />
-                    <path d="M0,55 C200,30 400,72 600,52 C800,32 1000,68 1200,50 C1320,38 1400,60 1440,56 L1440,80 L0,80 Z" fill="rgba(15,14,23,.05)" />
-                    <path d="M0,64 C160,50 320,76 480,62 C640,48 800,74 960,60 C1120,46 1300,70 1440,64 L1440,80 L0,80 Z" fill="rgba(15,14,23,.08)" />
+                <!-- wave 1 — самый медленный, высокая амплитуда -->
+                <svg class="s5-wave s5-wave-1" viewBox="0 0 2880 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,60 C180,10 540,10 720,60 C900,110 1260,110 1440,60 C1620,10 1980,10 2160,60 C2340,110 2700,110 2880,60 L2880,120 L0,120 Z" fill="rgba(15,14,23,.07)" />
+                </svg>
+                <!-- wave 2 — средняя, обратное направление -->
+                <svg class="s5-wave s5-wave-2" viewBox="0 0 2880 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,72 C180,28 540,28 720,72 C900,116 1260,116 1440,72 C1620,28 1980,28 2160,72 C2340,116 2700,116 2880,72 L2880,120 L0,120 Z" fill="rgba(15,14,23,.05)" />
+                </svg>
+                <!-- wave 3 — быстрая, высокая -->
+                <svg class="s5-wave s5-wave-3" viewBox="0 0 2880 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0,84 C180,52 540,52 720,84 C900,116 1260,116 1440,84 C1620,52 1980,52 2160,84 C2340,116 2700,116 2880,84 L2880,120 L0,120 Z" fill="rgba(15,14,23,.06)" />
                 </svg>
             </div>
         </div>
@@ -577,10 +584,11 @@
                     pCtx.fill();
                 }
             }
-            const TRAIL_LEN = 22; // balance of quality and perf
-            const TRAIL = [];     // start empty — no pre-fill
-            let trailCanvas = null, trailCtx = null; // declared here — null on mobile (no pointer:fine)
-            let trailW = 0, trailH = 0; // logical (CSS-pixel) canvas dimensions for clearRect
+            const TRAIL_LEN  = 22;  // количество точек в хвосте
+            const TRAIL_LIFE = 380; // время жизни точки, мс
+            const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
+            let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
+            let trailW = 0, trailH = 0; // CSS-пиксельные размеры, используются в clearRect
 
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
@@ -663,7 +671,6 @@
 
                     trailCtx.clearRect(0, 0, trailW, trailH);
                     const now = performance.now();
-                    const LIFE = 380; // point lifetime, ms
                     const len = TRAIL.length;
 
                     if (len > 1) {
@@ -672,7 +679,7 @@
 
                         // pass 1 — wide soft glow (lines only, no circles)
                         for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / LIFE);
+                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
                             if (a <= 0) continue;
                             const prog = i / (len - 1); // 0=tail … 1=head
                             trailCtx.beginPath();
@@ -685,7 +692,7 @@
 
                         // pass 2 — bright core spine
                         for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / LIFE);
+                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
                             if (a <= 0) continue;
                             const prog = i / (len - 1);
                             trailCtx.beginPath();
@@ -705,28 +712,26 @@
             }
             tick();
 
-            /* pause RAF when tab hidden; restart reliably on show */
+            /* ── RAF lifecycle helpers ── */
+            function stopLoop() {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+            function restartLoop() {
+                TRAIL.length = 0; // сбрасываем хвост, чтобы не было «призрака»
+                trailActive = false;
+                tick();
+            }
+
+            /* пауза RAF при скрытой вкладке; надёжный перезапуск при показе */
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    cancelAnimationFrame(rafId);
-                    rafId = null;
-                } else if (!rafId) {
-                    // clear stale trail so no ghost
-                    TRAIL.length = 0;
-                    trailActive = false;
-                    tick();
-                }
+                if (document.hidden) stopLoop();
+                else if (!rafId) restartLoop();
             });
 
-            // bfcache restore (back/forward navigation)
+            // bfcache-восстановление (кнопки «назад/вперёд» браузера)
             window.addEventListener('pageshow', e => {
-                if (e.persisted) {
-                    cancelAnimationFrame(rafId);
-                    rafId = null;
-                    TRAIL.length = 0;
-                    trailActive = false;
-                    tick();
-                }
+                if (e.persisted) { stopLoop(); restartLoop(); }
             });
 
             document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
