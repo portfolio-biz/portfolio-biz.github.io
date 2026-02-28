@@ -57,7 +57,7 @@ const PHONE_FORMATS = [
 function togglePhonePreview() {
     const enabling = !document.body.classList.contains('phone-preview');
     App.UI.phoneToggle.classList.toggle('active', enabling);
-    localStorage.setItem('app.viewer.mobileMode', enabling);
+    localStorage.setItem('app.viewer.mobileMode', String(enabling));
     App.UI.phoneToggle.classList.add('disabled');
 
     document.body.classList.toggle('phone-preview', enabling);

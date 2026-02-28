@@ -11,6 +11,8 @@ const App = {
         currentIndex: 0,
         currentProgress: 0,
         progressTimer: null,
+        finishTimer1: null,  // таймер скрытия лоадера
+        finishTimer2: null,  // таймер сброса прогрессбара
         isRealLoad: false,
         phonePrevWasActive: false,
         onFrameLoadCallback: null, // вызывается один раз после следующей реальной загрузки

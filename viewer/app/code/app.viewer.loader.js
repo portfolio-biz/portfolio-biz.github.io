@@ -7,6 +7,11 @@
 function startProgress() {
     App.state.currentProgress = 0;
     clearInterval(App.state.progressTimer);
+    // отменяем незавершённые таймеры finishProgress — иначе они скроют лоадер следующей загрузки
+    clearTimeout(App.state.finishTimer1);
+    clearTimeout(App.state.finishTimer2);
+    App.state.finishTimer1 = null;
+    App.state.finishTimer2 = null;
     App.UI.progressBar.style.transition = 'none';
     App.UI.progressBar.style.width = '0%';
     App.UI.loaderLabel.textContent = 'Загрузка ресурсов...';
@@ -26,10 +31,10 @@ function finishProgress() {
     App.UI.progressBar.style.transition = 'width 0.22s ease';
     App.UI.progressBar.style.width = '100%';
     App.UI.loaderLabel.textContent = 'Подготовка контента...';
-    setTimeout(() => {
+    App.state.finishTimer1 = setTimeout(() => {
         App.UI.loader.classList.add('hidden');
         App.UI.frame.classList.remove('loading');
-        setTimeout(() => {
+        App.state.finishTimer2 = setTimeout(() => {
             App.UI.progressBar.style.transition = 'none';
             App.UI.progressBar.style.width = '0%';
         }, 350);
