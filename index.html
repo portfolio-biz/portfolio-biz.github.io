@@ -105,8 +105,8 @@
 
             <div class="hero-scroll-down" onclick="goTo(1)" aria-label="Прокрутить вниз">
                 <svg class="scroll-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 7l6 6 6-6"/>
-                    <path d="M4 11l6 6 6-6" opacity="0.35"/>
+                    <path d="M4 7l6 6 6-6" />
+                    <path d="M4 11l6 6 6-6" opacity="0.35" />
                 </svg>
             </div>
         </div>
@@ -541,16 +541,16 @@
                     pW = particleCanvas.offsetWidth;
                     pH = particleCanvas.offsetHeight;
                     const dpr = window.devicePixelRatio || 1;
-                    particleCanvas.width  = pW * dpr;
+                    particleCanvas.width = pW * dpr;
                     particleCanvas.height = pH * dpr;
                     pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                     const count = Math.min(Math.floor(pW * pH / 10000), 80);
                     particles = Array.from({ length: count }, () => ({
-                        x:    Math.random() * pW,
-                        y:    Math.random() * pH,
-                        vx:   (Math.random() - 0.5) * 0.18,
-                        vy:   (Math.random() - 0.5) * 0.18,
-                        r:    0.8 + Math.random() * 1.6,
+                        x: Math.random() * pW,
+                        y: Math.random() * pH,
+                        vx: (Math.random() - 0.5) * 0.18,
+                        vy: (Math.random() - 0.5) * 0.18,
+                        r: 0.8 + Math.random() * 1.6,
                         phase: Math.random() * Math.PI * 2, // opacity pulse phase
                     }));
                 }
@@ -594,10 +594,10 @@
                     const dpr = window.devicePixelRatio || 1;
                     trailW = window.innerWidth;
                     trailH = window.innerHeight;
-                    trailCanvas.width  = Math.round(trailW * dpr);
+                    trailCanvas.width = Math.round(trailW * dpr);
                     trailCanvas.height = Math.round(trailH * dpr);
                     // CSS-размер = логическим — браузер не масштабирует canvas
-                    trailCanvas.style.width  = trailW + 'px';
+                    trailCanvas.style.width = trailW + 'px';
                     trailCanvas.style.height = trailH + 'px';
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 };
@@ -662,12 +662,12 @@
                     if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
 
                     trailCtx.clearRect(0, 0, trailW, trailH);
-                    const now  = performance.now();
+                    const now = performance.now();
                     const LIFE = 380; // point lifetime, ms
-                    const len  = TRAIL.length;
+                    const len = TRAIL.length;
 
                     if (len > 1) {
-                        trailCtx.lineCap  = 'round';
+                        trailCtx.lineCap = 'round';
                         trailCtx.lineJoin = 'round';
 
                         // pass 1 — wide soft glow (lines only, no circles)
@@ -677,9 +677,9 @@
                             const prog = i / (len - 1); // 0=tail … 1=head
                             trailCtx.beginPath();
                             trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x,     TRAIL[i].y);
+                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
                             trailCtx.strokeStyle = `rgba(104,60,240,${+(a * prog * 0.28).toFixed(3)})`;
-                            trailCtx.lineWidth   = 2 + prog * 16;
+                            trailCtx.lineWidth = 2 + prog * 16;
                             trailCtx.stroke();
                         }
 
@@ -690,9 +690,9 @@
                             const prog = i / (len - 1);
                             trailCtx.beginPath();
                             trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x,     TRAIL[i].y);
+                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
                             trailCtx.strokeStyle = `rgba(200,170,255,${+(a * prog * 0.75).toFixed(3)})`;
-                            trailCtx.lineWidth   = 0.8 + prog * 2.5;
+                            trailCtx.lineWidth = 0.8 + prog * 2.5;
                             trailCtx.stroke();
                         }
                     }
@@ -755,40 +755,40 @@
                 }, 2400);
             }
 
-        /* ── Carousel ── */
-        const svcTrack = document.getElementById('svc-track');
-        const svcWrap  = svcTrack ? svcTrack.closest('.svc-carousel-wrap') : null;
-        const svcPips  = document.querySelectorAll('.svc-pip');
-        let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
+            /* ── Carousel ── */
+            const svcTrack = document.getElementById('svc-track');
+            const svcWrap = svcTrack ? svcTrack.closest('.svc-carousel-wrap') : null;
+            const svcPips = document.querySelectorAll('.svc-pip');
+            let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
 
-        function svcGoTo(idx) {
-            const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
-            if (idx < 0 || idx >= cards.length) return;
-            svcIdx = idx;
-            svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
-            svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
-        }
+            function svcGoTo(idx) {
+                const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
+                if (idx < 0 || idx >= cards.length) return;
+                svcIdx = idx;
+                svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
+                svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
+            }
 
-        // click works instantly on mobile when touch-action:manipulation is set in CSS
-        const svcPrevEl = document.getElementById('svc-prev');
-        const svcNextEl = document.getElementById('svc-next');
-        if (svcPrevEl) svcPrevEl.addEventListener('click', () => svcGoTo(svcIdx - 1));
-        if (svcNextEl) svcNextEl.addEventListener('click', () => svcGoTo(svcIdx + 1));
+            // click works instantly on mobile when touch-action:manipulation is set in CSS
+            const svcPrevEl = document.getElementById('svc-prev');
+            const svcNextEl = document.getElementById('svc-next');
+            if (svcPrevEl) svcPrevEl.addEventListener('click', () => svcGoTo(svcIdx - 1));
+            if (svcNextEl) svcNextEl.addEventListener('click', () => svcGoTo(svcIdx + 1));
 
-        // swipe — global window handler already ignores .svc-carousel-wrap touches
-        if (svcWrap) {
-            let cTX = 0, cTY = 0;
-            svcWrap.addEventListener('touchstart', e => {
-                cTX = e.touches[0].clientX;
-                cTY = e.touches[0].clientY;
-            }, { passive: true });
-            svcWrap.addEventListener('touchend', e => {
-                const dx = cTX - e.changedTouches[0].clientX;
-                const dy = cTY - e.changedTouches[0].clientY;
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
-                    svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
-            }, { passive: true });
-        }
+            // swipe — global window handler already ignores .svc-carousel-wrap touches
+            if (svcWrap) {
+                let cTX = 0, cTY = 0;
+                svcWrap.addEventListener('touchstart', e => {
+                    cTX = e.touches[0].clientX;
+                    cTY = e.touches[0].clientY;
+                }, { passive: true });
+                svcWrap.addEventListener('touchend', e => {
+                    const dx = cTX - e.changedTouches[0].clientX;
+                    const dy = cTY - e.changedTouches[0].clientY;
+                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
+                        svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
+                }, { passive: true });
+            }
 
         })();
     </script>
