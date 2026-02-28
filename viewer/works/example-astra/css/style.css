@@ -1586,8 +1586,28 @@ footer {
     .hero-right {
         display: none;
     }
+
+    /* на мобиле hero должен растягиваться под контент — overflow:hidden + фикс. высота обрезают статистику */
+    section.hero {
+        height: auto;
+        min-height: 100svh;
+        overflow: visible;
+    }
+
     .hero-stats-bar {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-stat {
+        padding: 1rem 1.2rem;
+    }
+
+    .hero-stat .num {
+        font-size: 1.7rem;
+    }
+
+    .hero-stat .lbl {
+        font-size: 0.62rem;
     }
 
     .uc-grid,
