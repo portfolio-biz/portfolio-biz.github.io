@@ -1,1 +1,1 @@
-@powershell -ExecutionPolicy Bypass -File _server.ps1
+@start /max "Local Debug Server: %~dp0" cmd /c @powershell -ExecutionPolicy Bypass -File _server.ps1

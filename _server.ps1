@@ -1,10 +1,10 @@
-# Tandem Portfolio - Local Dev Server
+# Tandem Local Dev Server
 # Run: right-click -> "Run with PowerShell"  |  or: .\._server.ps1
 # Requirements: Windows only, no external dependencies
 
 # UTF-8 output so Cyrillic paths and special chars display correctly in console
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding            = [System.Text.Encoding]::UTF8
+$OutputEncoding           = [System.Text.Encoding]::UTF8
 
 # ── Config ────────────────────────────────────────────────────
 $PREFERRED_PORT = 7777
