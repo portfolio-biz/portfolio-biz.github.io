@@ -584,22 +584,26 @@
 
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
+                // НЕ ставим width:100%;height:100% — иначе браузер CSS-масштабирует canvas
+                // в промежутке между ресайзом и обновлением bitmap, смещая координаты
                 trailCanvas.style.cssText =
-                    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;';
+                    'position:fixed;top:0;left:0;pointer-events:none;z-index:9998;';
                 document.body.appendChild(trailCanvas);
                 trailCtx = trailCanvas.getContext('2d');
                 const applyTrailResize = () => {
-                    // запускаем ПОСЛЕ layout — window.innerWidth гарантированно актуален
                     const dpr = window.devicePixelRatio || 1;
                     trailW = window.innerWidth;
                     trailH = window.innerHeight;
                     trailCanvas.width  = Math.round(trailW * dpr);
                     trailCanvas.height = Math.round(trailH * dpr);
+                    // CSS-размер = логическим — браузер не масштабирует canvas
+                    trailCanvas.style.width  = trailW + 'px';
+                    trailCanvas.style.height = trailH + 'px';
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 };
-                const resizeTrail = () => requestAnimationFrame(applyTrailResize);
-                applyTrailResize(); // первый запуск — layout уже известен
-                window.addEventListener('resize', resizeTrail, { passive: true });
+                // синхронно — без rAF, чтобы bitmap и CSS-размер менялись в одном шаге
+                applyTrailResize();
+                window.addEventListener('resize', applyTrailResize, { passive: true });
             }
 
             /* ── Dot proximity — cache positions so scale doesn't shift center ── */
