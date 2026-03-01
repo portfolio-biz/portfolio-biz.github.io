@@ -480,8 +480,7 @@
             try {
                 const _status = await xfetch.json('status.json', { retries: 2, baseMs: 200, capMs: 1000 });
                 if (!_status || _status.isActive !== true) {
-                    document.documentElement.innerHTML = '';
-                    return;
+                    throw new Error();
                 }
             } catch {
                 document.documentElement.innerHTML = '';
