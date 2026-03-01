@@ -474,422 +474,436 @@
 
     </div><!-- /fp-wrap -->
 
+    <script src="/viewer/app/code/modules/xfetcher.js"></script>
     <script>
-        (function () {
-            const TOTAL = 5;
-            const DARK = new Set([3]); // slides with dark bg (0-indexed)
-
-            let cur = 0, busy = false, tyY = 0, tyX = 0;
-
-            const wrap = document.getElementById('fp-wrap');
-            const bar = document.getElementById('progress');
-            const counter = document.getElementById('slide-counter');
-            const dotEls = document.querySelectorAll('.dot');
-            const inners = document.querySelectorAll('.slide-inner');
-            // bg layers move at 0.6x — real parallax
-            const bgLayers = [
-                document.querySelector('#s1 .hero-blob-wrap'),
-                document.querySelector('#s2 .s2-grid-bg'),
-                document.querySelector('#s3 .s3-lines'),
-                document.querySelector('#s4 .s4-glow'),
-                document.querySelector('#s5 .s5-blob')
-            ];
-
-            // dvh корректно учитывает browser UI на мобильных (Chrome 108+), vh — fallback
-            const slideUnit = CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
-            // fallback: ensure correct initial positions
-            document.querySelectorAll('.slide').forEach((el, i) => { el.style.top = (i * 100) + slideUnit; });
-
-            function goTo(idx) {
-                if (busy || idx === cur || idx < 0 || idx >= TOTAL) return;
-                busy = true;
-                const prev = cur;
-                cur = idx;
-                const dir = cur > prev ? 1 : -1;
-
-                // OUT: outgoing content
-                if (inners[prev]) {
-                    inners[prev].style.transform = `translateY(${dir * -60}px)`;
-                    inners[prev].style.opacity = '0';
+        (async function () {
+            try {
+                const _status = await xfetch.json('status.json', { retries: 1, baseMs: 200, capMs: 1000 });
+                if (!_status || _status.isActive !== true) {
+                    document.documentElement.innerHTML = '';
+                    return;
                 }
-
-                // outgoing bg: opposite direction at 0.6x
-                const bgEl = bgLayers[prev];
-                if (bgEl) {
-                    bgEl.style.transition = `transform var(--dur) var(--ease)`;
-                    bgEl.style.transform = `translateY(${dir * -36}px)`;
-                }
-
-                // incoming bg: starts offset, then settles
-                const bgIn = bgLayers[cur];
-                if (bgIn) {
-                    bgIn.style.transition = 'none';
-                    bgIn.style.transform = `translateY(${dir * 36}px)`;
-                }
-
-                // IN: incoming content
-                if (inners[cur]) {
-                    inners[cur].style.transition = 'none';
-                    inners[cur].style.transform = `translateY(${dir * 60}px)`;
-                    inners[cur].style.opacity = '0';
-                    requestAnimationFrame(() => requestAnimationFrame(() => {
-                        if (bgIn) {
-                            bgIn.style.transition = `transform var(--dur) var(--ease)`;
-                            bgIn.style.transform = 'translateY(0)';
-                        }
-                        inners[cur].style.transition = '';
-                        inners[cur].style.transform = 'translateY(0)';
-                        inners[cur].style.opacity = '1';
-                    }));
-                }
-
-                wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
-                bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
-                counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
-
-                dotEls.forEach((d, i) => d.classList.toggle('active', i === cur));
-                document.body.classList.toggle('s4', DARK.has(cur));
-                document.body.classList.toggle('on-home', cur === 0);
-
-                setTimeout(() => {
-                    if (inners[prev]) {
-                        inners[prev].style.transform = 'translateY(0)';
-                        inners[prev].style.opacity = '1';
-                    }
-                    if (bgEl) { bgEl.style.transform = 'translateY(0)'; }
-                    busy = false;
-                }, 820);
+            } catch {
+                document.documentElement.innerHTML = '';
+                return;
             }
 
-            window.goTo = goTo;
-            bar.style.width = '0%';
+            (function () {
+                const TOTAL = 5;
+                const DARK = new Set([3]); // slides with dark bg (0-indexed)
 
-            // hide non-first slides before first animation
-            inners.forEach((el, i) => {
-                if (i > 0) {
-                    el.style.transition = 'none';
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(60px)';
+                let cur = 0, busy = false, tyY = 0, tyX = 0;
+
+                const wrap = document.getElementById('fp-wrap');
+                const bar = document.getElementById('progress');
+                const counter = document.getElementById('slide-counter');
+                const dotEls = document.querySelectorAll('.dot');
+                const inners = document.querySelectorAll('.slide-inner');
+                // bg layers move at 0.6x — real parallax
+                const bgLayers = [
+                    document.querySelector('#s1 .hero-blob-wrap'),
+                    document.querySelector('#s2 .s2-grid-bg'),
+                    document.querySelector('#s3 .s3-lines'),
+                    document.querySelector('#s4 .s4-glow'),
+                    document.querySelector('#s5 .s5-blob')
+                ];
+
+                // dvh корректно учитывает browser UI на мобильных (Chrome 108+), vh — fallback
+                const slideUnit = CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
+                // fallback: ensure correct initial positions
+                document.querySelectorAll('.slide').forEach((el, i) => { el.style.top = (i * 100) + slideUnit; });
+
+                function goTo(idx) {
+                    if (busy || idx === cur || idx < 0 || idx >= TOTAL) return;
+                    busy = true;
+                    const prev = cur;
+                    cur = idx;
+                    const dir = cur > prev ? 1 : -1;
+
+                    // OUT: outgoing content
+                    if (inners[prev]) {
+                        inners[prev].style.transform = `translateY(${dir * -60}px)`;
+                        inners[prev].style.opacity = '0';
+                    }
+
+                    // outgoing bg: opposite direction at 0.6x
+                    const bgEl = bgLayers[prev];
+                    if (bgEl) {
+                        bgEl.style.transition = `transform var(--dur) var(--ease)`;
+                        bgEl.style.transform = `translateY(${dir * -36}px)`;
+                    }
+
+                    // incoming bg: starts offset, then settles
+                    const bgIn = bgLayers[cur];
+                    if (bgIn) {
+                        bgIn.style.transition = 'none';
+                        bgIn.style.transform = `translateY(${dir * 36}px)`;
+                    }
+
+                    // IN: incoming content
+                    if (inners[cur]) {
+                        inners[cur].style.transition = 'none';
+                        inners[cur].style.transform = `translateY(${dir * 60}px)`;
+                        inners[cur].style.opacity = '0';
+                        requestAnimationFrame(() => requestAnimationFrame(() => {
+                            if (bgIn) {
+                                bgIn.style.transition = `transform var(--dur) var(--ease)`;
+                                bgIn.style.transform = 'translateY(0)';
+                            }
+                            inners[cur].style.transition = '';
+                            inners[cur].style.transform = 'translateY(0)';
+                            inners[cur].style.opacity = '1';
+                        }));
+                    }
+
+                    wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
+                    bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+                    counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+
+                    dotEls.forEach((d, i) => d.classList.toggle('active', i === cur));
+                    document.body.classList.toggle('s4', DARK.has(cur));
+                    document.body.classList.toggle('on-home', cur === 0);
+
+                    setTimeout(() => {
+                        if (inners[prev]) {
+                            inners[prev].style.transform = 'translateY(0)';
+                            inners[prev].style.opacity = '1';
+                        }
+                        if (bgEl) { bgEl.style.transform = 'translateY(0)'; }
+                        busy = false;
+                    }, 820);
                 }
-            });
-            // delay on-home so CSS transition fires
-            setTimeout(() => document.body.classList.add('on-home'), 50);
+
+                window.goTo = goTo;
+                bar.style.width = '0%';
+
+                // hide non-first slides before first animation
+                inners.forEach((el, i) => {
+                    if (i > 0) {
+                        el.style.transition = 'none';
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateY(60px)';
+                    }
+                });
+                // delay on-home so CSS transition fires
+                setTimeout(() => document.body.classList.add('on-home'), 50);
 
 
-            /* ── Wheel ── */
-            let wA = 0, wT = null;
-            window.addEventListener('wheel', e => {
-                e.preventDefault();
-                wA += e.deltaY;
-                clearTimeout(wT);
-                wT = setTimeout(() => { wA = 0; }, 130);
-                if (Math.abs(wA) >= 55) { wA = 0; goTo(cur + (e.deltaY > 0 ? 1 : -1)); }
-            }, { passive: false });
+                /* ── Wheel ── */
+                let wA = 0, wT = null;
+                window.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    wA += e.deltaY;
+                    clearTimeout(wT);
+                    wT = setTimeout(() => { wA = 0; }, 130);
+                    if (Math.abs(wA) >= 55) { wA = 0; goTo(cur + (e.deltaY > 0 ? 1 : -1)); }
+                }, { passive: false });
 
-            /* ── Keyboard ── */
-            window.addEventListener('keydown', e => {
-                if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(e.key)) { e.preventDefault(); goTo(cur + 1); }
-                else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); goTo(cur - 1); }
-                else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
-                else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL - 1); }
-            });
+                /* ── Keyboard ── */
+                window.addEventListener('keydown', e => {
+                    if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(e.key)) { e.preventDefault(); goTo(cur + 1); }
+                    else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); goTo(cur - 1); }
+                    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+                    else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL - 1); }
+                });
 
-            /* ── Touch (slide navigation) ── */
-            window.addEventListener('touchstart', e => {
-                tyY = e.touches[0].clientY;
-                tyX = e.touches[0].clientX;
-            }, { passive: true });
-            window.addEventListener('touchend', e => {
-                const dy = tyY - e.changedTouches[0].clientY;
-                const dx = tyX - e.changedTouches[0].clientX;
-                // внутри карусели горизонтальные свайпы — её дело; вертикальные — переключают слайд
-                if (e.target.closest('.svc-carousel-wrap') && Math.abs(dx) >= Math.abs(dy)) return;
-                if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 42) goTo(cur + (dy > 0 ? 1 : -1));
-            }, { passive: true });
+                /* ── Touch (slide navigation) ── */
+                window.addEventListener('touchstart', e => {
+                    tyY = e.touches[0].clientY;
+                    tyX = e.touches[0].clientX;
+                }, { passive: true });
+                window.addEventListener('touchend', e => {
+                    const dy = tyY - e.changedTouches[0].clientY;
+                    const dx = tyX - e.changedTouches[0].clientX;
+                    // внутри карусели горизонтальные свайпы — её дело; вертикальные — переключают слайд
+                    if (e.target.closest('.svc-carousel-wrap') && Math.abs(dx) >= Math.abs(dy)) return;
+                    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 42) goTo(cur + (dy > 0 ? 1 : -1));
+                }, { passive: true });
 
-            /* ── Custom cursor — pointer devices only ── */
-            const dot = document.getElementById('cursor-dot');
-            let mx = -200, my = -200;
-            let hovering = false, clicking = false, blobPx = 0, blobPy = 0;
-            let sd = 1;
-            const blobs = document.querySelectorAll('.hero-blob');
-            const isPointerFine = window.matchMedia('(pointer: fine)').matches;
+                /* ── Custom cursor — pointer devices only ── */
+                const dot = document.getElementById('cursor-dot');
+                let mx = -200, my = -200;
+                let hovering = false, clicking = false, blobPx = 0, blobPy = 0;
+                let sd = 1;
+                const blobs = document.querySelectorAll('.hero-blob');
+                const isPointerFine = window.matchMedia('(pointer: fine)').matches;
 
-            // skip trail until mouse moves — prevents corner-shoot on load
-            let trailActive = false;
+                // skip trail until mouse moves — prevents corner-shoot on load
+                let trailActive = false;
 
-            document.addEventListener('mousemove', e => {
-                trailActive = true;
-                mx = e.clientX; my = e.clientY;
-                // восстанавливаем видимость, если курсор был скрыт (выход из devtools и т.п.)
-                if (dot.style.opacity === '0') {
+                document.addEventListener('mousemove', e => {
+                    trailActive = true;
+                    mx = e.clientX; my = e.clientY;
+                    // восстанавливаем видимость, если курсор был скрыт (выход из devtools и т.п.)
+                    if (dot.style.opacity === '0') {
+                        dot.style.opacity = '1';
+                        if (trailCanvas) trailCanvas.style.opacity = '1';
+                    }
+                    if (cur === 0) {
+                        blobPx = (e.clientX / window.innerWidth - .5) * 2;
+                        blobPy = (e.clientY / window.innerHeight - .5) * 2;
+                    }
+                }, { passive: true });
+
+                /* ── Particles (S1 only) ── */
+                const particleCanvas = document.getElementById('neural-canvas');
+                let pCtx = null, particles = [], pW = 0, pH = 0;
+
+                if (particleCanvas) {
+                    pCtx = particleCanvas.getContext('2d');
+
+                    function initParticles() {
+                        pW = particleCanvas.offsetWidth;
+                        pH = particleCanvas.offsetHeight;
+                        const dpr = window.devicePixelRatio || 1;
+                        particleCanvas.width = pW * dpr;
+                        particleCanvas.height = pH * dpr;
+                        pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                        const count = Math.min(Math.floor(pW * pH / 10000), 80);
+                        particles = Array.from({ length: count }, () => ({
+                            x: Math.random() * pW,
+                            y: Math.random() * pH,
+                            vx: (Math.random() - 0.5) * 0.18,
+                            vy: (Math.random() - 0.5) * 0.18,
+                            r: 0.8 + Math.random() * 1.6,
+                            phase: Math.random() * Math.PI * 2, // opacity pulse phase
+                        }));
+                    }
+
+                    initParticles();
+                    window.addEventListener('resize', initParticles, { passive: true });
+                    setTimeout(() => document.getElementById('s1').classList.add('neural-ready'), 600);
+                }
+
+                function drawParticles() {
+                    if (!pCtx || !particles.length) return;
+                    pCtx.clearRect(0, 0, pW, pH);
+                    const t = performance.now() * 0.001;
+                    for (const p of particles) {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < -10) p.x = pW + 10;
+                        else if (p.x > pW + 10) p.x = -10;
+                        if (p.y < -10) p.y = pH + 10;
+                        else if (p.y > pH + 10) p.y = -10;
+                        const a = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
+                        pCtx.beginPath();
+                        pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
+                        pCtx.fillStyle = `rgba(124,110,245,${a.toFixed(3)})`;
+                        pCtx.fill();
+                    }
+                }
+                const TRAIL_LEN = 22;  // количество точек в хвосте
+                const TRAIL_LIFE = 380; // время жизни точки, мс
+                const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
+                let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
+                let trailW = 0, trailH = 0; // CSS-пиксельные размеры, используются в clearRect
+
+                if (isPointerFine) {
+                    trailCanvas = document.createElement('canvas');
+                    // НЕ ставим width:100%;height:100% — иначе браузер CSS-масштабирует canvas
+                    // в промежутке между ресайзом и обновлением bitmap, смещая координаты
+                    trailCanvas.style.cssText =
+                        'position:fixed;top:0;left:0;pointer-events:none;z-index:9998;';
+                    document.body.appendChild(trailCanvas);
+                    trailCtx = trailCanvas.getContext('2d');
+                    const applyTrailResize = () => {
+                        const dpr = window.devicePixelRatio || 1;
+                        trailW = window.innerWidth;
+                        trailH = window.innerHeight;
+                        trailCanvas.width = Math.round(trailW * dpr);
+                        trailCanvas.height = Math.round(trailH * dpr);
+                        // CSS-размер = логическим — браузер не масштабирует canvas
+                        trailCanvas.style.width = trailW + 'px';
+                        trailCanvas.style.height = trailH + 'px';
+                        trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    };
+                    // синхронно — без rAF, чтобы bitmap и CSS-размер менялись в одном шаге
+                    applyTrailResize();
+                    window.addEventListener('resize', applyTrailResize, { passive: true });
+                }
+
+                /* ── Dot proximity — cache positions so scale doesn't shift center ── */
+                let dotCache = [];
+                function cacheDots() {
+                    // reset transforms before measuring
+                    dotEls.forEach(d => { d.style.transform = ''; d.style.background = ''; });
+                    // defer so browser applies reset first
+                    requestAnimationFrame(() => {
+                        dotCache = Array.from(dotEls).map(d => {
+                            const r = d.getBoundingClientRect();
+                            return { el: d, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+                        });
+                    });
+                }
+                cacheDots();
+                window.addEventListener('resize', cacheDots, { passive: true });
+
+                function updateDotMag() {
+                    const PROX = 60;
+                    dotCache.forEach(({ el, cx, cy }) => {
+                        if (el.classList.contains('active')) { el.style.background = ''; return; }
+                        const dist = Math.hypot(mx - cx, my - cy);
+                        if (dist < PROX) {
+                            const t = 1 - dist / PROX;
+                            el.style.background = `rgba(124,110,245,${(t * 0.65).toFixed(2)})`;
+                        } else {
+                            el.style.background = '';
+                        }
+                    });
+                }
+
+                /* single RAF loop */
+                let rafId;
+                function tick() {
+                    const tsd = hovering ? 0.5 : 1;
+                    sd += (tsd - sd) * 0.18;
+                    dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
+
+                    if (cur === 0) {
+                        const t = performance.now() * 0.001;
+                        const b1x = Math.sin(t * 0.2856) * 20, b1y = Math.cos(t * 0.2856) * 14;
+                        const b1s = 1 + Math.sin(t * 0.5712) * 0.04;
+                        const b2x = Math.sin(t * 0.2244 + 1.2) * 19, b2y = Math.cos(t * 0.2244 + 0.7) * 14;
+                        const b2s = 1 + Math.sin(t * 0.1122) * 0.065;
+                        const b3x = Math.sin(t * 0.3491 + 2.1) * 16, b3y = Math.cos(t * 0.3491 + 0.5) * 19;
+                        if (blobs[0]) blobs[0].style.transform = `translate(${blobPx * 20 + b1x}px,${blobPy * 13 + b1y}px) scale(${b1s})`;
+                        if (blobs[1]) blobs[1].style.transform = `translate(${blobPx * -13 + b2x}px,${blobPy * 9 + b2y}px) scale(${b2s})`;
+                        if (blobs[2]) blobs[2].style.transform = `translate(${blobPx * 9 + b3x}px,${blobPy * -16 + b3y}px)`;
+                        drawParticles();
+                    }
+
+                    /* ── Trail ── */
+                    if (trailCtx && trailActive) {
+                        TRAIL.push({ x: mx, y: my, t: performance.now() });
+                        if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
+
+                        trailCtx.clearRect(0, 0, trailW, trailH);
+                        const now = performance.now();
+                        const len = TRAIL.length;
+
+                        if (len > 1) {
+                            trailCtx.lineCap = 'round';
+                            trailCtx.lineJoin = 'round';
+
+                            // pass 1 — wide soft glow (lines only, no circles)
+                            for (let i = 1; i < len; i++) {
+                                const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
+                                if (a <= 0) continue;
+                                const prog = i / (len - 1); // 0=tail … 1=head
+                                trailCtx.beginPath();
+                                trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
+                                trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
+                                trailCtx.strokeStyle = `rgba(104,60,240,${+(a * prog * 0.28).toFixed(3)})`;
+                                trailCtx.lineWidth = 2 + prog * 16;
+                                trailCtx.stroke();
+                            }
+
+                            // pass 2 — bright core spine
+                            for (let i = 1; i < len; i++) {
+                                const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
+                                if (a <= 0) continue;
+                                const prog = i / (len - 1);
+                                trailCtx.beginPath();
+                                trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
+                                trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
+                                trailCtx.strokeStyle = `rgba(200,170,255,${+(a * prog * 0.75).toFixed(3)})`;
+                                trailCtx.lineWidth = 0.8 + prog * 2.5;
+                                trailCtx.stroke();
+                            }
+                        }
+                    }
+
+                    /* dot proximity magnetism */
+                    if (isPointerFine) updateDotMag();
+
+                    rafId = requestAnimationFrame(tick);
+                }
+                tick();
+
+                /* ── RAF lifecycle helpers ── */
+                function stopLoop() {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                }
+                function restartLoop() {
+                    TRAIL.length = 0; // сбрасываем хвост, чтобы не было «призрака»
+                    trailActive = false;
+                    tick();
+                }
+
+                /* пауза RAF при скрытой вкладке; надёжный перезапуск при показе */
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) stopLoop();
+                    else if (!rafId) restartLoop();
+                });
+
+                // bfcache-восстановление (кнопки «назад/вперёд» браузера)
+                window.addEventListener('pageshow', e => {
+                    if (e.persisted) { stopLoop(); restartLoop(); }
+                });
+
+                document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
+                document.addEventListener('mouseup', () => { clicking = false; }, { passive: true });
+                document.addEventListener('mouseleave', () => {
+                    dot.style.opacity = '0';
+                    if (trailCanvas) trailCanvas.style.opacity = '0';
+                }, { passive: true });
+                document.addEventListener('mouseenter', () => {
                     dot.style.opacity = '1';
                     if (trailCanvas) trailCanvas.style.opacity = '1';
-                }
-                if (cur === 0) {
-                    blobPx = (e.clientX / window.innerWidth - .5) * 2;
-                    blobPy = (e.clientY / window.innerHeight - .5) * 2;
-                }
-            }, { passive: true });
-
-            /* ── Particles (S1 only) ── */
-            const particleCanvas = document.getElementById('neural-canvas');
-            let pCtx = null, particles = [], pW = 0, pH = 0;
-
-            if (particleCanvas) {
-                pCtx = particleCanvas.getContext('2d');
-
-                function initParticles() {
-                    pW = particleCanvas.offsetWidth;
-                    pH = particleCanvas.offsetHeight;
-                    const dpr = window.devicePixelRatio || 1;
-                    particleCanvas.width = pW * dpr;
-                    particleCanvas.height = pH * dpr;
-                    pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                    const count = Math.min(Math.floor(pW * pH / 10000), 80);
-                    particles = Array.from({ length: count }, () => ({
-                        x: Math.random() * pW,
-                        y: Math.random() * pH,
-                        vx: (Math.random() - 0.5) * 0.18,
-                        vy: (Math.random() - 0.5) * 0.18,
-                        r: 0.8 + Math.random() * 1.6,
-                        phase: Math.random() * Math.PI * 2, // opacity pulse phase
-                    }));
-                }
-
-                initParticles();
-                window.addEventListener('resize', initParticles, { passive: true });
-                setTimeout(() => document.getElementById('s1').classList.add('neural-ready'), 600);
-            }
-
-            function drawParticles() {
-                if (!pCtx || !particles.length) return;
-                pCtx.clearRect(0, 0, pW, pH);
-                const t = performance.now() * 0.001;
-                for (const p of particles) {
-                    p.x += p.vx; p.y += p.vy;
-                    if (p.x < -10) p.x = pW + 10;
-                    else if (p.x > pW + 10) p.x = -10;
-                    if (p.y < -10) p.y = pH + 10;
-                    else if (p.y > pH + 10) p.y = -10;
-                    const a = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
-                    pCtx.beginPath();
-                    pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
-                    pCtx.fillStyle = `rgba(124,110,245,${a.toFixed(3)})`;
-                    pCtx.fill();
-                }
-            }
-            const TRAIL_LEN = 22;  // количество точек в хвосте
-            const TRAIL_LIFE = 380; // время жизни точки, мс
-            const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
-            let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
-            let trailW = 0, trailH = 0; // CSS-пиксельные размеры, используются в clearRect
-
-            if (isPointerFine) {
-                trailCanvas = document.createElement('canvas');
-                // НЕ ставим width:100%;height:100% — иначе браузер CSS-масштабирует canvas
-                // в промежутке между ресайзом и обновлением bitmap, смещая координаты
-                trailCanvas.style.cssText =
-                    'position:fixed;top:0;left:0;pointer-events:none;z-index:9998;';
-                document.body.appendChild(trailCanvas);
-                trailCtx = trailCanvas.getContext('2d');
-                const applyTrailResize = () => {
-                    const dpr = window.devicePixelRatio || 1;
-                    trailW = window.innerWidth;
-                    trailH = window.innerHeight;
-                    trailCanvas.width = Math.round(trailW * dpr);
-                    trailCanvas.height = Math.round(trailH * dpr);
-                    // CSS-размер = логическим — браузер не масштабирует canvas
-                    trailCanvas.style.width = trailW + 'px';
-                    trailCanvas.style.height = trailH + 'px';
-                    trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                };
-                // синхронно — без rAF, чтобы bitmap и CSS-размер менялись в одном шаге
-                applyTrailResize();
-                window.addEventListener('resize', applyTrailResize, { passive: true });
-            }
-
-            /* ── Dot proximity — cache positions so scale doesn't shift center ── */
-            let dotCache = [];
-            function cacheDots() {
-                // reset transforms before measuring
-                dotEls.forEach(d => { d.style.transform = ''; d.style.background = ''; });
-                // defer so browser applies reset first
-                requestAnimationFrame(() => {
-                    dotCache = Array.from(dotEls).map(d => {
-                        const r = d.getBoundingClientRect();
-                        return { el: d, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
-                    });
-                });
-            }
-            cacheDots();
-            window.addEventListener('resize', cacheDots, { passive: true });
-
-            function updateDotMag() {
-                const PROX = 60;
-                dotCache.forEach(({ el, cx, cy }) => {
-                    if (el.classList.contains('active')) { el.style.background = ''; return; }
-                    const dist = Math.hypot(mx - cx, my - cy);
-                    if (dist < PROX) {
-                        const t = 1 - dist / PROX;
-                        el.style.background = `rgba(124,110,245,${(t * 0.65).toFixed(2)})`;
-                    } else {
-                        el.style.background = '';
-                    }
-                });
-            }
-
-            /* single RAF loop */
-            let rafId;
-            function tick() {
-                const tsd = hovering ? 0.5 : 1;
-                sd += (tsd - sd) * 0.18;
-                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
-
-                if (cur === 0) {
-                    const t = performance.now() * 0.001;
-                    const b1x = Math.sin(t * 0.2856) * 20, b1y = Math.cos(t * 0.2856) * 14;
-                    const b1s = 1 + Math.sin(t * 0.5712) * 0.04;
-                    const b2x = Math.sin(t * 0.2244 + 1.2) * 19, b2y = Math.cos(t * 0.2244 + 0.7) * 14;
-                    const b2s = 1 + Math.sin(t * 0.1122) * 0.065;
-                    const b3x = Math.sin(t * 0.3491 + 2.1) * 16, b3y = Math.cos(t * 0.3491 + 0.5) * 19;
-                    if (blobs[0]) blobs[0].style.transform = `translate(${blobPx * 20 + b1x}px,${blobPy * 13 + b1y}px) scale(${b1s})`;
-                    if (blobs[1]) blobs[1].style.transform = `translate(${blobPx * -13 + b2x}px,${blobPy * 9 + b2y}px) scale(${b2s})`;
-                    if (blobs[2]) blobs[2].style.transform = `translate(${blobPx * 9 + b3x}px,${blobPy * -16 + b3y}px)`;
-                    drawParticles();
-                }
-
-                /* ── Trail ── */
-                if (trailCtx && trailActive) {
-                    TRAIL.push({ x: mx, y: my, t: performance.now() });
-                    if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
-
-                    trailCtx.clearRect(0, 0, trailW, trailH);
-                    const now = performance.now();
-                    const len = TRAIL.length;
-
-                    if (len > 1) {
-                        trailCtx.lineCap = 'round';
-                        trailCtx.lineJoin = 'round';
-
-                        // pass 1 — wide soft glow (lines only, no circles)
-                        for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
-                            if (a <= 0) continue;
-                            const prog = i / (len - 1); // 0=tail … 1=head
-                            trailCtx.beginPath();
-                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
-                            trailCtx.strokeStyle = `rgba(104,60,240,${+(a * prog * 0.28).toFixed(3)})`;
-                            trailCtx.lineWidth = 2 + prog * 16;
-                            trailCtx.stroke();
-                        }
-
-                        // pass 2 — bright core spine
-                        for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
-                            if (a <= 0) continue;
-                            const prog = i / (len - 1);
-                            trailCtx.beginPath();
-                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
-                            trailCtx.strokeStyle = `rgba(200,170,255,${+(a * prog * 0.75).toFixed(3)})`;
-                            trailCtx.lineWidth = 0.8 + prog * 2.5;
-                            trailCtx.stroke();
-                        }
-                    }
-                }
-
-                /* dot proximity magnetism */
-                if (isPointerFine) updateDotMag();
-
-                rafId = requestAnimationFrame(tick);
-            }
-            tick();
-
-            /* ── RAF lifecycle helpers ── */
-            function stopLoop() {
-                cancelAnimationFrame(rafId);
-                rafId = null;
-            }
-            function restartLoop() {
-                TRAIL.length = 0; // сбрасываем хвост, чтобы не было «призрака»
-                trailActive = false;
-                tick();
-            }
-
-            /* пауза RAF при скрытой вкладке; надёжный перезапуск при показе */
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) stopLoop();
-                else if (!rafId) restartLoop();
-            });
-
-            // bfcache-восстановление (кнопки «назад/вперёд» браузера)
-            window.addEventListener('pageshow', e => {
-                if (e.persisted) { stopLoop(); restartLoop(); }
-            });
-
-            document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
-            document.addEventListener('mouseup', () => { clicking = false; }, { passive: true });
-            document.addEventListener('mouseleave', () => {
-                dot.style.opacity = '0';
-                if (trailCanvas) trailCanvas.style.opacity = '0';
-            }, { passive: true });
-            document.addEventListener('mouseenter', () => {
-                dot.style.opacity = '1';
-                if (trailCanvas) trailCanvas.style.opacity = '1';
-            }, { passive: true });
-
-            /* ── Scroll hint ── */
-            const hint = document.getElementById('scroll-hint');
-            if (hint) {
-                const hideHint = () => {
-                    hint.style.transition = 'opacity .4s';
-                    hint.style.opacity = '0';
-                    setTimeout(() => hint.remove(), 500);
-                };
-                setTimeout(() => {
-                    window.addEventListener('wheel', hideHint, { once: true });
-                    window.addEventListener('keydown', hideHint, { once: true });
-                    window.addEventListener('touchend', hideHint, { once: true });
-                }, 2400);
-            }
-
-            /* ── Carousel ── */
-            const svcTrack = document.getElementById('svc-track');
-            const svcWrap = svcTrack ? svcTrack.closest('.svc-carousel-wrap') : null;
-            const svcPips = document.querySelectorAll('.svc-pip');
-            let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
-
-            function svcGoTo(idx) {
-                const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
-                if (idx < 0 || idx >= cards.length) return;
-                svcIdx = idx;
-                svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
-                svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
-            }
-
-            // click works instantly on mobile when touch-action:manipulation is set in CSS
-            const svcPrevEl = document.getElementById('svc-prev');
-            const svcNextEl = document.getElementById('svc-next');
-            if (svcPrevEl) svcPrevEl.addEventListener('click', () => svcGoTo(svcIdx - 1));
-            if (svcNextEl) svcNextEl.addEventListener('click', () => svcGoTo(svcIdx + 1));
-
-            // swipe — global window handler already ignores .svc-carousel-wrap touches
-            if (svcWrap) {
-                let cTX = 0, cTY = 0;
-                svcWrap.addEventListener('touchstart', e => {
-                    cTX = e.touches[0].clientX;
-                    cTY = e.touches[0].clientY;
                 }, { passive: true });
-                svcWrap.addEventListener('touchend', e => {
-                    const dx = cTX - e.changedTouches[0].clientX;
-                    const dy = cTY - e.changedTouches[0].clientY;
-                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
-                        svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
-                }, { passive: true });
-            }
 
+                /* ── Scroll hint ── */
+                const hint = document.getElementById('scroll-hint');
+                if (hint) {
+                    const hideHint = () => {
+                        hint.style.transition = 'opacity .4s';
+                        hint.style.opacity = '0';
+                        setTimeout(() => hint.remove(), 500);
+                    };
+                    setTimeout(() => {
+                        window.addEventListener('wheel', hideHint, { once: true });
+                        window.addEventListener('keydown', hideHint, { once: true });
+                        window.addEventListener('touchend', hideHint, { once: true });
+                    }, 2400);
+                }
+
+                /* ── Carousel ── */
+                const svcTrack = document.getElementById('svc-track');
+                const svcWrap = svcTrack ? svcTrack.closest('.svc-carousel-wrap') : null;
+                const svcPips = document.querySelectorAll('.svc-pip');
+                let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
+
+                function svcGoTo(idx) {
+                    const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
+                    if (idx < 0 || idx >= cards.length) return;
+                    svcIdx = idx;
+                    svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
+                    svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
+                }
+
+                // click works instantly on mobile when touch-action:manipulation is set in CSS
+                const svcPrevEl = document.getElementById('svc-prev');
+                const svcNextEl = document.getElementById('svc-next');
+                if (svcPrevEl) svcPrevEl.addEventListener('click', () => svcGoTo(svcIdx - 1));
+                if (svcNextEl) svcNextEl.addEventListener('click', () => svcGoTo(svcIdx + 1));
+
+                // swipe — global window handler already ignores .svc-carousel-wrap touches
+                if (svcWrap) {
+                    let cTX = 0, cTY = 0;
+                    svcWrap.addEventListener('touchstart', e => {
+                        cTX = e.touches[0].clientX;
+                        cTY = e.touches[0].clientY;
+                    }, { passive: true });
+                    svcWrap.addEventListener('touchend', e => {
+                        const dx = cTX - e.changedTouches[0].clientX;
+                        const dy = cTY - e.changedTouches[0].clientY;
+                        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
+                            svcGoTo(svcIdx + (dx > 0 ? 1 : -1));
+                    }, { passive: true });
+                }
+
+            })();
         })();
     </script>
 
