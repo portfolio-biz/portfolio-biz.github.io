@@ -403,8 +403,10 @@
                 document.querySelector('#s5 .s5-blob')
             ];
 
+            // dvh корректно учитывает browser UI на мобильных (Chrome 108+), vh — fallback
+            const slideUnit = CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
             // fallback: ensure correct initial positions
-            document.querySelectorAll('.slide').forEach((el, i) => { el.style.top = (i * 100) + 'vh'; });
+            document.querySelectorAll('.slide').forEach((el, i) => { el.style.top = (i * 100) + slideUnit; });
 
             function goTo(idx) {
                 if (busy || idx === cur || idx < 0 || idx >= TOTAL) return;
@@ -449,7 +451,7 @@
                     }));
                 }
 
-                wrap.style.transform = `translateY(${-cur * 100}vh)`;
+                wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
                 bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
                 counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
 

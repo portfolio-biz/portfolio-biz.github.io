@@ -421,6 +421,7 @@ body.s4 #cursor-dot {
     left: 0;
     right: 0;
     height: 100vh;
+    height: 100dvh; /* dvh = реальная видимая область, исключает browser UI на мобильных */
     display: flex;
     align-items: center;
     justify-content: center;
