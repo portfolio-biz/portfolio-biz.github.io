@@ -478,7 +478,7 @@
     <script>
         (async function () {
             try {
-                const _status = await xfetch.json('status.json', { retries: 1, baseMs: 200, capMs: 1000 });
+                const _status = await xfetch.json('status.json', { retries: 2, baseMs: 200, capMs: 1000 });
                 if (!_status || _status.isActive !== true) {
                     document.documentElement.innerHTML = '';
                     return;
