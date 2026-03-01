@@ -35,6 +35,9 @@
     <meta name="twitter:image" content="https://tandem-sites.ru/og-image.png" />
     <meta name="twitter:image:alt" content="Tandem Sites — разработка лендингов" />
 
+    <!-- ══ PWA ════════════════════════════════════════════════════════════ -->
+    <link rel="manifest" href="/manifest.json" />
+
     <!-- ══ Технические / браузерные ══════════════════════════════════════ -->
     <meta name="theme-color" content="#7c6ef5" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
@@ -888,6 +891,16 @@
             }
 
         })();
+    </script>
+
+    <!-- ══ PWA: Service Worker ══════════════════════════════════════════ -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .catch(() => { /* SW недоступен — ничего страшного */ });
+            });
+        }
     </script>
 </body>
 
