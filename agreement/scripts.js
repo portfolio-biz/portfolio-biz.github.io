@@ -338,6 +338,7 @@
 
     /* ─ bfcache: при возврате кнопкой «назад» JS не перезапускается,
        но pageshow с persisted=true стреляет — сбрасываем и переигрываем */
+
     window.addEventListener('pageshow', function (e) {
         if (!e.persisted) return;
 
@@ -354,6 +355,58 @@
         requestAnimationFrame(function () {
             seenEls.forEach(function (el) { el.classList.add('rv-go'); });
         });
+    });
+
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CUSTOM CURSOR  —  только для мыши, нулевой лаг через transform + rAF
+═══════════════════════════════════════════════════════════════════════ */
+(function () {
+    /* только для устройств с точным указателем (мышь/тачпад) */
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    /* создаём элемент курсора */
+    var cur = document.createElement('img');
+    cur.id          = 'custom-cursor';
+    cur.src         = '/agreement/cursor.png';
+    cur.alt         = '';
+    cur.draggable   = false;
+    cur.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cur);
+
+    /* скрываем системный курсор */
+    document.documentElement.classList.add('has-custom-cursor');
+
+    var cx = -300, cy = -300;
+    var rafId = null;
+    var inside = false;
+
+    /* render — выполняется один раз за кадр */
+    function render() {
+        rafId = null;
+        cur.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+    }
+
+    function schedule() {
+        if (!rafId) rafId = requestAnimationFrame(render);
+    }
+
+    /* mousemove — passive для максимальной скорости */
+    document.addEventListener('mousemove', function (e) {
+        cx = e.clientX;
+        cy = e.clientY;
+        if (!inside) {
+            inside = true;
+            cur.style.opacity = '1';
+        }
+        schedule();
+    }, { passive: true });
+
+    /* курсор покинул окно — прячем */
+    document.addEventListener('mouseleave', function () {
+        inside = false;
+        cur.style.opacity = '0';
     });
 
 })();

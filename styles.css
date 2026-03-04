@@ -186,9 +186,17 @@ body.s4 #site-logo .logo-img {
     filter: brightness(0) invert(1);
 }
 
-/* mobile: logo on first slide only */
-@media (max-width: 900px) {
+/* скрываем логотипы на не-героных слайдах раньше — на узких экранах
+   centered slide-inner поднимается и налезает на logo top:24px */
+@media (max-width: 1100px) {
     .slide:not(#s1) .slide-logo {
+        display: none;
+    }
+}
+
+/* на совсем узких экранах скрываем все логотипы включая hero */
+@media (max-width: 520px) {
+    .slide-logo {
         display: none;
     }
 }

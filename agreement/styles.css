@@ -943,3 +943,26 @@ body {
     animation: rv-lbl-kf 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: var(--rv-d, 0ms);
 }
+
+/* ─── CUSTOM CURSOR ─── */
+#custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 9px;
+    height: auto;
+    pointer-events: none;
+    z-index: 99999;
+    opacity: 0;
+    /* отрисовка только через transform — GPU, нет layout reflow */
+    will-change: transform;
+    user-select: none;
+    -webkit-user-select: none;
+    /* нет transition — нулевой лаг за курсором */
+}
+
+/* скрываем системный курсор только когда мышь активна */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+    cursor: none !important;
+}
