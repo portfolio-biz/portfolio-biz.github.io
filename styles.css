@@ -1733,6 +1733,60 @@ body.s4 #cursor-dot {
     /* overflow: hidden убран — срезал descenders (g, p, y) в Syne */
 }
 
+/* ─── OFERTA LINK ─── */
+.oferta-link {
+    align-items: center;
+    gap: 6px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding-bottom: 1px;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.oferta-link::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: width 0.2s, opacity 0.2s;
+}
+
+.oferta-link:hover {
+    color: #5b46d6;
+    border-color: rgba(91, 70, 214, 0.35);
+}
+
+.oferta-link:hover::before {
+    width: 20px;
+    opacity: 0.7;
+}
+
+/* desktop-вариант: внутри .contact-right, linearly под карточками */
+.contact-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.oferta-link--desktop {
+    display: inline-flex;
+    align-self: flex-start;
+}
+
+/* mobile-вариант: скрыт на десктопе */
+.oferta-link--mobile {
+    display: none;
+    margin-top: 18px;
+}
+
 .c-card {
     display: flex;
     align-items: center;
@@ -2024,6 +2078,15 @@ body.s4 #cursor-dot {
     }
     .contact-cards {
         display: none;
+    }
+    .contact-right {
+        display: none;
+    }
+    .oferta-link--desktop {
+        display: none;
+    }
+    .oferta-link--mobile {
+        display: inline-flex;
     }
     .contact-h2 {
         font-size: clamp(42px, 12vw, 76px);

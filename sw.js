@@ -1,41 +1,22 @@
 /* ─────────────────────────────────────────────────────────────────
    Tandem Sites — Service Worker
-   Стратегия:
-     • статика (CSS/JS/шрифты/изображения) — Cache First
-     • HTML-навигация                       — Network First + offline fallback
-     • внешние ресурсы (fonts.googleapis)   — Stale While Revalidate
+   Стратегия: Network First для всего.
+     • Сеть всегда запрашивается первой — изменения видны сразу.
+     • Кеш используется ТОЛЬКО как offline-fallback.
+     • Шрифты Google — исключение (Stale While Revalidate,
+       т.к. они не меняются и CDN не всегда доступен офлайн).
    ───────────────────────────────────────────────────────────────── */
 
-const CACHE_NAME = 'tandem-v2';
-const CACHE_STATIC = 'tandem-static-v2';
-const CACHE_PAGES  = 'tandem-pages-v2';
+const CACHE = 'tandem-v3';
 
-/* файлы, которые кешируются при установке (app shell) */
-const PRECACHE = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/manifest.json',
-    '/logo.png',
-    '/404.html',
-];
+/* ── Install: ничего не прекешируем, сразу активируемся ─────────── */
+self.addEventListener('install', () => self.skipWaiting());
 
-/* ── Install: прекешируем app shell ─────────────────────────────── */
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_STATIC).then(cache => cache.addAll(PRECACHE))
-    );
-    self.skipWaiting();
-});
-
-/* ── Activate: чистим устаревшие кеши ──────────────────────────── */
+/* ── Activate: сносим все старые кеши ──────────────────────────── */
 self.addEventListener('activate', event => {
-    const allowed = new Set([CACHE_STATIC, CACHE_PAGES]);
     event.waitUntil(
         caches.keys().then(keys =>
-            Promise.all(
-                keys.filter(k => !allowed.has(k)).map(k => caches.delete(k))
-            )
+            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
         )
     );
     self.clients.claim();
@@ -46,87 +27,42 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    /* пропускаем не-GET и chrome-extension */
+    /* пропускаем не-GET и служебные протоколы */
     if (request.method !== 'GET' || url.protocol.startsWith('chrome')) return;
 
-    /* внешние шрифты — Stale While Revalidate */
+    /* шрифты Google — Stale While Revalidate (CDN, не меняются) */
     if (url.hostname.includes('fonts.g')) {
-        event.respondWith(staleWhileRevalidate(request, CACHE_STATIC));
-        return;
-    }
-
-    /* статические ресурсы — Cache First */
-    if (isStaticAsset(url)) {
-        event.respondWith(cacheFirst(request, CACHE_STATIC));
-        return;
-    }
-
-    /* HTML-страницы — Network First с offline fallback */
-    if (request.mode === 'navigate' || request.headers.get('Accept')?.includes('text/html')) {
-        event.respondWith(networkFirstHTML(request));
+        event.respondWith(staleWhileRevalidate(request));
         return;
     }
 
     /* всё остальное — Network First */
-    event.respondWith(networkFirst(request, CACHE_PAGES));
+    event.respondWith(networkFirst(request));
 });
 
 /* ── Helpers ────────────────────────────────────────────────────── */
-function isStaticAsset(url) {
-    return /\.(css|js|woff2?|ttf|otf|png|jpg|jpeg|gif|svg|webp|avif|ico)(\?.*)?$/.test(url.pathname);
-}
 
-/* Cache First: кеш → сеть → сохранить в кеш */
-async function cacheFirst(request, cacheName) {
-    const cached = await caches.match(request);
-    if (cached) return cached;
+/* Network First: сеть → сохранить в кеш → при ошибке отдать кеш */
+async function networkFirst(request) {
     try {
         const response = await fetch(request);
         if (response.ok) {
-            const cache = await caches.open(cacheName);
-            cache.put(request, response.clone());
-        }
-        return response;
-    } catch {
-        return new Response('Offline', { status: 503 });
-    }
-}
-
-/* Network First: сеть → кеш → offline fallback */
-async function networkFirst(request, cacheName) {
-    try {
-        const response = await fetch(request);
-        if (response.ok) {
-            const cache = await caches.open(cacheName);
-            cache.put(request, response.clone());
-        }
-        return response;
-    } catch {
-        const cached = await caches.match(request);
-        return cached ?? new Response('Offline', { status: 503 });
-    }
-}
-
-/* Network First для HTML: при ошибке отдаём кеш или /index.html */
-async function networkFirstHTML(request) {
-    try {
-        const response = await fetch(request);
-        if (response.ok) {
-            const cache = await caches.open(CACHE_PAGES);
+            const cache = await caches.open(CACHE);
             cache.put(request, response.clone());
         }
         return response;
     } catch {
         const cached = await caches.match(request);
         if (cached) return cached;
-        /* SPA fallback — возвращаем главную страницу из кеша */
-        return (await caches.match('/')) ?? offline404();
+        /* HTML offline fallback */
+        if (request.mode === 'navigate') return offline404();
+        return new Response('Offline', { status: 503 });
     }
 }
 
 /* Stale While Revalidate: кеш сразу + обновление в фоне */
-async function staleWhileRevalidate(request, cacheName) {
-    const cache = await caches.open(cacheName);
+async function staleWhileRevalidate(request) {
+    const cache = await caches.open(CACHE);
     const cached = await cache.match(request);
     const networkFetch = fetch(request).then(response => {
         if (response.ok) cache.put(request, response.clone());
