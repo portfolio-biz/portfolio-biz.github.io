@@ -1,75 +1,36 @@
 /* ─────────────────────────────────────────────────────────────────
    Tandem Sites — Service Worker
-   Стратегия: Network First для всего.
-     • Сеть всегда запрашивается первой — изменения видны сразу.
-     • Кеш используется ТОЛЬКО как offline-fallback.
-     • Шрифты Google — исключение (Stale While Revalidate,
-       т.к. они не меняются и CDN не всегда доступен офлайн).
+   Стратегия: NO-CACHE passthrough.
+     • Никакого кеширования — все запросы всегда идут в сеть.
+     • При офлайне отдаём встроенную страницу-заглушку.
+     • Activate сносит ВСЕ старые кеши (v1/v2/v3).
    ───────────────────────────────────────────────────────────────── */
 
-const CACHE = 'tandem-v3';
-
-/* ── Install: ничего не прекешируем, сразу активируемся ─────────── */
+/* ── Install: сразу активируемся ───────────────────────────────── */
 self.addEventListener('install', () => self.skipWaiting());
 
-/* ── Activate: сносим все старые кеши ──────────────────────────── */
+/* ── Activate: сносим абсолютно все кеши ───────────────────────── */
 self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-        )
+        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
     );
     self.clients.claim();
 });
 
-/* ── Fetch ──────────────────────────────────────────────────────── */
+/* ── Fetch: чистый passthrough, никакого кеша ──────────────────── */
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    /* пропускаем не-GET и служебные протоколы */
     if (request.method !== 'GET' || url.protocol.startsWith('chrome')) return;
 
-    /* шрифты Google — Stale While Revalidate (CDN, не меняются) */
-    if (url.hostname.includes('fonts.g')) {
-        event.respondWith(staleWhileRevalidate(request));
-        return;
-    }
-
-    /* всё остальное — Network First */
-    event.respondWith(networkFirst(request));
+    event.respondWith(
+        fetch(request).catch(function () {
+            if (request.mode === 'navigate') return offline404();
+            return new Response('Offline', { status: 503 });
+        })
+    );
 });
-
-/* ── Helpers ────────────────────────────────────────────────────── */
-
-/* Network First: сеть → сохранить в кеш → при ошибке отдать кеш */
-async function networkFirst(request) {
-    try {
-        const response = await fetch(request);
-        if (response.ok) {
-            const cache = await caches.open(CACHE);
-            cache.put(request, response.clone());
-        }
-        return response;
-    } catch {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        /* HTML offline fallback */
-        if (request.mode === 'navigate') return offline404();
-        return new Response('Offline', { status: 503 });
-    }
-}
-
-/* Stale While Revalidate: кеш сразу + обновление в фоне */
-async function staleWhileRevalidate(request) {
-    const cache = await caches.open(CACHE);
-    const cached = await cache.match(request);
-    const networkFetch = fetch(request).then(response => {
-        if (response.ok) cache.put(request, response.clone());
-        return response;
-    }).catch(() => cached);
-    return cached ?? networkFetch;
-}
 
 function offline404() {
     return new Response(
