@@ -63,7 +63,7 @@
     ],
     "screenshots": [
         {
-            "src": "/icon.png",
+            "src": "/og-image.png",
             "sizes": "1200x630",
             "type": "image/png",
             "form_factor": "wide",
