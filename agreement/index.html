@@ -644,19 +644,23 @@
             line-height: 1.5;
         }
         .agr-pre-sign__grid {
+            display: flex;
+            flex-direction: column;
+        }
+        .agr-pre-sign__row {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0 24px;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 28px;
+            border-bottom: 1px solid var(--border);
+        }
+        .agr-pre-sign__row:last-child {
+            border-bottom: none;
         }
         .agr-pre-sign__item {
             display: flex;
             align-items: flex-start;
             gap: 11px;
             padding: 11px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .agr-pre-sign__item:last-child {
-            border-bottom: none;
         }
         .agr-pre-sign__num {
             flex-shrink: 0;
@@ -688,11 +692,8 @@
             .agr-pre-sign {
                 padding: 22px 20px 24px;
             }
-            .agr-pre-sign__grid {
+            .agr-pre-sign__row {
                 grid-template-columns: 1fr;
-            }
-            .agr-pre-sign__item:last-child {
-                border-bottom: none;
             }
         }
 
@@ -914,7 +915,13 @@
                     Исполнитель приступает к разработке <strong>без предварительной оплаты</strong> —
                     незамедлительно после согласования технического задания сторонами.
                     Заказчик получает возможность оценить промежуточные результаты работы
-                    до совершения каких-либо платежей.
+                    до совершения каких-либо платежей.<br><br>
+                    <strong>Объём работ на этапе без предоплаты определяется Исполнителем
+                    самостоятельно</strong> и расценивается как <strong>консультация</strong>.
+                    В зависимости от контекста Исполнитель вправе подготовить примерный
+                    прототип или эскиз, либо сверстать предварительный интерактивный макет
+                    сайта — формат и глубина проработки определяются
+                    <strong>индивидуально, на усмотрение Исполнителя</strong>.
                 </span>
             </div>
             <div class="agr-clause">
@@ -1291,60 +1298,68 @@
                 </div>
             </div>
             <div class="agr-pre-sign__grid">
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">1</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Гарантийный срок</div>
-                        <div class="agr-pre-sign__desc">Уточните тир по таблице §&nbsp;6.1 или согласуйте индивидуальный срок, если бюджет выше 20&nbsp;000&nbsp;₽.</div>
+                <div class="agr-pre-sign__row">
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">1</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Гарантийный срок</div>
+                            <div class="agr-pre-sign__desc">Уточните тир по таблице §&nbsp;6.1 или согласуйте индивидуальный срок, если бюджет выше 20&nbsp;000&nbsp;₽.</div>
+                        </div>
+                    </div>
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">2</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Сроки выполнения</div>
+                            <div class="agr-pre-sign__desc">Конкретная дата сдачи должна быть зафиксирована в ТЗ — устные договорённости юридически не действуют (§&nbsp;3.1).</div>
+                        </div>
                     </div>
                 </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">2</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Сроки выполнения</div>
-                        <div class="agr-pre-sign__desc">Конкретная дата сдачи должна быть зафиксирована в ТЗ — устные договорённости юридически не действуют (§&nbsp;3.1).</div>
+                <div class="agr-pre-sign__row">
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">3</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Исходные материалы</div>
+                            <div class="agr-pre-sign__desc">Определите, кто предоставляет тексты, фото, брендбук, доступы — и в какой срок (§&nbsp;3.3).</div>
+                        </div>
+                    </div>
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">4</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Стоимость и оплата</div>
+                            <div class="agr-pre-sign__desc">Согласуйте итоговую сумму, предоплату и порядок расчётов до подписания (§&nbsp;2.1–2.4).</div>
+                        </div>
                     </div>
                 </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">3</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Исходные материалы</div>
-                        <div class="agr-pre-sign__desc">Определите, кто предоставляет тексты, фото, брендбук, доступы — и в какой срок (§&nbsp;3.3).</div>
+                <div class="agr-pre-sign__row">
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">5</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Технические требования</div>
+                            <div class="agr-pre-sign__desc">Стек, CMS, хостинг, браузерная совместимость — всё это часть ТЗ и влияет на цену.</div>
+                        </div>
+                    </div>
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">6</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Канал связи</div>
+                            <div class="agr-pre-sign__desc">Выберите один мессенджер для переписки — переписка в нём будет иметь юридический вес (§&nbsp;1.2).</div>
+                        </div>
                     </div>
                 </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">4</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Стоимость и оплата</div>
-                        <div class="agr-pre-sign__desc">Согласуйте итоговую сумму, предоплату и порядок расчётов до подписания (§&nbsp;2.1–2.4).</div>
+                <div class="agr-pre-sign__row">
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">7</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Сторонние расходы</div>
+                            <div class="agr-pre-sign__desc">Домен, хостинг, API, лицензии — уточните заранее, кто оплачивает и в каком размере (§&nbsp;2.6).</div>
+                        </div>
                     </div>
-                </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">5</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Технические требования</div>
-                        <div class="agr-pre-sign__desc">Стек, CMS, хостинг, браузерная совместимость — всё это часть ТЗ и влияет на цену.</div>
-                    </div>
-                </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">6</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Канал связи</div>
-                        <div class="agr-pre-sign__desc">Выберите один мессенджер для переписки — переписка в нём будет иметь юридический вес (§&nbsp;1.2).</div>
-                    </div>
-                </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">7</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Сторонние расходы</div>
-                        <div class="agr-pre-sign__desc">Домен, хостинг, API, лицензии — уточните заранее, кто оплачивает и в каком размере (§&nbsp;2.6).</div>
-                    </div>
-                </div>
-                <div class="agr-pre-sign__item">
-                    <div class="agr-pre-sign__num">8</div>
-                    <div>
-                        <div class="agr-pre-sign__label">Объём правок</div>
-                        <div class="agr-pre-sign__desc">Договоритесь, сколько итераций правок включено в стоимость и что считается новой задачей (§&nbsp;2.5).</div>
+                    <div class="agr-pre-sign__item">
+                        <div class="agr-pre-sign__num">8</div>
+                        <div>
+                            <div class="agr-pre-sign__label">Объём правок</div>
+                            <div class="agr-pre-sign__desc">Договоритесь, сколько итераций правок включено в стоимость и что считается новой задачей (§&nbsp;2.5).</div>
+                        </div>
                     </div>
                 </div>
             </div>
