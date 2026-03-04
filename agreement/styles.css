@@ -124,8 +124,50 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 54px 0 42px;
-    border-bottom: 1px solid var(--border-solid);
     margin-bottom: 52px;
+}
+
+/* ─── BACK BUTTON ─── */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 200;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px 9px 12px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 50px;
+    text-decoration: none;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+    transition:
+        background 0.18s,
+        box-shadow 0.18s,
+        transform 0.18s;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateX(-2px);
+}
+
+.back-btn svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 0.18s;
+}
+
+.back-btn:hover svg {
+    opacity: 1;
 }
 
 #agr-logo {
@@ -557,6 +599,13 @@ body {
 
     #agr-header {
         padding: 36px 0 32px;
+    }
+
+    .back-btn {
+        top: 14px;
+        left: 14px;
+        padding: 7px 13px 7px 10px;
+        font-size: 12px;
     }
 
     .agr-parties {

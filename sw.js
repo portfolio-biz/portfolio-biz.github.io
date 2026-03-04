@@ -6,9 +6,9 @@
      • внешние ресурсы (fonts.googleapis)   — Stale While Revalidate
    ───────────────────────────────────────────────────────────────── */
 
-const CACHE_NAME = 'tandem-v1';
-const CACHE_STATIC = 'tandem-static-v1';
-const CACHE_PAGES  = 'tandem-pages-v1';
+const CACHE_NAME = 'tandem-v2';
+const CACHE_STATIC = 'tandem-static-v2';
+const CACHE_PAGES  = 'tandem-pages-v2';
 
 /* файлы, которые кешируются при установке (app shell) */
 const PRECACHE = [

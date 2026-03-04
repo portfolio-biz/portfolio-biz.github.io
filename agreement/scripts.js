@@ -336,4 +336,24 @@
         }
     });
 
+    /* ─ bfcache: при возврате кнопкой «назад» JS не перезапускается,
+       но pageshow с persisted=true стреляет — сбрасываем и переигрываем */
+    window.addEventListener('pageshow', function (e) {
+        if (!e.persisted) return;
+
+        /* элементы, которые пользователь уже видел — у них есть .rv-go */
+        var seenEls = Array.from(document.querySelectorAll('.rv-go'));
+
+        /* элементы ниже фолда, до которых не доскроллили — просто делаем видимыми */
+        document.querySelectorAll('.rv-p:not(.rv-go),.rv-p-logo:not(.rv-go),.rv-p-lbl:not(.rv-go)')
+            .forEach(function (el) { el.classList.remove('rv-p', 'rv-p-logo', 'rv-p-lbl'); });
+
+        /* убираем .rv-go, форсируем reflow, добавляем обратно — анимация перезапускается */
+        seenEls.forEach(function (el) { el.classList.remove('rv-go'); });
+        document.body.offsetHeight; /* reflow */
+        requestAnimationFrame(function () {
+            seenEls.forEach(function (el) { el.classList.add('rv-go'); });
+        });
+    });
+
 })();
