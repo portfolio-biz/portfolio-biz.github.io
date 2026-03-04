@@ -564,6 +564,37 @@
                 font-size: 10px;
             }
         }
+
+        /* ─── AGR TABLE ─── */
+        .agr-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .agr-table th,
+        .agr-table td {
+            padding: 8px 14px;
+            text-align: left;
+            border: 1px solid var(--border-solid);
+            vertical-align: middle;
+        }
+        .agr-table thead th {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: rgba(0,0,0,.02);
+            border-bottom: 1px solid rgba(0,0,0,.12);
+        }
+        .agr-table tbody tr:last-child td {
+            border-bottom: 1px solid var(--border-solid);
+        }
+        .agr-table tbody td:last-child {
+            font-weight: 600;
+            color: var(--ink);
+        }
     </style>
 </head>
 
@@ -872,12 +903,32 @@
                     Гарантийный период исчисляется с момента сдачи проекта Заказчику
                     и устанавливается в зависимости от итоговой стоимости проекта:
                 </span>
-                <ul style="margin: 8px 0 0 16px; font-size: 13px; color: var(--ink); line-height: 1.7;">
-                    <li>до&nbsp;<strong>5&nbsp;000&nbsp;₽</strong> — <strong>15 календарных дней;</strong></li>
-                    <li>до&nbsp;<strong>10&nbsp;000&nbsp;₽</strong> — <strong>30 календарных дней;</strong></li>
-                    <li>до&nbsp;<strong>20&nbsp;000&nbsp;₽</strong> — <strong>60 календарных дней;</strong></li>
-                    <li>свыше&nbsp;<strong>20&nbsp;000&nbsp;₽</strong> — срок <strong>согласовывается индивидуально</strong> до начала работ.</li>
-                </ul>
+                <table class="agr-table">
+                    <thead>
+                        <tr>
+                            <th>Стоимость проекта</th>
+                            <th>Гарантийный период</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>до 5 000 ₽</td>
+                            <td>15 календарных дней</td>
+                        </tr>
+                        <tr>
+                            <td>до 10 000 ₽</td>
+                            <td>30 календарных дней</td>
+                        </tr>
+                        <tr>
+                            <td>до 20 000 ₽</td>
+                            <td>60 календарных дней</td>
+                        </tr>
+                        <tr>
+                            <td>свыше 20 000 ₽</td>
+                            <td>индивидуально, до начала работ</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="agr-clause">
                 <span class="agr-clause-n">6.2</span>
