@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --nav-h: 52px;
+    --bar-h: 64px;
+    --tab-w: 200px;
+    --bg: #ffffff;
+    --bg2: #f7f7f7;
+    --bg3: #f0f0f0;
+    --border: #e8e8e8;
+    --border-dark: #d0d0d0;
+    --text: #0a0a0a;
+    --text2: #555;
+    --text3: #999;
+    --accent: #0a0a0a;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --blue: #3b82f6;
+    --card-r: 5px;
+    --trans: 210ms cubic-bezier(.25, .46, .45, .94);
+    --trans-slow: 370ms cubic-bezier(.22, 1, .36, 1);
+}
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+svg {
+    display: block;
+    flex-shrink: 0;
+}
+

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="PCraft — минималистичный конструктор ПК. Соберите конфигурацию мечты за 30 секунд. Актуальные цены 2026." />
+    <title>PCraft — Конструктор ПК</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/landing.css" />
+</head>
+
+<body>
+
+    <!-- ─── LANDING ──────────────────────────────────────────── -->
+    <div class="landing" id="landing">
+
+        <!-- Top bar -->
+        <div class="landing__bar">
+            <div class="lbar__logo">
+                <span class="lbar__name">PCraft</span>
+                <div class="lbar__vsep"></div>
+                <span class="lbar__category">Компьютерная мастерская</span>
+            </div>
+            <nav class="lbar__nav" aria-label="Навигация">
+                <span class="lbar__nav-item">Услуги</span>
+                <span class="lbar__nav-item">Гарантия</span>
+                <span class="lbar__nav-item">О нас</span>
+            </nav>
+            <div class="lbar__right">
+                <span class="lbar__badge">Работаем пн–сб</span>
+                <span class="lbar__phone">+7 (XXX) XXX-XX-XX</span>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="landing__body">
+
+            <!-- Left hero (dark) -->
+            <div class="landing__left">
+                <div class="landing__eyebrow">Компьютерная мастерская · г. Тандем</div>
+                <h1 class="landing__headline">Ремонт<br>и сборка<br>компьютеров</h1>
+                <p class="landing__tagline">Профессиональная диагностика, ремонт<br>и сборка ПК под ваши задачи. Гарантия 1 год.</p>
+                <div class="landing__hero-stats">
+                    <div class="landing__hstat"><span>2 500+</span><small>ремонтов</small></div>
+                    <div class="landing__hstat"><span>500+</span><small>сборок ПК</small></div>
+                    <div class="landing__hstat"><span>1–2</span><small>дня срок</small></div>
+                </div>
+                <button class="landing__cta" id="btn-open" aria-label="Открыть конструктор">
+                    Собрать ПК онлайн
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </button>
+                <div class="landing__addr">ул. Лендинговая, д. 1  ·  Пн–Сб 9:00–20:00</div>
+            </div>
+
+            <!-- Right services (light) -->
+            <div class="landing__right" aria-label="Наши услуги">
+                <div class="lsvc-header">
+                    <span class="lsvc-header__title">Наши услуги</span>
+                </div>
+                <div class="lsvc-grid">
+
+                    <div class="lsvc">
+                        <div class="lsvc__num">01</div>
+                        <div class="lsvc__top">
+                            <span class="lsvc__title">Ремонт ПК</span>
+                            <span class="lsvc__tag">Популярное</span>
+                        </div>
+                        <div class="lsvc__desc">Диагностика и ремонт настольных компьютеров любой сложности. Быстро и надёжно.</div>
+                        <div class="lsvc__price">от 500 ₽<span class="lsvc__price-sub">в зависимости от сложности</span></div>
+                    </div>
+
+                    <div class="lsvc">
+                        <div class="lsvc__num">02</div>
+                        <div class="lsvc__top">
+                            <span class="lsvc__title">Сборка ПК</span>
+                            <span class="lsvc__tag">Под заказ</span>
+                        </div>
+                        <div class="lsvc__desc">Подбор компонентов под ваш бюджет и задачи. Игровые, рабочие, серверные станции.</div>
+                        <div class="lsvc__price">от 1 500 ₽<span class="lsvc__price-sub">включая сборку</span></div>
+                    </div>
+
+                    <div class="lsvc">
+                        <div class="lsvc__num">03</div>
+                        <div class="lsvc__top">
+                            <span class="lsvc__title">Апгрейд</span>
+                        </div>
+                        <div class="lsvc__desc">Увеличение RAM, замена GPU или накопителя. Быстрый подбор и установка новых компонентов.</div>
+                        <div class="lsvc__price">от 1 000 ₽<span class="lsvc__price-sub">без учёта запчастей</span></div>
+                    </div>
+
+                    <div class="lsvc">
+                        <div class="lsvc__num">04</div>
+                        <div class="lsvc__top">
+                            <span class="lsvc__title">Диагностика</span>
+                            <span class="lsvc__tag">Бесплатно при заказе</span>
+                        </div>
+                        <div class="lsvc__desc">Полная диагностика всех узлов системы, выявление неисправностей и причин сбоев.</div>
+                        <div class="lsvc__price">от 300 ₽<span class="lsvc__price-sub">бесплатно при заказе</span></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="landing__foot">
+            <div class="lfoot__item">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span class="lfoot__val">г. Тандем, ул. Лендинговая, д. 1</span>
+            </div>
+            <div class="lfoot__item">
+                <span class="lfoot__val">+7 (XXX) XXX-XX-XX</span>
+            </div>
+            <div class="lfoot__item">
+                <div class="lfoot__dot"></div>
+                <span>Пн–Сб 9:00–20:00</span>
+            </div>
+            <div class="lfoot__item">
+                <span>Бесплатная диагностика при заказе</span>
+            </div>
+            <div class="lfoot__right">© 2026 PCraft</div>
+        </div>
+
+    </div>
+
+    <div class="app" id="app">
+
+        <!-- ─── NAV ───────────────────────────────────────────── -->
+        <nav class="nav" data-build="1">
+            <a href="#" class="nav__logo" aria-label="PCraft — на главную">
+                <span class="nav__logo-pc">PC</span><span class="nav__logo-raft">raft</span><span class="nav__logo-sep"></span><span class="nav__logo-sub">Конструктор ПК 2026</span>
+            </a>
+            <div class="nav__divider"></div>
+            <span class="nav__title" id="nav-progress">Выберите компоненты</span>
+            <div class="nav__actions">
+                <button class="nav__btn" id="btn-reset" title="Сбросить конфигурацию">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <polyline points="3 3 3 8 8 8" />
+                    </svg>
+                    <span>Сброс</span>
+                </button>
+                <button class="nav__btn nav__btn--primary" id="btn-copy" title="Скопировать список">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+                        <rect x="9" y="9" width="13" height="13" rx="0" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Копировать</span>
+                </button>
+            </div>
+        </nav>
+        <div class="nav__progress" aria-hidden="true">
+            <div class="nav__progress-fill" id="nav-progress-fill"></div>
+        </div>
+        <div class="builder" data-build="2">
+
+            <!-- ─ SIDEBAR ─────────────────────────────────────────── -->
+            <aside class="sidebar" role="navigation" aria-label="Категории компонентов">
+                <div class="sidebar__label">Компоненты</div>
+                <!-- tabs rendered by JS -->
+            </aside>
+
+            <!-- ─ CONTENT ─────────────────────────────────────────── -->
+            <div class="content">
+                <div class="content__header">
+                    <span class="content__cat-name" id="cat-name">ЦП — Процессор</span>
+                    <span class="content__count" id="cat-count">0 позиций</span>
+                    <div class="content__filter" id="filter-bar"></div>
+                </div>
+                <div class="cards" id="cards-container">
+                    <div class="cards-grid" id="cards-grid"></div>
+                </div>
+            </div>
+
+            <!-- ─ BUILD PANEL ─────────────────────────────────────────── -->
+            <aside class="build-panel" data-build="4" aria-label="Сборка">
+                <div class="build-panel__head">
+                    <span class="build-panel__title">Сборка</span>
+                    <span class="build-panel__count" id="panel-count">0 / 8</span>
+                </div>
+                <div class="build-panel__list" id="panel-list">
+                    <div class="build-panel__empty" id="panel-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                            <rect x="2" y="3" width="20" height="14" rx="0" />
+                            <path d="M8 21h8M12 17v4" />
+                        </svg>
+                        <span>Компоненты<br>не выбраны</span>
+                    </div>
+                </div>
+                <div class="build-panel__foot" id="panel-foot" style="display:none">
+                    <div class="build-panel__total-row">
+                        <span class="build-panel__total-label">Итого</span>
+                        <span class="build-panel__total-val" id="panel-total">0 ₽</span>
+                    </div>
+                    <button class="build-panel__export" id="btn-export" disabled>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Сохранить список
+                    </button>
+                </div>
+            </aside>
+
+        </div>
+
+        <!-- ─── SUMMARY BAR ────────────────────────────────────── -->
+        <div class="summary" data-build="3" role="status" aria-live="polite">
+            <div class="summary__contact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span class="summary__contact-addr">г. Тандем, ул. Лендинговая, д. 1</span>
+                <span class="summary__contact-sep">·</span>
+                <a href="tel:+70000000000" class="summary__contact-phone">+7 (XXX) XXX-XX-XX</a>
+            </div>
+            <div class="summary__right">
+                <div id="summary-watt-group" style="display:none;align-items:center;gap:12px;flex-shrink:0">
+                    <div class="summary__watt" aria-label="Пиковое потребление">
+                        <span class="summary__watt-val" id="summary-watt-val">—</span>
+                        <span class="summary__watt-label">Вт пик</span>
+                    </div>
+                    <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── COMPAT BANNER ─────────────────────────────────────── -->
+    <div class="compat-banner" id="compat-banner" role="alert" aria-live="assertive"></div>
+
+    <script src="js/data.db.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/compat.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

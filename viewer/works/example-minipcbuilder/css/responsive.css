@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════════════
+       MOBILE ( < 768px )
+    ═══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+    :root {
+        --nav-h: 48px;
+        --bar-h: 56px;
+        --tab-w: 100%;
+    }
+
+    .nav__title {
+        display: none;
+    }
+
+    .nav__btn span {
+        display: none;
+    }
+
+    .nav__btn {
+        padding: 0 10px;
+    }
+
+    .builder {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: 52px;
+        min-height: 52px;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .sidebar__label {
+        display: none;
+    }
+
+    .sidebar__sep {
+        display: none;
+    }
+
+    .tab {
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        height: 52px;
+        min-width: 64px;
+        padding: 0 10px;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .tab.is-active {
+        border-bottom-color: var(--text);
+        border-left-color: transparent;
+    }
+
+    .tab__icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .tab__info {
+        display: none;
+    }
+
+    .tab__badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+    }
+
+    .content__filter {
+        display: none;
+    }
+
+    .cards {
+        padding: 12px;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .card__specs {
+        display: none;
+    }
+
+    .card__name {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .card__price {
+        font-size: 15px;
+    }
+
+    .build-panel {
+        display: none;
+    }
+
+    .summary__contact-addr {
+        display: none;
+    }
+
+    .summary__chip {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .summary__total {
+        font-size: 17px;
+    }
+
+    .summary__total-label {
+        display: none;
+    }
+}
+
+@media (max-width: 400px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+       DESKTOP LARGE (≥ 1280px)
+    ═══════════════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+    :root {
+        --nav-h: 60px;
+        --bar-h: 70px;
+        --tab-w: 224px;
+    }
+
+    .nav {
+        padding: 0 28px;
+    }
+
+    .nav__logo-pc,
+    .nav__logo-raft {
+        font-size: 19px;
+    }
+
+    .nav__logo-sub {
+        font-size: 12px;
+    }
+
+    .nav__btn {
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .sidebar__label {
+        padding: 16px 18px 10px;
+        font-size: 11px;
+    }
+
+    .tab {
+        height: 58px;
+    }
+
+    .tab__name {
+        font-size: 14px;
+    }
+
+    .tab__chosen {
+        font-size: 12px;
+    }
+
+    .tab__icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .content__header {
+        height: 54px;
+    }
+
+    .content__cat-name {
+        font-size: 16px;
+    }
+
+    .content__count {
+        font-size: 13px;
+    }
+
+    .cards {
+        padding: 20px;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 13px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .card__brand {
+        font-size: 11px;
+    }
+
+    .card__name {
+        font-size: 14px;
+    }
+
+    .card__spec {
+        font-size: 12px;
+    }
+
+    .card__price {
+        font-size: 21px;
+    }
+
+    .card__action {
+        font-size: 12px;
+        padding: 7px 16px;
+    }
+
+    .card__cat-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .card__cat-icon svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    .build-panel {
+        width: 294px;
+        min-width: 294px;
+    }
+
+    .build-panel__name {
+        font-size: 13px;
+    }
+
+    .summary {
+        padding: 0 24px;
+    }
+
+    .summary__contact-addr {
+        font-size: 12px;
+    }
+
+    .summary__contact-phone {
+        font-size: 13px;
+    }
+
+    .summary__watt-val {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 1600px) {
+    :root {
+        --tab-w: 240px;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 14px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .card__name {
+        font-size: 15px;
+    }
+
+    .card__price {
+        font-size: 22px;
+    }
+
+    .build-panel {
+        width: 320px;
+        min-width: 320px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+       TEXT SELECTION
+    ═══════════════════════════════════════════════════════ */
+::selection {
+    background: #0a0a0a;
+    color: #ffffff;
+}
+
+::-moz-selection {
+    background: #0a0a0a;
+    color: #ffffff;
+}
+
