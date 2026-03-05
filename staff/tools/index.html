@@ -1350,6 +1350,12 @@
             padding-right: 10px;
         }
 
+        .swipe-label svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+
         .swipe-handle {
             position: absolute;
             left: 5px;
@@ -2239,9 +2245,23 @@
                         completed = true;
                         setPos(max);
                         track.classList.add('completed');
-                        label.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Сброс выполнен';
+                        label.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Сброс выполнен';
                         label.style.opacity = '1';
-                        setTimeout(doLocalReset, 300);
+                        setTimeout(function () {
+                            doLocalReset().then(function () {
+                                /* анимированно возвращаем свайп в исходное состояние */
+                                setTimeout(function () {
+                                    handle.style.transition = 'transform .55s cubic-bezier(.4,0,.2,1), box-shadow .2s';
+                                    fill.style.transition = 'width .55s cubic-bezier(.4,0,.2,1)';
+                                    setPos(0);
+                                    track.classList.remove('completed');
+                                    label.innerHTML = 'Потяните вправо для подтверждения';
+                                    label.style.opacity = '1';
+                                    currentX = 0;
+                                    completed = false;
+                                }, 2200);
+                            });
+                        }, 300);
                     } else {
                         /* spring back */
                         currentX = 0;
