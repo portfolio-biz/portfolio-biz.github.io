@@ -502,8 +502,8 @@
             'use strict';
 
             /* ─── Иконки ─── */
-            var ICO_OK      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-            var ICO_FAIL    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+            var ICO_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            var ICO_FAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
             var ICO_PENDING = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
 
             /* ─── HTML-экранирование ─── */
@@ -518,10 +518,10 @@
             function renderMeta(sig) {
                 var items = [
                     ['Agreement ID', sig.agreementId],
-                    ['Signed At',    sig.signedAt],
-                    ['Algorithm',    sig.algorithm],
-                    ['Issuer',       sig.issuer],
-                    ['Format',       sig.version],
+                    ['Signed At', sig.signedAt],
+                    ['Algorithm', sig.algorithm],
+                    ['Issuer', sig.issuer],
+                    ['Format', sig.version],
                 ];
                 /* Env-Hash: показываем сокращённо (первые 16 символов + …) */
                 if (sig.envHash) {
@@ -555,41 +555,41 @@
 
             /* ─── Отрисовка результата ─── */
             async function renderResult(sig) {
-                var result   = document.getElementById('result');
+                var result = document.getElementById('result');
                 var rcHeader = document.getElementById('rc-header');
-                var rcIcon   = document.getElementById('rc-icon');
-                var rcTitle  = document.getElementById('rc-title');
-                var rcSub    = document.getElementById('rc-sub');
-                var rcMeta   = document.getElementById('rc-meta');
+                var rcIcon = document.getElementById('rc-icon');
+                var rcTitle = document.getElementById('rc-title');
+                var rcSub = document.getElementById('rc-sub');
+                var rcMeta = document.getElementById('rc-meta');
                 var rcChecks = document.getElementById('rc-checks');
 
                 /* Метаданные — сразу */
                 rcMeta.innerHTML = renderMeta(sig);
 
                 /* Отображаем плейсхолдер пока считаем */
-                rcHeader.className  = 'rc-header';
-                rcIcon.innerHTML    = ICO_PENDING;
+                rcHeader.className = 'rc-header';
+                rcIcon.innerHTML = ICO_PENDING;
                 rcTitle.textContent = 'Верификация…';
-                rcSub.textContent   = 'Вычисляем хеши, подождите';
-                rcChecks.innerHTML  = chkRow('pending', 'Формат полей',          'Проверяем…')
-                    + chkRow('pending', 'Хеш документа',         'Проверяем…')
-                    + chkRow('pending', 'Контрольная сумма',     'Проверяем…')
+                rcSub.textContent = 'Вычисляем хеши, подождите';
+                rcChecks.innerHTML = chkRow('pending', 'Формат полей', 'Проверяем…')
+                    + chkRow('pending', 'Хеш документа', 'Проверяем…')
+                    + chkRow('pending', 'Контрольная сумма', 'Проверяем…')
                     + chkRow('pending', 'Верификационный токен', 'Проверяем…');
                 result.classList.add('visible');
                 document.getElementById('reset-btn').style.display = 'flex';
 
                 /* Крипто-проверки и проверка формата */
-                var checks    = await TandemSign.verify(sig);
+                var checks = await TandemSign.verify(sig);
                 var fmtIssues = TandemSign.validateFormat(sig);
-                var fmtOk     = fmtIssues.length === 0;
-                var allOk     = checks.every(function (c) { return c.ok; }) && fmtOk;
+                var fmtOk = fmtIssues.length === 0;
+                var allOk = checks.every(function (c) { return c.ok; }) && fmtOk;
 
-                rcHeader.className  = 'rc-header ' + (allOk ? 'ok' : 'fail');
-                rcIcon.innerHTML    = allOk ? ICO_OK : ICO_FAIL;
+                rcHeader.className = 'rc-header ' + (allOk ? 'ok' : 'fail');
+                rcIcon.innerHTML = allOk ? ICO_OK : ICO_FAIL;
                 rcTitle.textContent = allOk
                     ? 'Подпись действительна'
                     : 'Подпись недействительна';
-                rcSub.textContent   = allOk
+                rcSub.textContent = allOk
                     ? 'Все четыре проверки прошли успешно. Документ не был изменён после подписания.'
                     : 'Одна или несколько проверок не прошли. Файл мог быть подделан или повреждён.';
 
@@ -637,7 +637,7 @@
             }
 
             /* ─── Drag & drop ─── */
-            var zone  = document.getElementById('drop-zone');
+            var zone = document.getElementById('drop-zone');
             var input = document.getElementById('file-input');
 
             zone.addEventListener('dragover', function (e) {

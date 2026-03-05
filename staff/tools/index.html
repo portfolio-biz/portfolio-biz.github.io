@@ -32,6 +32,7 @@
             color: var(--text);
             -webkit-font-smoothing: antialiased;
         }
+
         html {
             scrollbar-gutter: stable;
         }
@@ -117,7 +118,7 @@
         }
 
         .logo-img {
-            height: 30px;
+            height: 23px;
             width: auto;
             object-fit: contain;
             display: block;
@@ -193,6 +194,11 @@
             gap: 0;
             margin-bottom: 32px;
             border-bottom: 1px solid var(--border2);
+        }
+
+        /* Скрыть скроллбар вкладок на всех устройствах */
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab-btn {
@@ -278,36 +284,48 @@
 ══════════════════════════════════════════════════════ */
         .input-row {
             display: flex;
+            width: 100%;
             gap: 10px;
             align-items: center;
         }
 
         .text-input {
-            flex: 1;
-            height: 44px;
-            padding: 0 14px;
-            background: var(--surface2);
-            border: 1px solid var(--border2);
-            border-radius: 11px;
+            display: block;
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            height: 56px;
+            padding: 0 18px;
+            background: var(--surface3);
+            border: 2px solid var(--border3);
+            border-radius: 10px;
             color: var(--text);
-            font-family: "JetBrains Mono", monospace;
-            font-size: 13.5px;
-            transition: border-color var(--r), box-shadow var(--r);
+            font-family: "Inter", system-ui, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color var(--r), box-shadow var(--r), background var(--r);
         }
 
         .text-input::placeholder {
             color: var(--muted2);
+            font-weight: 400;
         }
 
         .text-input:focus {
+            background: var(--surface3);
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(124, 110, 245, .12);
+            box-shadow: 0 0 0 4px rgba(124, 110, 245, .14);
+            outline: none;
         }
 
         .btn-primary {
-            height: 44px;
-            padding: 0 22px;
-            border-radius: 11px;
+            height: 56px;
+            padding: 0 26px;
+            border-radius: 10px;
             border: none;
             background: var(--accent);
             color: #fff;
@@ -1020,18 +1038,65 @@
 ══════════════════════════════════════════════════════ */
         @media (max-width: 600px) {
             .page {
-                padding: 32px 16px 0;
+                padding: 28px 14px 0;
+            }
+
+            /* Вкладки: горизонтальный скролл без смещения страницы */
+            .tabs {
+                overflow-x: auto;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                border-bottom: none;
+                /* полоса снизу через inset shadow — не обрезается overflow */
+                box-shadow: inset 0 -1px 0 var(--border2);
+                /* Выход за паддинг страницы, чтобы вкладки шли от края до края */
+                margin-left: -14px;
+                margin-right: -14px;
+                padding-left: 14px;
+                padding-right: 14px;
             }
 
             .tab-btn {
-                padding: 10px 12px 11px;
+                padding: 10px 14px 11px;
                 font-size: 12.5px;
                 gap: 7px;
+                flex-shrink: 0;
+            }
+
+            .site-header {
+                margin-bottom: 28px;
+                gap: 10px;
+            }
+
+            .logo-name {
+                font-size: 13px;
+                letter-spacing: .1em;
+            }
+
+            .page-title-block {
+                margin-bottom: 28px;
+            }
+
+            .page-title {
+                font-size: 30px;
+            }
+
+            .page-title-sub {
+                font-size: 13px;
+                margin-top: 8px;
+            }
+
+            .card-section {
+                padding: 16px;
             }
 
             .input-row {
+                display: flex;
                 flex-direction: column;
                 align-items: stretch;
+                width: 100%;
+                gap: 8px;
             }
 
             .btn-primary {
@@ -1039,12 +1104,36 @@
                 justify-content: center;
             }
 
-            .site-header {
-                margin-bottom: 36px;
+            /* URL влезает полностью на мобайле */
+            .url-block {
+                flex-direction: column;
             }
 
-            .page-title {
-                font-size: 28px;
+            .url-textarea {
+                height: auto;
+                min-height: 60px;
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .copy-btn {
+                border-left: none;
+                border-top: 1px solid var(--border2);
+                padding: 10px 14px;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .gen-chips {
+                gap: 6px;
+            }
+
+            .hist-main {
+                padding: 10px 12px;
+            }
+
+            .hist-act {
+                width: 38px;
             }
 
             .workflow {
@@ -1058,11 +1147,22 @@
             .swipe-label {
                 font-size: 12px;
             }
+
+            .site-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+                padding: 20px 0 28px;
+            }
         }
 
         @media (max-width: 380px) {
             .env-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 26px;
             }
         }
 
