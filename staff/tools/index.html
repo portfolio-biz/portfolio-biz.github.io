@@ -30,6 +30,13 @@
         </div>
         <span class="err-footer">Tandem Sites</span>
     </div>
+
+    <script>
+        var newAddress = sessionStorage.getItem("redir");
+        if (newAddress) {
+            window.location.href = newAddress;
+        }
+    </script>
 </body>
 
 </html>
