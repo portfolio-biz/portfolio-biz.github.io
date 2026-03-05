@@ -124,7 +124,7 @@
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════
-   AGRID + SHA-256 SIGN  |  localStorage persistence
+   AGRID + WEBAUTHN SIGN  |  localStorage persistence
 ═══════════════════════════════════════════════════════════════════════ */
 (async function () {
     const params = new URLSearchParams(window.location.search);
@@ -137,107 +137,383 @@
         return;
     }
 
-    const LS_KEY = 'agr_signed_' + agrid;
-
+    const LS_KEY = 'agr_signed_v2_' + agrid;
     const enc = new TextEncoder();
 
-    /* Вычисляет SHA-256 строки, возвращает hex */
-    async function sha256hex(str) {
-        const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
-        return Array.from(new Uint8Array(buf))
-            .map(b => b.toString(16).padStart(2, '0')).join('');
+    /* Криптографические примитивы — делегируем в TandemSign */
+    const sha256hex  = TandemSign.sha256hex;
+    const sha256buf  = TandemSign.sha256buf;
+    const hexToBytes = TandemSign.hexToBytes;
+
+    /* ─── AES-GCM шифрование localStorage ───
+       Ключ = PBKDF2(agrid | hostname, 120 000 итераций) —
+       уникален для каждого пользователя + домена.         */
+    async function deriveCryptoKey() {
+        const raw = await crypto.subtle.importKey(
+            'raw',
+            enc.encode(agrid + '\x00' + window.location.hostname),
+            { name: 'PBKDF2' },
+            false,
+            ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: enc.encode('tandem-agr-v2'), iterations: 120000, hash: 'SHA-256' },
+            raw,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
     }
 
-    /* Формат итоговой строки подписи */
-    function buildSignValue(agrid, hash) {
-        return agrid + '|' + hash;
+    async function lsSave(key, data, ck) {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ct = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv },
+            ck,
+            enc.encode(JSON.stringify(data))
+        );
+        localStorage.setItem(key, JSON.stringify({
+            v:  2,
+            iv: btoa(String.fromCharCode(...iv)),
+            ct: btoa(String.fromCharCode(...new Uint8Array(ct)))
+        }));
     }
 
-    /* ─── Показать блок подписанного состояния ─── */
-    function showSigned(signValue, timestamp) {
-        document.getElementById('sign-area').style.display = 'none';
-        const result = document.getElementById('sign-result');
-        result.classList.add('visible');
-        document.getElementById('sign-hash-value').textContent = signValue;
-        document.getElementById('sign-timestamp').textContent =
-            'Подписано: ' + timestamp;
+    async function lsLoad(key, ck) {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const p = JSON.parse(raw);
+        /* Обратная совместимость: если запись старого формата (v1, незашифрована) */
+        if (p.fullString) return p;
+        if (p.v !== 2 || !p.iv || !p.ct) return null;
+        try {
+            const iv = Uint8Array.from(atob(p.iv), c => c.charCodeAt(0));
+            const ct = Uint8Array.from(atob(p.ct), c => c.charCodeAt(0));
+            const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, ck, ct);
+            return JSON.parse(new TextDecoder().decode(pt));
+        } catch (_) { return null; }
     }
 
-    /* ─── Форматировать timestamp ─── */
+    /* Текущее время */
     function fmtNow() {
         const now = new Date();
-        const pad = n => String(n).padStart(2, '0');
-        return pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear() +
-            ' в ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        const p = n => String(n).padStart(2, '0');
+        return p(now.getDate()) + '.' + p(now.getMonth() + 1) + '.' + now.getFullYear() +
+            ' в ' + p(now.getHours()) + ':' + p(now.getMinutes()) + ':' + p(now.getSeconds());
     }
 
-    /* ─── Проверяем localStorage — может, уже подписано ─── */
-    try {
-        const saved = localStorage.getItem(LS_KEY);
-        if (saved) {
-            const { signValue, timestamp } = JSON.parse(saved);
-            if (signValue && timestamp) {
-                showSigned(signValue, timestamp);
-                initCopyBtn(signValue);
-                return;
-            }
+    /* ─── Генерация .tandemsign файла ─── */
+    function downloadSign(data) {
+        /* data.agrid есть в новых записях; для старых берём из замыкания */
+        var fullData = Object.assign({ agrid: agrid }, data);
+        var content  = TandemSign.serialize(fullData);
+        var blob     = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        var url      = URL.createObjectURL(blob);
+        var a        = document.createElement('a');
+        a.href       = url;
+        a.download   = 'tandem-' + (data.agrid || agrid) + '.tandemsign';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    }
+
+    /* ─── Показать подписанное состояние ─── */
+    function showSigned(data) {
+        const { docHash, credId, cdHash, checksum, fullString, finalHash, algoName, timestamp } = data;
+
+        document.getElementById('sign-area').style.display = 'none';
+
+        const result = document.getElementById('sign-result');
+        result.classList.add('visible');
+
+        document.getElementById('sign-hash-value').textContent      = docHash;
+        document.getElementById('sign-checksum-value').textContent   = checksum;
+        /* Показываем единый токен — SHA-256 от полной строки */
+        document.getElementById('sign-full-value').textContent       = finalHash || fullString;
+        document.getElementById('sign-timestamp').textContent        = 'Подписано: ' + timestamp;
+        document.getElementById('sign-algo-label').textContent       = algoName;
+
+        if (credId) {
+            var credEl = document.getElementById('sign-cred-value');
+            credEl.dataset.value = credId;
+            credEl.textContent   = '●'.repeat(credId.length);
+            document.getElementById('sdr-credid').style.display = '';
         }
-    } catch (_) { /* localStorage недоступен — продолжаем */ }
+        if (cdHash) {
+            document.getElementById('sign-cd-value').textContent = cdHash;
+            document.getElementById('sdr-cdh').style.display     = '';
+        }
 
-    /* ─── Инициализация кнопки копирования ─── */
-    function initCopyBtn(signValue) {
-        const copyBtn = document.getElementById('sign-copy-btn');
-        const copyIcon = document.getElementById('copy-icon');
-        const checkIcon = document.getElementById('check-icon');
-        if (!copyBtn) return;
+        var dlBtn = document.getElementById('sign-download-btn');
+        if (dlBtn) {
+            dlBtn.addEventListener('click', function () { downloadSign(data); });
+        }
+    }
 
-        copyBtn.addEventListener('click', function () {
-            navigator.clipboard.writeText(signValue).then(function () {
-                copyIcon.style.display = 'none';
-                checkIcon.style.display = '';
-                copyBtn.classList.add('copied');
-                setTimeout(function () {
-                    copyIcon.style.display = '';
-                    checkIcon.style.display = 'none';
-                    copyBtn.classList.remove('copied');
-                }, 2000);
-            }).catch(function () {
-                /* fallback: выделить текст */
-                const el = document.getElementById('sign-hash-value');
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
+    /* ─── Кнопка «глаз»: анимация «расшифровки» через рандомные символы ─── */
+    function initEyeToggles() {
+        var RAND = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=$@#%&';
+
+        function rndChar() {
+            return RAND[Math.floor(Math.random() * RAND.length)];
+        }
+
+        /* Анимация раскрытия: каждый символ проходит несколько рандомных итераций,
+           затем фиксируется. Символы открываются волной слева направо.         */
+        function animateReveal(el) {
+            var real = el.dataset.value;
+            if (!real) return;
+
+            /* Отменяем предыдущую анимацию если есть */
+            if (el._sdrTimer) { clearInterval(el._sdrTimer); el._sdrTimer = null; }
+
+            var len     = real.length;
+            var CYCLES  = 6;           /* сколько рандомных итераций на символ */
+            var FRAME   = 22;          /* мс на фрейм */
+            /* stagger: чем больше строка — тем быстрее наполнение,
+               но не быстрее 0.5 фрейма и не медленнее 2 */
+            var stagger = Math.min(2, Math.max(0.5, 20 / len));
+
+            var frame = 0;
+            var arr   = new Array(len).fill('');
+
+            el._sdrTimer = setInterval(function () {
+                frame++;
+                var done = true;
+
+                for (var i = 0; i < len; i++) {
+                    var local = frame - Math.floor(i * stagger);
+                    if (local < 0) {
+                        arr[i] = '●';
+                        done = false;
+                    } else if (local < CYCLES) {
+                        arr[i] = rndChar();
+                        done = false;
+                    } else {
+                        arr[i] = real[i];
+                    }
+                }
+
+                el.textContent = arr.join('');
+
+                if (done) {
+                    clearInterval(el._sdrTimer);
+                    el._sdrTimer = null;
+                    el.textContent = real; /* гарантируем итог */
+                }
+            }, FRAME);
+        }
+
+        /* Скрыть обратно — реверсная волна справа налево */
+        function animateHide(el) {
+            if (el._sdrTimer) { clearInterval(el._sdrTimer); el._sdrTimer = null; }
+            var real = el.dataset.value;
+            if (!real) { el.textContent = ''; return; }
+
+            var len     = real.length;
+            var CYCLES  = 4;
+            var FRAME   = 18;
+            var stagger = Math.min(2, Math.max(0.5, 20 / len));
+            var frame   = 0;
+            var arr     = real.split('');
+
+            el._sdrTimer = setInterval(function () {
+                frame++;
+                var done = true;
+
+                for (var i = len - 1; i >= 0; i--) {
+                    /* волна справа налево */
+                    var local = frame - Math.floor((len - 1 - i) * stagger);
+                    if (local < 0) {
+                        arr[i] = real[i];
+                        done = false;
+                    } else if (local < CYCLES) {
+                        arr[i] = rndChar();
+                        done = false;
+                    } else {
+                        arr[i] = '●';
+                    }
+                }
+
+                el.textContent = arr.join('');
+
+                if (done) {
+                    clearInterval(el._sdrTimer);
+                    el._sdrTimer = null;
+                    el.textContent = '●'.repeat(len);
+                }
+            }, FRAME);
+        }
+
+        document.querySelectorAll('.sdr-eye-btn').forEach(function (btn) {
+            var target = document.getElementById(btn.dataset.for);
+            if (!target) return;
+
+            btn.addEventListener('click', function () {
+                var revealing = !btn.classList.contains('is-revealed');
+                btn.classList.toggle('is-revealed', revealing);
+                btn.title = revealing ? 'Скрыть' : 'Показать';
+
+                if (revealing) {
+                    target.classList.add('sdr-revealed');
+                    animateReveal(target);
+                } else {
+                    target.classList.remove('sdr-revealed');
+                    animateHide(target);
+                }
             });
         });
     }
+
+    /* ─── Копирование: одна функция на все кнопки ─── */
+    function initCopyBtns() {
+        document.querySelectorAll('.sdr-copy-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var el   = document.getElementById(btn.dataset.target);
+                /* Если есть data-value (секретное поле) — копируем реальное значение, не точки */
+                var text = el ? (el.dataset.value || el.textContent) : '';
+                if (!text) return;
+
+                navigator.clipboard.writeText(text).then(function () {
+                    btn.classList.add('copied');
+                    setTimeout(function () { btn.classList.remove('copied'); }, 2000);
+                }).catch(function () {
+                    /* fallback: выделить текст */
+                    if (el) {
+                        var range = document.createRange();
+                        range.selectNodeContents(el);
+                        var sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                });
+            });
+        });
+    }
+
+    /* ─── Проверяем localStorage ─── */
+    const cryptoKey = await deriveCryptoKey();
+    try {
+        const saved = await lsLoad(LS_KEY, cryptoKey);
+        if (saved && saved.fullString && saved.timestamp) {
+            /* Совместимость: у старых записей нет finalHash — вычисляем */
+            if (!saved.finalHash) {
+                saved.finalHash = await sha256hex(saved.fullString);
+            }
+            showSigned(saved);
+            initCopyBtns();
+            initEyeToggles();
+            return;
+        }
+    } catch (_) { /* localStorage недоступен — продолжаем */ }
 
     /* ─── Кнопка подписания ─── */
     const btn = document.getElementById('sign-btn');
     if (!btn) return;
 
+    /* Поддержка WebAuthn: нужен HTTPS или localhost */
+    const webAuthnOk =
+        window.PublicKeyCredential !== undefined &&
+        window.isSecureContext &&
+        typeof navigator.credentials !== 'undefined';
+
     btn.addEventListener('click', async function () {
         btn.disabled = true;
-        btn.style.opacity = '0.55';
+        btn.classList.add('signing');
 
         try {
-            /* sha256("Я СОГЛАСЕН С УСЛОВИЯМИ ДОГОВОРА | " + agrid) */
-            const hash = await sha256hex('Я СОГЛАСЕН С УСЛОВИЯМИ ДОГОВОРА | ' + agrid);
-            const signValue = buildSignValue(agrid, hash);
+            /* 1. Хеш документа — он же challenge для WebAuthn */
+            const docHash = await sha256hex(
+                'Я СОГЛАСЕН С УСЛОВИЯМИ ДОГОВОРА | ' + agrid
+            );
+
+            let credId   = null;
+            let cdHash   = null;
+            let algoName = 'SHA-256';
+
+            /* 2. Попытка WebAuthn */
+            if (webAuthnOk) {
+                try {
+                    const challengeBytes = hexToBytes(docHash);
+
+                    /* user.id — первые 16 байт хеша agrid */
+                    const userIdBytes = hexToBytes(await sha256hex(agrid)).slice(0, 16);
+
+                    const credential = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: challengeBytes,
+                            rp: {
+                                name: 'Tandem Sites',
+                                id: window.location.hostname
+                            },
+                            user: {
+                                id: userIdBytes,
+                                name: 'agr_' + agrid,
+                                displayName: 'Договор ' + agrid
+                            },
+                            pubKeyCredParams: [
+                                { type: 'public-key', alg: -7   }, /* ES256 – ECDSA P-256 */
+                                { type: 'public-key', alg: -257 }, /* RS256 – RSA-PKCS    */
+                            ],
+                            authenticatorSelection: {
+                                userVerification: 'required',
+                                residentKey:      'discouraged',
+                            },
+                            attestation: 'none',
+                            timeout: 60000,
+                        }
+                    });
+
+                    credId = credential.id; /* base64url */
+
+                    /* SHA-256 clientDataJSON — привязка к origin + challenge */
+                    cdHash = await sha256buf(credential.response.clientDataJSON);
+
+                    /* Название алгоритма */
+                    if (credential.response.getPublicKeyAlgorithm) {
+                        const alg = credential.response.getPublicKeyAlgorithm();
+                        if      (alg === -7)   algoName = 'ES256 · ECDSA P-256';
+                        else if (alg === -257) algoName = 'RS256 · RSA-PKCS';
+                        else                  algoName  = 'WebAuthn alg ' + alg;
+                    } else {
+                        algoName = 'WebAuthn · ES256';
+                    }
+
+                } catch (waErr) {
+                    if (waErr.name === 'NotAllowedError') {
+                        /* Пользователь отменил диалог — прерываем */
+                        btn.disabled = false;
+                        btn.classList.remove('signing');
+                        return;
+                    }
+                    /* Другая ошибка — деградируем до SHA-256 */
+                    console.warn('WebAuthn недоступен, используем SHA-256:', waErr);
+                }
+            }
+
             const timestamp = fmtNow();
 
-            /* Сохраняем в localStorage */
-            try {
-                localStorage.setItem(LS_KEY, JSON.stringify({ signValue, timestamp }));
-            } catch (_) { /* игнорируем если недоступен */ }
+            /* 3-5. Строим полную цепочку подписи через библиотеку TandemSign.
+               Внутри вычисляются:
+                 envHash  = SHA-256(userAgent + платформа + язык + tz + экран)
+                 csInput  = agrid|docHash[|credId][|cdHash]|envHash
+                 checksum = SHA-256(csInput)
+                 fullString = csInput|checksum
+                 finalHash  = SHA-256(fullString)                                */
+            const signData = await TandemSign.buildSignData(agrid, {
+                credId, cdHash, algoName, timestamp,
+            });
 
-            showSigned(signValue, timestamp);
-            initCopyBtn(signValue);
+            /* 5. Сохраняем (AES-GCM) */
+            try { await lsSave(LS_KEY, signData, cryptoKey); } catch (_) { }
+
+            showSigned(signData);
+            initCopyBtns();
+            initEyeToggles();
 
         } catch (e) {
             btn.disabled = false;
-            btn.style.opacity = '1';
+            btn.classList.remove('signing');
             console.error('Ошибка при подписании:', e);
         }
     });
