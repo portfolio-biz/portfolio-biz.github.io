@@ -574,22 +574,22 @@
                 var avail = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
                 if (!avail) {
                     return {
-                        fatal: false,
-                        msg: 'Ваше устройство или браузер не поддерживает биометрическое подтверждение (Touch ID, Face ID, PIN). Договор будет подписан без аппаратного ключа — только криптографическим хешем.',
+                        fatal: true,
+                        msg: 'Ваше устройство или браузер не поддерживает биометрическое подтверждение (Touch ID, Face ID, PIN). Для подписания договора используйте Chrome, Edge или Safari на устройстве с настроенной разблокировкой экрана.',
                     };
                 }
             } catch (_) {
                 /* API есть, но вызов упал — тоже считаем недоступным */
                 return {
-                    fatal: false,
-                    msg: 'Не удалось определить доступность биометрии на этом устройстве. Договор будет подписан без аппаратного ключа подтверждения.',
+                    fatal: true,
+                    msg: 'Не удалось проверить поддержку WebAuthn на этом устройстве. Откройте страницу в Chrome, Edge или Safari.',
                 };
             }
         } else {
             /* WebAuthn API отсутствует полностью */
             return {
-                fatal: false,
-                msg: 'Ваш браузер не поддерживает WebAuthn. Договор будет подписан без биометрического подтверждения — только криптографическим хешем.',
+                fatal: true,
+                msg: 'Ваш браузер не поддерживает WebAuthn. Для подписания договора используйте актуальную версию Chrome, Edge или Safari.',
             };
         }
         return null; /* всё в порядке */
@@ -608,47 +608,60 @@
 
     /* Проверяем фактическую поддержку технологий (SubtleCrypto, WebAuthn-платформа) */
     var _capResult = await checkBrowserCapabilities();
-    if (_capResult && _capResult.fatal) {
+    if (_capResult) {
+        /* Любой результат теперь фатальный — блокируем */
         showBrowserWarn(_capResult.msg);
         return;
     }
-    if (_capResult && !_capResult.fatal) {
-        /* Информируем, но не блокируем — подписание пройдёт без WebAuthn */
-        showBrowserNotice(_capResult.msg);
-    }
 
-    /* WebAuthn доступен только если проверка не выявила проблем */
-    let webAuthnOk = !_capResult &&
+    /* WebAuthn гарантированно доступен — checkBrowserCapabilities вернул null */
+    const webAuthnOk =
         window.PublicKeyCredential !== undefined &&
         window.isSecureContext &&
         typeof navigator.credentials !== 'undefined';
 
     /* ─── Кастомный курсор: прячем на время диалога подписания ───
-       Манипулируем только если кастомный курсор активен (класс has-custom-cursor находится
-       на <html>). Если нет мыши — не трогаем.                                */
+       Не трогаем has-custom-cursor класс (это ненадёжно в Edge/Chrome —
+       браузер не успевает применить cursor:auto ко всем дочерним элементам
+       до открытия нативного диалога). Вместо этого инжектируем отдельный
+       <style> тег с cursor:auto!important — он перекрывает cursor:none
+       мгновенно и синхронно для всего дерева.                               */
+    var _cursorPauseEl = null;
     function pauseCursor() {
-        if (!document.documentElement.classList.contains('has-custom-cursor')) return;
-        document.documentElement.classList.remove('has-custom-cursor');
-        var cur = document.getElementById('custom-cursor');
-        if (cur) cur.style.opacity = '0';
+        /* Активен ли кастомный курсор? */
+        if (!document.getElementById('custom-cursor')) return;
+        /* Скрываем изображение курсора */
+        document.getElementById('custom-cursor').style.opacity = '0';
+        /* Инжектируем override: системный курсор появляется немедленно */
+        if (!_cursorPauseEl) {
+            _cursorPauseEl = document.createElement('style');
+            _cursorPauseEl.id = '__ts-cursor-pause';
+            document.head.appendChild(_cursorPauseEl);
+        }
+        _cursorPauseEl.textContent =
+            /* Специфичность должна быть не ниже чем у правила cursor:none:
+               html.has-custom-cursor * { (0,1,1) } vs html.has-custom-cursor * { (0,1,1) }
+               При одинаковой специфичности побеждает последнее по порядку в <head>. */
+            'html.has-custom-cursor,html.has-custom-cursor *{cursor:auto!important}';
+        /* Синхронный layout flush — Edge применяет стиль до открытия диалога */
+        void document.documentElement.offsetHeight;
     }
     function resumeCursor() {
-        if (document.documentElement.classList.contains('has-custom-cursor')) return;
-        /* восстанавливаем только если курсорный IIFE успел выставить элемент */
+        /* Снимаем override — cursor:none из CSS-файла вступает в силу снова */
+        if (_cursorPauseEl) _cursorPauseEl.textContent = '';
         var cur = document.getElementById('custom-cursor');
-        if (!cur) return;
-        document.documentElement.classList.add('has-custom-cursor');
-        /* Явно ставим opacity=1: курсорный IIFE делает это только при inside=false,
-           но inside остаётся true после последнего mousemove — Firefox-баг */
-        cur.style.opacity = '1';
+        /* Явно восстанавливаем видимость: mousemove-обработчик IIFE ставит
+           opacity=1 только при inside===false, но после диалога inside
+           может остаться true (Firefox, Edge) */
+        if (cur) cur.style.opacity = '1';
     }
 
     btn.addEventListener('click', async function () {
         btn.disabled = true;
         btn.classList.add('signing');
         pauseCursor();
-        /* Ждём один кадр, чтобы браузер успел перерисовать страницу
-           до того, как WebAuthn-диалог заблокирует поток (Edge, Chrome) */
+        /* Один rAF — гарантирует что браузер отрисовал системный курсор
+           до того как WebAuthn-диалог захватит фокус                        */
         await new Promise(function (resolve) { requestAnimationFrame(resolve); });
 
         try {
