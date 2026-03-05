@@ -109,14 +109,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- async font load — non-render-blocking (LCP fix) -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" />
-    </noscript>
+    <!-- шрифты загружаются синхронно: сайт покажется только после их загрузки -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" />
     <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
+    <!-- прелодер: виден пока не загрузятся шрифты -->
+    <div id="page-loader" aria-hidden="true"></div>
     <div id="grain"></div>
     <div id="cursor-dot"></div>
 
@@ -692,32 +692,43 @@
             const TRAIL_LIFE = 200; // время жизни точки, мс
             const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
             let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
-            let trailW = 0, trailH = 0; // CSS-пиксельные размеры, используются в clearRect
-
-            // вынесено в общий scope — вызывается из RAF при любом изменении viewport
-            let applyTrailResize = null;
+            let trailW = 0, trailH = 0; // логические CSS-пиксели, используются в clearRect
 
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
-                // CSS: 100vw/100vh — браузер сам пересчитывает размер при любом ресайзе.
-                // JS обновляет только bitmap (пиксельную плотность/dpr) — CSS-размер не трогает.
+                // CSS: 100vw/100vh — canvas всегда физически покрывает весь viewport без JS.
+                // ResizeObserver стреляет УЖЕ после layout — bitmap и CSS-размер всегда синхронны,
+                // никакого race condition нет (resize event + RAF не успевали — RO успевает).
                 trailCanvas.style.cssText =
                     'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9998;';
                 document.body.appendChild(trailCanvas);
                 trailCtx = trailCanvas.getContext('2d');
-                applyTrailResize = () => {
+
+                const syncTrailBitmap = (w, h) => {
                     const dpr = window.devicePixelRatio || 1;
-                    trailW = window.innerWidth;
-                    trailH = window.innerHeight;
-                    // обновляем bitmap-размер — style.width/height не трогаем, CSS сам держит 100vw/100vh
-                    trailCanvas.width = Math.round(trailW * dpr);
-                    trailCanvas.height = Math.round(trailH * dpr);
+                    trailW = w;
+                    trailH = h;
+                    trailCanvas.width  = Math.round(w * dpr);
+                    trailCanvas.height = Math.round(h * dpr);
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    TRAIL.length = 0; // старые точки устарели — чистим хвост
                 };
-                applyTrailResize();
-                window.addEventListener('resize', applyTrailResize, { passive: true });
-                if (window.visualViewport) {
-                    window.visualViewport.addEventListener('resize', applyTrailResize, { passive: true });
+
+                // первоначальная установка bitmap по фактическому размеру viewport
+                syncTrailBitmap(window.innerWidth, window.innerHeight);
+
+                // ResizeObserver — единственно надёжный способ:
+                // стреляет после layout, передаёт реальный CSS-размер элемента.
+                if (window.ResizeObserver) {
+                    new ResizeObserver(entries => {
+                        const r = entries[0].contentRect;
+                        syncTrailBitmap(r.width, r.height);
+                    }).observe(trailCanvas);
+                } else {
+                    // fallback для старых браузеров
+                    window.addEventListener('resize', () => {
+                        syncTrailBitmap(window.innerWidth, window.innerHeight);
+                    }, { passive: true });
                 }
             }
 
@@ -759,12 +770,6 @@
             let _prevMx = -9999, _prevMy = -9999, _prevSd = -9999;
             function tick() {
                 const now = performance.now();
-
-                // Гарантированная синхронизация canvas при любом изменении размера viewport.
-                // Работает независимо от resize-событий — перехватывает любой случай.
-                if (applyTrailResize && (window.innerWidth !== trailW || window.innerHeight !== trailH)) {
-                    applyTrailResize();
-                }
 
                 const tsd = hovering ? 0.5 : 1;
                 sd += (tsd - sd) * 0.18;
@@ -921,7 +926,24 @@
         })();
     </script>
 
-    <!-- ══ PWA: Service Worker ══════════════════════════════════════════ -->
+    <!-- Ожидаем шрифты, затем снимаем прелодер -->
+    <script>
+        (function () {
+            var loader = document.getElementById('page-loader');
+            if (!loader) return;
+            function hideLoader() {
+                loader.classList.add('is-hidden');
+                setTimeout(function () { if (loader.parentNode) loader.remove(); }, 520);
+            }
+            var t = setTimeout(hideLoader, 3500); // fallback — макс 3.5с на случай медленного интернета
+            Promise.allSettled([
+                document.fonts.load('800 1em "Syne"'),
+                document.fonts.load('400 1em "Inter"')
+            ]).then(function () { clearTimeout(t); hideLoader(); });
+        })();
+    </script>
+
+    <!-- ══ PWA: Service Worker ════════════════════════════════════════════════════ -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

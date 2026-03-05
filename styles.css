@@ -54,6 +54,19 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* ── Page loader (ждём шрифты) ─────────────────────────────────── */
+#page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: var(--bg, #fff);
+    transition: opacity 0.45s ease;
+}
+#page-loader.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* custom cursor — pointer devices only */
 @media (pointer: fine) {
     html,
