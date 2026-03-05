@@ -407,19 +407,249 @@
         }
     } catch (_) { /* localStorage недоступен — продолжаем */ }
 
+    /* ─── Проверка окружения браузера ───
+       Запрещаем подписание из:
+         • WebView-оболочек мессенджеров (Телеграм, Telegram, Instagram, VK ...)
+         • Системных WebView (приложения Android/iOS)
+         • Автоматизированных оболочек (Electron, headless)
+         • Режима инкогнито / приватный режим браузера         */
+    async function detectUnsafeBrowser() {
+        var ua = navigator.userAgent;
+
+        /* 1. Telegram WebView */
+        if (window.TelegramWebview || window.__telegram__ || window.Telegram) {
+            return { reason: 'telegram', msg: 'Подписание недоступно во встроенном браузере Telegram. Скопируйте ссылку и откройте в Safari, Chrome или Firefox.' };
+        }
+        /* 2. React Native WebView */
+        if (window.ReactNativeWebView) {
+            return { reason: 'webview', msg: 'Подписание недоступно в встроенном браузере приложения. Откройте страницу в обычном браузере.' };
+        }
+        /* 3. Android system WebView (наличие признака "wv" в UA) */
+        if (/\bwv\b/.test(ua) && /Android/.test(ua)) {
+            return { reason: 'webview', msg: 'Подписание недоступно в встроенном браузере приложения. Откройте страницу в Chrome для Android.' };
+        }
+        /* 4. iOS WKWebView (есть AppleWebKit, но нет Safari/ в UA и нет CriOS/FxiOS) */
+        if (/iPhone|iPad|iPod/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua) && !/CriOS|FxiOS|OPiOS/.test(ua)) {
+            return { reason: 'webview', msg: 'Подписание недоступно в встроенном браузере приложения. Откройте страницу в Safari.' };
+        }
+        /* 5. Facebook in-app browser */
+        if (/FBAN|FBAV|FBDSP/.test(ua)) {
+            return { reason: 'inapp', msg: 'Подписание недоступно во встроенном браузере Facebook. Откройте ссылку в обычном браузере.' };
+        }
+        /* 6. Instagram, TikTok, Twitter/X, Snapchat in-app */
+        if (/Instagram|musical_ly|TikTok|Twitter\/|Snapchat/.test(ua)) {
+            return { reason: 'inapp', msg: 'Подписание недоступно во встроенном браузере приложения. Скопируйте ссылку и откройте в Safari, Chrome или Firefox.' };
+        }
+        /* 7. WeChat, LINE, KakaoTalk, VK in-app */
+        if (/MicroMessenger|Line\/|KAKAOTALK|VK\/|VKApp/.test(ua)) {
+            return { reason: 'inapp', msg: 'Подписание недоступно во встроенном браузере приложения. Скопируйте ссылку и откройте в Safari, Chrome или Firefox.' };
+        }
+        /* 8. Electron / NW.js десктопное WebView */
+        if (window.process && window.process.type) {
+            return { reason: 'webview', msg: 'Подписание недоступно в автоматизированном окружении. Используйте обычный браузер.' };
+        }
+        /* 9. navigator.webdriver — headless-автоматизация */
+        if (navigator.webdriver) {
+            return { reason: 'automation', msg: 'Подписание недоступно в автоматизированном окружении.' };
+        }
+
+        /* 10. Режим инкогнито / приватный режим
+             Chrome/Edge incognito: Storage API возвращает квоту ~120 MB
+             Firefox private: Cache API блокирует открытие раздела
+             Safari private: localStorage.setItem бросает QuotaExceededError       */
+        try {
+            if (navigator.storage && navigator.storage.estimate) {
+                var est = await navigator.storage.estimate();
+                /* Нормальный браузер получает от нескольких ГБ.
+                   Chrome incognito ограничен примерно 120 MB.               */
+                if (typeof est.quota === 'number' && est.quota > 0 && est.quota < 150 * 1024 * 1024) {
+                    return { reason: 'incognito', msg: 'Подписание недоступно в режиме инкогнито. Пожалуйста, откройте страницу в обычном окне браузера.' };
+                }
+            }
+        } catch (_) {}
+        /* Firefox private mode: caches.open() бросает SecurityError */
+        try {
+            await caches.open('__ts_probe__');
+            await caches.delete('__ts_probe__');
+        } catch (e) {
+            if (e.name === 'SecurityError') {
+                return { reason: 'incognito', msg: 'Подписание недоступно в приватном режиме Firefox. Пожалуйста, откройте страницу в обычном окне браузера.' };
+            }
+        }
+        /* Safari private mode: localStorage.setItem бросает QuotaExceededError */
+        try {
+            var _k = '__ts_priv__';
+            localStorage.setItem(_k, '1');
+            localStorage.removeItem(_k);
+        } catch (_) {
+            return { reason: 'incognito', msg: 'Подписание недоступно в приватном режиме Safari. Пожалуйста, откройте страницу в обычном окне браузера.' };
+        }
+
+        return null; /* всё ок */
+    }
+
+    /* Показываем предупреждение вместо кнопки подписания */
+    function showBrowserWarn(msg) {
+        var area = document.getElementById('sign-area');
+        if (!area) return;
+        var el = document.createElement('div');
+        el.id = 'sign-browser-warn';
+        var style = [
+            'display:flex', 'align-items:flex-start', 'gap:12px',
+            'padding:14px 18px', 'border-radius:14px',
+            'border:1px solid rgba(210,50,50,.30)',
+            'background:rgba(210,50,50,.07)',
+            'color:#b83535',
+            'font-size:13.5px', 'line-height:1.6', 'font-weight:500',
+        ].join(';');
+        el.style.cssText = style;
+        el.innerHTML =
+            '<svg style="flex-shrink:0;margin-top:1px" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            + '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>'
+            + '<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+            + '</svg>'
+            + '<span>' + msg + '</span>';
+        /* Скрываем кнопку и пояснительный текст, вставляем предупреждение */
+        area.innerHTML = '';
+        area.appendChild(el);
+    }
+
+    /* Информационная плашка (не блокирует) — янтарного цвета, кнопка остаётся */
+    function showBrowserNotice(msg) {
+        var area = document.getElementById('sign-area');
+        if (!area) return;
+        var el = document.createElement('div');
+        el.id = 'sign-browser-notice';
+        var style = [
+            'display:flex', 'align-items:flex-start', 'gap:12px',
+            'padding:12px 16px', 'border-radius:12px',
+            'border:1px solid rgba(180,130,0,.30)',
+            'background:rgba(200,150,0,.07)',
+            'color:#8a6400',
+            'font-size:13px', 'line-height:1.55', 'font-weight:500',
+            'margin-bottom:14px',
+        ].join(';');
+        el.style.cssText = style;
+        el.innerHTML =
+            '<svg style="flex-shrink:0;margin-top:1px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            + '<circle cx="12" cy="12" r="10"/>'
+            + '<line x1="12" y1="8" x2="12" y2="12"/>'
+            + '<line x1="12" y1="16" x2="12.01" y2="16"/>'
+            + '</svg>'
+            + '<span>' + msg + '</span>';
+        /* Вставляем перед первым элементом знаковой зоны */
+        area.insertBefore(el, area.firstChild);
+    }
+
+    /* ─── Проверка фактической поддержки нужных технологий ──────────────────
+       В отличие от detectUnsafeBrowser() (окружение), здесь проверяем именно
+       возможности конкретного браузера/платформы:
+         • SubtleCrypto API — ядро всей цепочки подписи   (fatal)
+         • Secure Context (HTTPS / localhost)              (fatal)
+         • WebAuthn + платформенный аутентификатор         (non-fatal: warn)
+
+       Кейс: Adblock Browser (Android), некоторые кастомные браузеры —
+       WebAuthn API присутствует, но ОС или сам браузер блокирует вызов.
+       isUserVerifyingPlatformAuthenticatorAvailable() возвращает false.     */
+    async function checkBrowserCapabilities() {
+        /* 1. Без HTTPS/localhost SubtleCrypto полностью недоступен */
+        if (!window.isSecureContext) {
+            return {
+                fatal: true,
+                msg: 'Страница открыта без защищённого соединения (HTTPS). Подписание договора невозможно. Убедитесь, что адрес начинается с https://.',
+            };
+        }
+        /* 2. SubtleCrypto — всё SHA-256, PBKDF2, AES-GCM */
+        if (!window.crypto || !window.crypto.subtle) {
+            return {
+                fatal: true,
+                msg: 'Ваш браузер не поддерживает необходимые криптографические функции. Обновите браузер или используйте актуальную версию Chrome, Safari или Firefox.',
+            };
+        }
+        /* 3. WebAuthn: API есть, но поддерживает ли платформа биометрию?
+              Вызываем isUserVerifyingPlatformAuthenticatorAvailable() —
+              это единственный надёжный способ узнать это без реального вызова. */
+        if (window.PublicKeyCredential && navigator.credentials) {
+            try {
+                var avail = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+                if (!avail) {
+                    return {
+                        fatal: false,
+                        msg: 'Ваше устройство или браузер не поддерживает биометрическое подтверждение (Touch ID, Face ID, PIN). Договор будет подписан без аппаратного ключа — только криптографическим хешем.',
+                    };
+                }
+            } catch (_) {
+                /* API есть, но вызов упал — тоже считаем недоступным */
+                return {
+                    fatal: false,
+                    msg: 'Не удалось определить доступность биометрии на этом устройстве. Договор будет подписан без аппаратного ключа подтверждения.',
+                };
+            }
+        } else {
+            /* WebAuthn API отсутствует полностью */
+            return {
+                fatal: false,
+                msg: 'Ваш браузер не поддерживает WebAuthn. Договор будет подписан без биометрического подтверждения — только криптографическим хешем.',
+            };
+        }
+        return null; /* всё в порядке */
+    }
+
     /* ─── Кнопка подписания ─── */
     const btn = document.getElementById('sign-btn');
     if (!btn) return;
 
-    /* Поддержка WebAuthn: нужен HTTPS или localhost */
-    const webAuthnOk =
+    /* Проверяем браузер: если небезопасное окружение (WebView, инкогнито и т.п.) */
+    var _browserWarn = await detectUnsafeBrowser();
+    if (_browserWarn) {
+        showBrowserWarn(_browserWarn.msg);
+        return;
+    }
+
+    /* Проверяем фактическую поддержку технологий (SubtleCrypto, WebAuthn-платформа) */
+    var _capResult = await checkBrowserCapabilities();
+    if (_capResult && _capResult.fatal) {
+        showBrowserWarn(_capResult.msg);
+        return;
+    }
+    if (_capResult && !_capResult.fatal) {
+        /* Информируем, но не блокируем — подписание пройдёт без WebAuthn */
+        showBrowserNotice(_capResult.msg);
+    }
+
+    /* WebAuthn доступен только если проверка не выявила проблем */
+    let webAuthnOk = !_capResult &&
         window.PublicKeyCredential !== undefined &&
         window.isSecureContext &&
         typeof navigator.credentials !== 'undefined';
 
+    /* ─── Кастомный курсор: прячем на время диалога подписания ───
+       Манипулируем только если кастомный курсор активен (класс has-custom-cursor находится
+       на <html>). Если нет мыши — не трогаем.                                */
+    function pauseCursor() {
+        if (!document.documentElement.classList.contains('has-custom-cursor')) return;
+        document.documentElement.classList.remove('has-custom-cursor');
+        var cur = document.getElementById('custom-cursor');
+        if (cur) cur.style.opacity = '0';
+    }
+    function resumeCursor() {
+        if (document.documentElement.classList.contains('has-custom-cursor')) return;
+        /* восстанавливаем только если курсорный IIFE успел выставить элемент */
+        var cur = document.getElementById('custom-cursor');
+        if (!cur) return;
+        document.documentElement.classList.add('has-custom-cursor');
+        /* Явно ставим opacity=1: курсорный IIFE делает это только при inside=false,
+           но inside остаётся true после последнего mousemove — Firefox-баг */
+        cur.style.opacity = '1';
+    }
+
     btn.addEventListener('click', async function () {
         btn.disabled = true;
         btn.classList.add('signing');
+        pauseCursor();
+        /* Ждём один кадр, чтобы браузер успел перерисовать страницу
+           до того, как WebAuthn-диалог заблокирует поток (Edge, Chrome) */
+        await new Promise(function (resolve) { requestAnimationFrame(resolve); });
 
         try {
             /* 1. Хеш документа — он же challenge для WebAuthn */
@@ -484,6 +714,7 @@
                         /* Пользователь отменил диалог — прерываем */
                         btn.disabled = false;
                         btn.classList.remove('signing');
+                        resumeCursor();
                         return;
                     }
                     /* Другая ошибка — деградируем до SHA-256 */
@@ -510,10 +741,12 @@
             showSigned(signData);
             initCopyBtns();
             initEyeToggles();
+            resumeCursor();
 
         } catch (e) {
             btn.disabled = false;
             btn.classList.remove('signing');
+            resumeCursor();
             console.error('Ошибка при подписании:', e);
         }
     });
