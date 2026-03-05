@@ -1341,6 +1341,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     font-size: 13px;
     font-weight: 600;
     color: rgba(248, 113, 113, 0.55);
