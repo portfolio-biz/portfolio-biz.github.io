@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Generator — Tandem Staff</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *:focus { outline: none; }
+
+        :root {
+            --bg:          #0d0d0f;
+            --surface:     #141417;
+            --surface2:    #1c1c21;
+            --border:      rgba(255,255,255,.07);
+            --border2:     rgba(255,255,255,.12);
+            --text:        rgba(255,255,255,.88);
+            --muted:       rgba(255,255,255,.38);
+            --muted2:      rgba(255,255,255,.20);
+            --accent:      #7c6ef5;
+            --accent-dim:  rgba(124,110,245,.12);
+            --accent-bdr:  rgba(124,110,245,.25);
+            --ok:          #34d399;
+            --ok-bg:       rgba(52,211,153,.08);
+            --ok-border:   rgba(52,211,153,.22);
+        }
+
+        html, body {
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Inter", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrap {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 56px 24px 80px;
+        }
+
+        /* ── HEADER ── */
+        .hdr { display: flex; align-items: center; gap: 14px; margin-bottom: 48px; }
+
+        .hdr-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent-bdr);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        .hdr-badge svg { width: 10px; height: 10px; }
+        .hdr-title { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+        .hdr-sub { margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+        /* ── FORM ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 28px 24px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        #agrid-input {
+            flex: 1;
+            height: 44px;
+            padding: 0 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 14px;
+            transition: border-color .18s;
+        }
+        #agrid-input::placeholder { color: var(--muted2); }
+        #agrid-input:focus { border-color: var(--accent); }
+
+        .btn {
+            height: 44px;
+            padding: 0 20px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity .15s;
+        }
+        .btn:hover { opacity: .85; }
+        .btn:active { opacity: .7; }
+
+        /* ── RESULT ── */
+        #result { display: none; margin-top: 24px; }
+        #result.visible { display: block; }
+
+        .res-row {
+            padding: 20px 20px 0;
+            background: var(--surface);
+            border: 1px solid var(--ok-border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .res-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .res-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--ok);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 6px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11.5px;
+            color: var(--muted);
+        }
+        .chip-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--muted2);
+        }
+
+        .url-box {
+            display: flex;
+            align-items: stretch;
+            border-top: 1px solid var(--border);
+            margin: 0 -20px;
+        }
+
+        #url-text {
+            flex: 1;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12.5px;
+            color: var(--text);
+            word-break: break-all;
+            resize: none;
+            line-height: 1.6;
+            min-height: 52px;
+            cursor: text;
+        }
+
+        #copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 18px;
+            border: none;
+            border-left: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color .15s, background .15s;
+        }
+        #copy-btn:hover { color: var(--text); background: rgba(255,255,255,.04); }
+        #copy-btn.copied { color: var(--ok); }
+        #copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+        /* ── HINT ── */
+        .hint {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: rgba(124,110,245,.06);
+            border: 1px solid var(--accent-bdr);
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: var(--muted);
+        }
+        .hint b { color: var(--text); font-weight: 600; }
+        .hint code {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11.5px;
+            background: rgba(255,255,255,.07);
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* ── HISTORY ── */
+        #history { display: none; margin-top: 32px; }
+        #history.visible { display: block; }
+
+        .hist-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .hist-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .hist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+        .hist-item:hover { border-color: var(--border2); background: var(--surface2); }
+
+        .hist-agrid {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hist-crc {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .hist-copy {
+            flex-shrink: 0;
+            color: var(--muted2);
+            transition: color .15s;
+        }
+        .hist-item:hover .hist-copy { color: var(--accent); }
+        .hist-copy svg { display: block; width: 13px; height: 13px; }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <!-- ── HEADER ── -->
+        <div class="hdr">
+            <div>
+                <div class="hdr-badge">
+                    <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 1L6.5 4H9L6.8 5.8 7.6 9 5 7.2 2.4 9l.8-3.2L1 4h2.5z"/>
+                    </svg>
+                    Staff Tool
+                </div>
+                <div class="hdr-title">Link Generator</div>
+                <div class="hdr-sub">Генерация подписанных ссылок на договоры</div>
+            </div>
+        </div>
+
+        <!-- ── FORM ── -->
+        <div class="card">
+            <label class="field-label" for="agrid-input">Идентификатор договора (agrid)</label>
+            <div class="input-row">
+                <input id="agrid-input" type="text" placeholder="например: AGR-2026-001" autocomplete="off" spellcheck="false" />
+                <button class="btn" id="gen-btn" type="button">Создать ссылку</button>
+            </div>
+        </div>
+
+        <!-- ── RESULT ── -->
+        <div id="result">
+            <div class="res-row">
+                <div class="res-meta">
+                    <span class="res-label">Ссылка готова</span>
+                    <span class="chip"><span class="chip-label">agrid</span> <span id="out-agrid">—</span></span>
+                    <span class="chip"><span class="chip-label">crc32</span> <span id="out-crc">—</span></span>
+                </div>
+                <div class="url-box">
+                    <textarea id="url-text" readonly rows="2"></textarea>
+                    <button id="copy-btn" type="button">
+                        <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        <span id="copy-label">Копировать</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── HINT ── -->
+        <div class="hint">
+            Ссылка содержит параметр <code>?agrid=…&amp;c=…</code>, где <code>c</code> — CRC32 от
+            <code>"~0_UNIQUE|" + agrid</code>. Если параметр <code>c</code> отсутствует или неверен —
+            кнопка подписания на странице договора <b>не отображается</b>.
+        </div>
+
+        <!-- ── HISTORY ── -->
+        <div id="history">
+            <div class="hist-title">Последние сгенерированные</div>
+            <div class="hist-list" id="hist-list"></div>
+        </div>
+
+    </div>
+
+    <script>
+    (function () {
+        /* ── CRC32 (UTF-8, та же реализация что и в scripts.js) ── */
+        function crc32(str) {
+            var table = crc32._t;
+            if (!table) {
+                table = new Uint32Array(256);
+                for (var i = 0; i < 256; i++) {
+                    var c = i;
+                    for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                    table[i] = c;
+                }
+                crc32._t = table;
+            }
+            var crc = 0xFFFFFFFF;
+            for (var j = 0; j < str.length; j++) {
+                var code = str.charCodeAt(j);
+                if (code < 0x80) {
+                    crc = (crc >>> 8) ^ table[(crc ^ code) & 0xFF];
+                } else if (code < 0x800) {
+                    crc = (crc >>> 8) ^ table[(crc ^ (0xC0 | (code >> 6))) & 0xFF];
+                    crc = (crc >>> 8) ^ table[(crc ^ (0x80 | (code & 0x3F))) & 0xFF];
+                } else {
+                    crc = (crc >>> 8) ^ table[(crc ^ (0xE0 | (code >> 12))) & 0xFF];
+                    crc = (crc >>> 8) ^ table[(crc ^ (0x80 | ((code >> 6) & 0x3F))) & 0xFF];
+                    crc = (crc >>> 8) ^ table[(crc ^ (0x80 | (code & 0x3F))) & 0xFF];
+                }
+            }
+            return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0');
+        }
+
+        var CRC_SALT = '~0_UNIQUE|';
+        var BASE_URL = window.location.origin + '/agreement/';
+        var HIST_KEY = 'ts_gen_history';
+        var MAX_HIST = 10;
+
+        /* ── DOM ── */
+        var input    = document.getElementById('agrid-input');
+        var genBtn   = document.getElementById('gen-btn');
+        var result   = document.getElementById('result');
+        var outAgrid = document.getElementById('out-agrid');
+        var outCrc   = document.getElementById('out-crc');
+        var urlText  = document.getElementById('url-text');
+        var copyBtn  = document.getElementById('copy-btn');
+        var copyIcon = document.getElementById('copy-icon');
+        var copyLbl  = document.getElementById('copy-label');
+        var histBox  = document.getElementById('history');
+        var histList = document.getElementById('hist-list');
+
+        function buildUrl(agrid) {
+            var c = crc32(CRC_SALT + agrid);
+            return BASE_URL + '?agrid=' + encodeURIComponent(agrid) + '&c=' + c;
+        }
+
+        function generate() {
+            var agrid = input.value.trim();
+            if (!agrid) { input.focus(); return; }
+
+            var c   = crc32(CRC_SALT + agrid);
+            var url = BASE_URL + '?agrid=' + encodeURIComponent(agrid) + '&c=' + c;
+
+            outAgrid.textContent = agrid;
+            outCrc.textContent   = c;
+            urlText.value        = url;
+            result.classList.add('visible');
+
+            /* Сброс кнопки копирования */
+            setCopyIdle();
+
+            /* История */
+            saveHistory(agrid, c);
+            renderHistory();
+        }
+
+        /* ── Copy ── */
+        var copyTimer = null;
+        function setCopyIdle() {
+            clearTimeout(copyTimer);
+            copyIcon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+            copyLbl.textContent = 'Копировать';
+            copyBtn.classList.remove('copied');
+        }
+        function setCopyDone() {
+            copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+            copyLbl.textContent = 'Скопировано';
+            copyBtn.classList.add('copied');
+            copyTimer = setTimeout(setCopyIdle, 2200);
+        }
+
+        copyBtn.addEventListener('click', function () {
+            var url = urlText.value;
+            if (!url) return;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(setCopyDone).catch(function () {
+                    legacyCopy(url);
+                });
+            } else {
+                legacyCopy(url);
+            }
+        });
+
+        function legacyCopy(text) {
+            urlText.select();
+            try { document.execCommand('copy'); setCopyDone(); } catch (_) {}
+        }
+
+        /* ── History (localStorage) ── */
+        function loadHistory() {
+            try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }
+            catch (_) { return []; }
+        }
+        function saveHistory(agrid, c) {
+            var hist = loadHistory().filter(function (h) { return h.agrid !== agrid; });
+            hist.unshift({ agrid: agrid, c: c });
+            if (hist.length > MAX_HIST) hist.length = MAX_HIST;
+            try { localStorage.setItem(HIST_KEY, JSON.stringify(hist)); } catch (_) {}
+        }
+        function renderHistory() {
+            var hist = loadHistory();
+            if (!hist.length) { histBox.classList.remove('visible'); return; }
+            histBox.classList.add('visible');
+            histList.innerHTML = '';
+            hist.forEach(function (h) {
+                var url = buildUrl(h.agrid);
+                var item = document.createElement('div');
+                item.className = 'hist-item';
+                item.title = 'Скопировать ссылку';
+                item.innerHTML =
+                    '<span class="hist-agrid">' + escHtml(h.agrid) + '</span>' +
+                    '<span class="hist-crc">' + escHtml(h.c) + '</span>' +
+                    '<span class="hist-copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>';
+                item.addEventListener('click', function () {
+                    /* Заполняем форму и показываем */
+                    input.value = h.agrid;
+                    generate();
+                    /* Прокручиваем к результату */
+                    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
+                histList.appendChild(item);
+            });
+        }
+
+        function escHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        /* ── Events ── */
+        genBtn.addEventListener('click', generate);
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') generate();
+        });
+        input.addEventListener('input', function () {
+            /* Сбрасываем результат при изменении */
+            result.classList.remove('visible');
+        });
+
+        /* Инициализация истории при загрузке */
+        renderHistory();
+    })();
+    </script>
+</body>
+
+</html>

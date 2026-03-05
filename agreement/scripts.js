@@ -127,11 +127,47 @@
    AGRID + WEBAUTHN SIGN  |  localStorage persistence
 ═══════════════════════════════════════════════════════════════════════ */
 (async function () {
+    /* ─── CRC32 для валидации параметра ?c= ──────────────────────────────
+       Соль: "~0_UNIQUE|"  +  agrid.
+       Ссылки генерируются в /staff/generator/ .                           */
+    function crc32(str) {
+        var table = crc32._t;
+        if (!table) {
+            table = new Uint32Array(256);
+            for (var i = 0; i < 256; i++) {
+                var c = i;
+                for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                table[i] = c;
+            }
+            crc32._t = table;
+        }
+        var crc = 0xFFFFFFFF;
+        for (var j = 0; j < str.length; j++) {
+            var code = str.charCodeAt(j);
+            /* UTF-16 → UTF-8 байты */
+            if (code < 0x80) {
+                crc = (crc >>> 8) ^ table[(crc ^ code) & 0xFF];
+            } else if (code < 0x800) {
+                crc = (crc >>> 8) ^ table[(crc ^ (0xC0 | (code >> 6))) & 0xFF];
+                crc = (crc >>> 8) ^ table[(crc ^ (0x80 | (code & 0x3F))) & 0xFF];
+            } else {
+                crc = (crc >>> 8) ^ table[(crc ^ (0xE0 | (code >> 12))) & 0xFF];
+                crc = (crc >>> 8) ^ table[(crc ^ (0x80 | ((code >> 6) & 0x3F))) & 0xFF];
+                crc = (crc >>> 8) ^ table[(crc ^ (0x80 | (code & 0x3F))) & 0xFF];
+            }
+        }
+        return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0');
+    }
+
+    const CRC_SALT = '~0_UNIQUE|';
+
     const params = new URLSearchParams(window.location.search);
     const agrid = (params.get('agrid') || '').trim();
+    const cParam = (params.get('c') || '').trim().toLowerCase();
 
-    /* Если agrid пустой — кнопку подписания не показываем */
-    if (!agrid) {
+    /* Если agrid пустой или контрольная сумма ?c= неверна — скрываем кнопку */
+    const expectedC = agrid ? crc32(CRC_SALT + agrid) : '';
+    if (!agrid || cParam !== expectedC) {
         const signArea = document.getElementById('sign-area');
         if (signArea) signArea.style.display = 'none';
         return;
@@ -660,9 +696,11 @@
         btn.disabled = true;
         btn.classList.add('signing');
         pauseCursor();
-        /* Один rAF — гарантирует что браузер отрисовал системный курсор
-           до того как WebAuthn-диалог захватит фокус                        */
-        await new Promise(function (resolve) { requestAnimationFrame(resolve); });
+        /* 150 мс без заморозки потока — даём браузеру гарантированно
+           отрисовать системный курсор до открытия WebAuthn-диалога.
+           rAF здесь недостаточно: Edge/Chrome показывает диалог быстрее,
+           чем завершается paint.                                             */
+        await new Promise(function (resolve) { setTimeout(resolve, 150); });
 
         try {
             /* 1. Хеш документа — он же challenge для WebAuthn */
