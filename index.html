@@ -420,43 +420,43 @@
                     </div>
                     <div class="contact-right">
                         <div class="contact-cards">
-                        <div class="c-card">
-                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                </svg></div>
-                            <div>
-                                <div class="c-card-title">Telegram</div>
-                                <div class="c-card-text">@tandem_sites — отвечаем быстро</div>
+                            <div class="c-card">
+                                <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                    </svg></div>
+                                <div>
+                                    <div class="c-card-title">Telegram</div>
+                                    <div class="c-card-text">@tandem_sites — отвечаем быстро</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="c-card">
-                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg></div>
-                            <div>
-                                <div class="c-card-title">Сроки</div>
-                                <div class="c-card-text">Работаем быстро. Базовый лендинг — от 1–3 дней</div>
+                            <div class="c-card">
+                                <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg></div>
+                                <div>
+                                    <div class="c-card-title">Сроки</div>
+                                    <div class="c-card-text">Работаем быстро. Базовый лендинг — от 1–3 дней</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="c-card">
-                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                </svg></div>
-                            <div>
-                                <div class="c-card-title">Без рисков</div>
-                                <div class="c-card-text">Без предоплаты. Начинаем сразу после согласования</div>
+                            <div class="c-card">
+                                <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg></div>
+                                <div>
+                                    <div class="c-card-title">Без рисков</div>
+                                    <div class="c-card-text">Без предоплаты. Начинаем сразу после согласования</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="c-card">
-                            <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                </svg></div>
-                            <div>
-                                <div class="c-card-title">Гарантия</div>
-                                <div class="c-card-text">Правки до вашего полного довольства</div>
+                            <div class="c-card">
+                                <div class="c-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg></div>
+                                <div>
+                                    <div class="c-card-title">Гарантия</div>
+                                    <div class="c-card-text">Правки до вашего полного довольства</div>
+                                </div>
                             </div>
-                        </div>
                         </div>
                         <a href="/agreement" class="oferta-link oferta-link--desktop">Ознакомиться с офертой проведения работ</a>
                     </div>
@@ -684,38 +684,41 @@
                     const a = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
                     pCtx.beginPath();
                     pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
-                    pCtx.fillStyle = `rgba(124,110,245,${a.toFixed(3)})`;
+                    pCtx.fillStyle = `rgba(124,110,245,${a})`;
                     pCtx.fill();
                 }
             }
             const TRAIL_LEN = 22;  // количество точек в хвосте
-            const TRAIL_LIFE = 380; // время жизни точки, мс
+            const TRAIL_LIFE = 200; // время жизни точки, мс
             const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
             let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
             let trailW = 0, trailH = 0; // CSS-пиксельные размеры, используются в clearRect
 
+            // вынесено в общий scope — вызывается из RAF при любом изменении viewport
+            let applyTrailResize = null;
+
             if (isPointerFine) {
                 trailCanvas = document.createElement('canvas');
-                // НЕ ставим width:100%;height:100% — иначе браузер CSS-масштабирует canvas
-                // в промежутке между ресайзом и обновлением bitmap, смещая координаты
+                // CSS: 100vw/100vh — браузер сам пересчитывает размер при любом ресайзе.
+                // JS обновляет только bitmap (пиксельную плотность/dpr) — CSS-размер не трогает.
                 trailCanvas.style.cssText =
-                    'position:fixed;top:0;left:0;pointer-events:none;z-index:9998;';
+                    'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9998;';
                 document.body.appendChild(trailCanvas);
                 trailCtx = trailCanvas.getContext('2d');
-                const applyTrailResize = () => {
+                applyTrailResize = () => {
                     const dpr = window.devicePixelRatio || 1;
                     trailW = window.innerWidth;
                     trailH = window.innerHeight;
+                    // обновляем bitmap-размер — style.width/height не трогаем, CSS сам держит 100vw/100vh
                     trailCanvas.width = Math.round(trailW * dpr);
                     trailCanvas.height = Math.round(trailH * dpr);
-                    // CSS-размер = логическим — браузер не масштабирует canvas
-                    trailCanvas.style.width = trailW + 'px';
-                    trailCanvas.style.height = trailH + 'px';
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 };
-                // синхронно — без rAF, чтобы bitmap и CSS-размер менялись в одном шаге
                 applyTrailResize();
                 window.addEventListener('resize', applyTrailResize, { passive: true });
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', applyTrailResize, { passive: true });
+                }
             }
 
             /* ── Dot proximity — cache positions so scale doesn't shift center ── */
@@ -733,6 +736,9 @@
             }
             cacheDots();
             window.addEventListener('resize', cacheDots, { passive: true });
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', cacheDots, { passive: true });
+            }
 
             function updateDotMag() {
                 const PROX = 60;
@@ -750,13 +756,26 @@
 
             /* single RAF loop */
             let rafId;
+            let _prevMx = -9999, _prevMy = -9999, _prevSd = -9999;
             function tick() {
+                const now = performance.now();
+
+                // Гарантированная синхронизация canvas при любом изменении размера viewport.
+                // Работает независимо от resize-событий — перехватывает любой случай.
+                if (applyTrailResize && (window.innerWidth !== trailW || window.innerHeight !== trailH)) {
+                    applyTrailResize();
+                }
+
                 const tsd = hovering ? 0.5 : 1;
                 sd += (tsd - sd) * 0.18;
-                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
+                // пишем в DOM только при реальном изменении — избегаем лишних layout/paint
+                if (mx !== _prevMx || my !== _prevMy || Math.abs(sd - _prevSd) > 0.0005) {
+                    dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
+                    _prevMx = mx; _prevMy = my; _prevSd = sd;
+                }
 
                 if (cur === 0) {
-                    const t = performance.now() * 0.001;
+                    const t = now * 0.001;
                     const b1x = Math.sin(t * 0.2856) * 20, b1y = Math.cos(t * 0.2856) * 14;
                     const b1s = 1 + Math.sin(t * 0.5712) * 0.04;
                     const b2x = Math.sin(t * 0.2244 + 1.2) * 19, b2y = Math.cos(t * 0.2244 + 0.7) * 14;
@@ -770,26 +789,26 @@
 
                 /* ── Trail ── */
                 if (trailCtx && trailActive) {
-                    TRAIL.push({ x: mx, y: my, t: performance.now() });
+                    TRAIL.push({ x: mx, y: my, t: now });
                     if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
 
                     trailCtx.clearRect(0, 0, trailW, trailH);
-                    const now = performance.now();
                     const len = TRAIL.length;
 
                     if (len > 1) {
                         trailCtx.lineCap = 'round';
                         trailCtx.lineJoin = 'round';
+                        const lastIdx = len - 1; // кэшируем len-1, не вычисляем в каждой итерации
 
                         // pass 1 — wide soft glow (lines only, no circles)
                         for (let i = 1; i < len; i++) {
                             const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
                             if (a <= 0) continue;
-                            const prog = i / (len - 1); // 0=tail … 1=head
+                            const prog = i / lastIdx; // 0=tail … 1=head
                             trailCtx.beginPath();
                             trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
                             trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
-                            trailCtx.strokeStyle = `rgba(104,60,240,${+(a * prog * 0.28).toFixed(3)})`;
+                            trailCtx.strokeStyle = `rgba(104,60,240,${a * prog * 0.28})`;
                             trailCtx.lineWidth = 2 + prog * 16;
                             trailCtx.stroke();
                         }
@@ -798,11 +817,11 @@
                         for (let i = 1; i < len; i++) {
                             const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
                             if (a <= 0) continue;
-                            const prog = i / (len - 1);
+                            const prog = i / lastIdx;
                             trailCtx.beginPath();
                             trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
                             trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
-                            trailCtx.strokeStyle = `rgba(200,170,255,${+(a * prog * 0.75).toFixed(3)})`;
+                            trailCtx.strokeStyle = `rgba(200,170,255,${a * prog * 0.75})`;
                             trailCtx.lineWidth = 0.8 + prog * 2.5;
                             trailCtx.stroke();
                         }
