@@ -26,9 +26,9 @@
 })(typeof window !== 'undefined' ? window : this, function () {
     'use strict';
 
-    var VERSION          = '1.0';
+    var VERSION = '1.0';
     var AGREEMENT_PREFIX = 'Я СОГЛАСЕН С УСЛОВИЯМИ ДОГОВОРА | ';
-    var ENC              = new TextEncoder();
+    var ENC = new TextEncoder();
 
     /* ═══════════════════════════════════════════════════════════
        ПРИМИТИВЫ
@@ -93,18 +93,18 @@
      */
     function envFingerprint() {
         var tz = '';
-        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (_) {}
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (_) { }
 
         /* Порядок полей фиксирован — не менять без смены версии протокола */
         var parts = [
-            navigator.userAgent             || '',
-            navigator.platform              || '',
-            navigator.language              || '',
+            navigator.userAgent || '',
+            navigator.platform || '',
+            navigator.language || '',
             tz,
-            (window.screen.width  || 0) + 'x' + (window.screen.height || 0),
+            (window.screen.width || 0) + 'x' + (window.screen.height || 0),
             String(window.screen.colorDepth || 0),
-            navigator.hardwareConcurrency   ? String(navigator.hardwareConcurrency)  : '',
-            navigator.deviceMemory          ? String(navigator.deviceMemory)          : '',
+            navigator.hardwareConcurrency ? String(navigator.hardwareConcurrency) : '',
+            navigator.deviceMemory ? String(navigator.deviceMemory) : '',
         ];
 
         return sha256hex(parts.join('\x00'));
@@ -126,9 +126,9 @@
      * @returns {Promise<object>}
      */
     async function buildSignData(agrid, opts) {
-        var credId    = (opts && opts.credId)    || null;
-        var cdHash    = (opts && opts.cdHash)    || null;
-        var algoName  = (opts && opts.algoName)  || 'SHA-256';
+        var credId = (opts && opts.credId) || null;
+        var cdHash = (opts && opts.cdHash) || null;
+        var algoName = (opts && opts.algoName) || 'SHA-256';
         var timestamp = (opts && opts.timestamp) || null;
 
         /* 1. Хеш документа */
@@ -154,16 +154,16 @@
         var finalHash = await sha256hex(fullString);
 
         return {
-            agrid:      agrid,
-            docHash:    docHash,
-            credId:     credId,
-            cdHash:     cdHash,
-            envHash:    envHash,
-            checksum:   checksum,
+            agrid: agrid,
+            docHash: docHash,
+            credId: credId,
+            cdHash: cdHash,
+            envHash: envHash,
+            checksum: checksum,
             fullString: fullString,
-            finalHash:  finalHash,
-            algoName:   algoName,
-            timestamp:  timestamp,
+            finalHash: finalHash,
+            algoName: algoName,
+            timestamp: timestamp,
         };
     }
 
@@ -181,16 +181,16 @@
 
         /* Строка шага 2 (для воспроизводимости) */
         /* Совместимость: старые записи могут не иметь envHash */
-        var hasEnv  = !!data.envHash;
+        var hasEnv = !!data.envHash;
         var csInput = data.agrid + '|' + data.docHash
             + (data.credId ? '|' + data.credId : '')
             + (data.cdHash ? '|' + data.cdHash : '')
-            + (hasEnv      ? '|' + data.envHash : '');
+            + (hasEnv ? '|' + data.envHash : '');
 
         var fieldOrder = 'Agreement-ID|Doc-Hash'
             + (data.credId ? '|Cred-ID' : '')
             + (data.cdHash ? '|CD-Hash' : '')
-            + (hasEnv      ? '|Env-Hash' : '')
+            + (hasEnv ? '|Env-Hash' : '')
             + '|Checksum';
 
         var lines = [
@@ -198,19 +198,19 @@
             'Version: TandemSign/1.0',
             'Issuer: tandem-sites.ru',
             'Agreement-ID: ' + data.agrid,
-            'Signed-At: '    + isoTs,
-            'Algorithm: '    + data.algoName,
+            'Signed-At: ' + isoTs,
+            'Algorithm: ' + data.algoName,
             '',
-            'Doc-Hash: '     + data.docHash,
+            'Doc-Hash: ' + data.docHash,
         ];
 
-        if (data.credId) lines.push('Cred-ID: '  + data.credId);
-        if (data.cdHash) lines.push('CD-Hash: '  + data.cdHash);
-        if (hasEnv)      lines.push('Env-Hash: ' + data.envHash);
+        if (data.credId) lines.push('Cred-ID: ' + data.credId);
+        if (data.cdHash) lines.push('CD-Hash: ' + data.cdHash);
+        if (hasEnv) lines.push('Env-Hash: ' + data.envHash);
 
         lines = lines.concat([
-            'Checksum: '  + data.checksum,
-            'Token: '     + data.finalHash,
+            'Checksum: ' + data.checksum,
+            'Token: ' + data.finalHash,
             '',
             'Full-Data: ' + data.fullString,
             '',
@@ -251,14 +251,14 @@
         if (!text || !text.includes('-----BEGIN TANDEM SIGNATURE-----')) return null;
 
         var fields = {};
-        var lines  = text.split(/\r?\n/);
+        var lines = text.split(/\r?\n/);
         var inside = false;
 
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
-            if (line === '-----BEGIN TANDEM SIGNATURE-----') { inside = true;  continue; }
-            if (line === '-----END TANDEM SIGNATURE-----')   { break; }
-            if (!inside || !line || line.charAt(0) === ';')  continue;
+            if (line === '-----BEGIN TANDEM SIGNATURE-----') { inside = true; continue; }
+            if (line === '-----END TANDEM SIGNATURE-----') { break; }
+            if (!inside || !line || line.charAt(0) === ';') continue;
 
             var colon = line.indexOf(': ');
             if (colon < 0) continue;
@@ -271,18 +271,18 @@
         if (!fields.doc_hash || !fields.checksum || !fields.token || !fields.full_data) return null;
 
         return {
-            version:     fields.version      || '',
-            issuer:      fields.issuer        || '',
-            agreementId: fields.agreement_id  || '',
-            signedAt:    fields.signed_at     || '',
-            algorithm:   fields.algorithm     || '',
-            docHash:     fields.doc_hash,
-            credId:      fields.cred_id       || null,
-            cdHash:      fields.cd_hash       || null,
-            envHash:     fields.env_hash      || null,   /* null для старых файлов */
-            checksum:    fields.checksum,
-            token:       fields.token,
-            fullData:    fields.full_data,
+            version: fields.version || '',
+            issuer: fields.issuer || '',
+            agreementId: fields.agreement_id || '',
+            signedAt: fields.signed_at || '',
+            algorithm: fields.algorithm || '',
+            docHash: fields.doc_hash,
+            credId: fields.cred_id || null,
+            cdHash: fields.cd_hash || null,
+            envHash: fields.env_hash || null,   /* null для старых файлов */
+            checksum: fields.checksum,
+            token: fields.token,
+            fullData: fields.full_data,
         };
     }
 
@@ -291,11 +291,11 @@
     ═══════════════════════════════════════════════════════════ */
 
     var RE = {
-        sha256:    /^[0-9a-f]{64}$/i,
+        sha256: /^[0-9a-f]{64}$/i,
         base64url: /^[A-Za-z0-9+/\-_]+=*$/,
-        isoTs:     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/,
-        agrid:     /^[A-Za-z0-9_\-]{1,64}$/,
-        version:   /^TandemSign\/1\.0$/,
+        isoTs: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/,
+        agrid: /^[A-Za-z0-9_\-]{1,64}$/,
+        version: /^TandemSign\/1\.0$/,
     };
 
     /**
@@ -352,8 +352,8 @@
      */
     function _buildChecksumInput(sig) {
         return sig.agreementId + '|' + sig.docHash
-            + (sig.credId  ? '|' + sig.credId  : '')
-            + (sig.cdHash  ? '|' + sig.cdHash  : '')
+            + (sig.credId ? '|' + sig.credId : '')
+            + (sig.cdHash ? '|' + sig.cdHash : '')
             + (sig.envHash ? '|' + sig.envHash : '');
     }
 
@@ -368,24 +368,24 @@
         /* Шаг 1 — хеш документа */
         var expectedDoc = await sha256hex(AGREEMENT_PREFIX + sig.agreementId);
         results.push({
-            ok:       expectedDoc === sig.docHash,
-            label:    'Хеш документа (SHA-256)',
-            desc:     'SHA-256 от строки согласия с ID договора должен совпадать с Doc-Hash в файле.',
+            ok: expectedDoc === sig.docHash,
+            label: 'Хеш документа (SHA-256)',
+            desc: 'SHA-256 от строки согласия с ID договора должен совпадать с Doc-Hash в файле.',
             expected: sig.docHash,
             computed: expectedDoc,
         });
 
         /* Шаг 2 — контрольная сумма */
-        var csInput    = _buildChecksumInput(sig);
-        var csFields   = 'Agreement-ID|Doc-Hash'
-            + (sig.credId  ? '|Cred-ID'  : '')
-            + (sig.cdHash  ? '|CD-Hash'  : '')
+        var csInput = _buildChecksumInput(sig);
+        var csFields = 'Agreement-ID|Doc-Hash'
+            + (sig.credId ? '|Cred-ID' : '')
+            + (sig.cdHash ? '|CD-Hash' : '')
             + (sig.envHash ? '|Env-Hash' : '');
         var expectedCs = await sha256hex(csInput);
         results.push({
-            ok:       expectedCs === sig.checksum,
-            label:    'Контрольная сумма (Checksum)',
-            desc:     'SHA-256 от конкатенации полей (' + csFields + ') должен совпадать с Checksum.',
+            ok: expectedCs === sig.checksum,
+            label: 'Контрольная сумма (Checksum)',
+            desc: 'SHA-256 от конкатенации полей (' + csFields + ') должен совпадать с Checksum.',
             expected: sig.checksum,
             computed: expectedCs,
         });
@@ -393,9 +393,9 @@
         /* Шаг 3 — верификационный токен */
         var expectedToken = await sha256hex(sig.fullData);
         results.push({
-            ok:       expectedToken === sig.token,
-            label:    'Верификационный токен (Token)',
-            desc:     'SHA-256 от Full-Data (полной строки верификации) должен совпадать с Token.',
+            ok: expectedToken === sig.token,
+            label: 'Верификационный токен (Token)',
+            desc: 'SHA-256 от Full-Data (полной строки верификации) должен совпадать с Token.',
             expected: sig.token,
             computed: expectedToken,
         });
@@ -409,14 +409,14 @@
 
     return {
         /** Версия протокола */
-        VERSION:          VERSION,
+        VERSION: VERSION,
         /** Фиксированный префикс строки согласия */
         AGREEMENT_PREFIX: AGREEMENT_PREFIX,
 
         /* Примитивы */
-        sha256hex:    sha256hex,
-        sha256buf:    sha256buf,
-        hexToBytes:   hexToBytes,
+        sha256hex: sha256hex,
+        sha256buf: sha256buf,
+        hexToBytes: hexToBytes,
 
         /* Окружение */
         envFingerprint: envFingerprint,
@@ -425,8 +425,8 @@
         buildSignData: buildSignData,
 
         /* Формат файла */
-        serialize:      serialize,
-        parse:          parse,
+        serialize: serialize,
+        parse: parse,
         validateFormat: validateFormat,
 
         /* Верификация */

@@ -37,6 +37,12 @@
             scrollbar-gutter: stable;
         }
 
+        @media (max-width: 600px) {
+            html {
+                scrollbar-gutter: auto;
+            }
+        }
+
         /* ══════════════════════════════════════════════════════
    BACKGROUND LAYERS (сетка + mesh)
 ══════════════════════════════════════════════════════ */
@@ -291,14 +297,14 @@
 
         .text-input {
             display: block;
-            flex: 1 1 0;
+            flex: 1;
             width: 100%;
             min-width: 0;
             box-sizing: border-box;
             height: 56px;
             padding: 0 18px;
-            background: var(--surface3);
-            border: 2px solid var(--border3);
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.22);
             border-radius: 10px;
             color: var(--text);
             font-family: "Inter", system-ui, sans-serif;
@@ -307,18 +313,19 @@
             outline: none;
             -webkit-appearance: none;
             appearance: none;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, .35);
             transition: border-color var(--r), box-shadow var(--r), background var(--r);
         }
 
         .text-input::placeholder {
-            color: var(--muted2);
+            color: rgba(255, 255, 255, 0.28);
             font-weight: 400;
         }
 
         .text-input:focus {
-            background: var(--surface3);
+            background: rgba(255, 255, 255, 0.08);
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(124, 110, 245, .14);
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, .25), 0 0 0 4px rgba(124, 110, 245, .16);
             outline: none;
         }
 
@@ -1092,14 +1099,18 @@
             }
 
             .input-row {
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
+                display: block;
                 width: 100%;
-                gap: 8px;
             }
 
-            .btn-primary {
+            .input-row .text-input {
+                display: block;
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            .input-row .btn-primary {
+                display: block;
                 width: 100%;
                 justify-content: center;
             }
@@ -1145,7 +1156,8 @@
             }
 
             .swipe-label {
-                font-size: 12px;
+                font-size: 11px;
+                padding: 0 10px 0 58px;
             }
 
             .site-footer {
@@ -1157,10 +1169,6 @@
         }
 
         @media (max-width: 380px) {
-            .env-grid {
-                grid-template-columns: 1fr;
-            }
-
             .page-title {
                 font-size: 26px;
             }
@@ -1171,25 +1179,32 @@
 ══════════════════════════════════════════════════════ */
         .env-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-bottom: 16px;
         }
 
         .env-card {
             background: var(--surface);
             border: 1px solid var(--border2);
-            border-radius: 16px;
-            padding: 16px 18px;
+            border-radius: 14px;
+            padding: 14px 16px;
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            transition: border-color var(--r), background var(--r);
+        }
+
+        .env-card:hover {
+            border-color: var(--border3);
+            background: var(--surface2);
         }
 
         .env-card-icon {
             width: 32px;
             height: 32px;
-            border-radius: 10px;
+            border-radius: 9px;
             background: var(--accent-dim);
             border: 1px solid var(--accent-bdr);
             display: flex;
@@ -1197,7 +1212,6 @@
             justify-content: center;
             color: var(--accent);
             flex-shrink: 0;
-            margin-bottom: 4px;
         }
 
         .env-card-icon svg {
@@ -1205,12 +1219,26 @@
             height: 15px;
         }
 
+        .env-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
         .env-card-label {
-            font-size: 10.5px;
+            font-size: 9.5px;
             font-weight: 700;
-            letter-spacing: .06em;
+            letter-spacing: .07em;
             text-transform: uppercase;
             color: var(--muted2);
+        }
+
+        .env-card-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            flex-wrap: wrap;
         }
 
         .env-card-val {
@@ -1224,7 +1252,18 @@
         .env-card-sub {
             font-size: 11px;
             color: var(--muted);
-            margin-top: 2px;
+        }
+
+        .env-card-dot {
+            font-size: 10px;
+            color: var(--border3);
+        }
+
+        .env-card-size {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
         }
 
         /* ─ Danger card ─ */
@@ -1301,18 +1340,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
             font-size: 13px;
             font-weight: 600;
             color: rgba(248, 113, 113, .55);
             pointer-events: none;
             transition: opacity .25s;
-        }
-
-        .swipe-label svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
+            /* сдвигаем текст правее ручки (46px + 5px offset + gap) */
+            padding-left: 58px;
+            padding-right: 10px;
         }
 
         .swipe-handle {
@@ -1559,40 +1594,85 @@
 
             <!-- Статистика окружения -->
             <div class="env-grid" id="env-grid">
+
+                <!-- localStorage -->
                 <div class="env-card">
                     <div class="env-card-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-                            <path d="M12 12h.01" />
+                            <ellipse cx="12" cy="5" rx="9" ry="3" />
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                            <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
                         </svg>
                     </div>
-                    <div class="env-card-label">localStorage</div>
-                    <div class="env-card-val" id="env-ls-count">—</div>
-                    <div class="env-card-sub">ключей</div>
-                </div>
-                <div class="env-card">
-                    <div class="env-card-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                            <path d="M2 17l10 5 10-5" />
-                            <path d="M2 12l10 5 10-5" />
-                        </svg>
+                    <div class="env-card-body">
+                        <div class="env-card-label">localStorage</div>
+                        <div class="env-card-meta">
+                            <span class="env-card-val" id="env-ls-count">—</span>
+                            <span class="env-card-sub">ключей</span>
+                            <span class="env-card-dot">·</span>
+                            <span class="env-card-size" id="env-ls-size">—</span>
+                        </div>
                     </div>
-                    <div class="env-card-label">sessionStorage</div>
-                    <div class="env-card-val" id="env-ss-count">—</div>
-                    <div class="env-card-sub">ключей</div>
                 </div>
+
+                <!-- sessionStorage -->
                 <div class="env-card">
                     <div class="env-card-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
-                            <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32" />
+                            <polyline points="12 6 12 12 16 14" />
                         </svg>
                     </div>
-                    <div class="env-card-label">Cookies</div>
-                    <div class="env-card-val" id="env-ck-count">—</div>
-                    <div class="env-card-sub">записей</div>
+                    <div class="env-card-body">
+                        <div class="env-card-label">sessionStorage</div>
+                        <div class="env-card-meta">
+                            <span class="env-card-val" id="env-ss-count">—</span>
+                            <span class="env-card-sub">ключей</span>
+                            <span class="env-card-dot">·</span>
+                            <span class="env-card-size" id="env-ss-size">—</span>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Cookies -->
+                <div class="env-card">
+                    <div class="env-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
+                            <path d="M8.5 8.5v.01" />
+                            <path d="M16 15.5v.01" />
+                            <path d="M12 12v.01" />
+                        </svg>
+                    </div>
+                    <div class="env-card-body">
+                        <div class="env-card-label">Cookies</div>
+                        <div class="env-card-meta">
+                            <span class="env-card-val" id="env-ck-count">—</span>
+                            <span class="env-card-sub">записей</span>
+                            <span class="env-card-dot">·</span>
+                            <span class="env-card-size" id="env-ck-size">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cache API -->
+                <div class="env-card">
+                    <div class="env-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+                        </svg>
+                    </div>
+                    <div class="env-card-body">
+                        <div class="env-card-label">Cache API</div>
+                        <div class="env-card-meta">
+                            <span class="env-card-val" id="env-cache-count">—</span>
+                            <span class="env-card-sub">записей</span>
+                            <span class="env-card-dot">·</span>
+                            <span class="env-card-size" id="env-cache-size">—</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Карточка локального сброса -->
@@ -1617,9 +1697,6 @@
                         <div class="swipe-confirm" id="swipe-confirm">
                             <div class="swipe-fill" id="swipe-fill"></div>
                             <div class="swipe-label" id="swipe-label">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="9 18 15 12 9 6" />
-                                </svg>
                                 Потяните вправо для подтверждения
                             </div>
                             <div class="swipe-handle" id="swipe-handle" role="button" tabindex="0" aria-label="Свайп для подтверждения">
@@ -2024,27 +2101,67 @@
             /* ══════════════════════════════════════════════════════
                ENV PANEL
             ══════════════════════════════════════════════════════ */
-            function refreshEnvCounts() {
-                /* localStorage */
-                var lsCount = 0;
-                try { lsCount = localStorage.length; } catch (_) { }
-                document.getElementById('env-ls-count').textContent = lsCount;
-
-                /* sessionStorage */
-                var ssCount = 0;
-                try { ssCount = sessionStorage.length; } catch (_) { }
-                document.getElementById('env-ss-count').textContent = ssCount;
-
-                /* cookies */
-                var ckCount = 0;
-                try {
-                    var c = document.cookie.trim();
-                    ckCount = c ? c.split(';').filter(function (s) { return s.trim(); }).length : 0;
-                } catch (_) { }
-                document.getElementById('env-ck-count').textContent = ckCount;
+            function fmtBytes(b) {
+                if (b === 0) return '0 Б';
+                if (b < 1024) return b + ' Б';
+                if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' КБ';
+                return (b / (1024 * 1024)).toFixed(2) + ' МБ';
             }
 
-            function doLocalReset() {
+            function storageBytes(storage) {
+                var total = 0;
+                try {
+                    for (var i = 0; i < storage.length; i++) {
+                        var k = storage.key(i);
+                        total += (k.length + (storage.getItem(k) || '').length) * 2;
+                    }
+                } catch (_) { }
+                return total;
+            }
+
+            async function refreshEnvCounts() {
+                /* localStorage */
+                var lsCount = 0, lsSize = 0;
+                try { lsCount = localStorage.length; lsSize = storageBytes(localStorage); } catch (_) { }
+                document.getElementById('env-ls-count').textContent = lsCount;
+                document.getElementById('env-ls-size').textContent = fmtBytes(lsSize);
+
+                /* sessionStorage */
+                var ssCount = 0, ssSize = 0;
+                try { ssCount = sessionStorage.length; ssSize = storageBytes(sessionStorage); } catch (_) { }
+                document.getElementById('env-ss-count').textContent = ssCount;
+                document.getElementById('env-ss-size').textContent = fmtBytes(ssSize);
+
+                /* cookies */
+                var ckCount = 0, ckSize = 0;
+                try {
+                    var c = document.cookie.trim();
+                    var parts = c ? c.split(';').filter(function (s) { return s.trim(); }) : [];
+                    ckCount = parts.length;
+                    ckSize = new Blob([document.cookie]).size;
+                } catch (_) { }
+                document.getElementById('env-ck-count').textContent = ckCount;
+                document.getElementById('env-ck-size').textContent = fmtBytes(ckSize);
+
+                /* Cache API */
+                var cacheCount = 0, cacheSize = 0;
+                try {
+                    var names = await caches.keys();
+                    for (var n of names) {
+                        var cache = await caches.open(n);
+                        var reqs = await cache.keys();
+                        cacheCount += reqs.length;
+                        for (var req of reqs) {
+                            var resp = await cache.match(req);
+                            if (resp) { var blob = await resp.clone().blob(); cacheSize += blob.size; }
+                        }
+                    }
+                } catch (_) { }
+                document.getElementById('env-cache-count').textContent = cacheCount;
+                document.getElementById('env-cache-size').textContent = fmtBytes(cacheSize);
+            }
+
+            async function doLocalReset() {
                 /* localStorage */
                 try { localStorage.clear(); } catch (_) { }
                 /* sessionStorage */
@@ -2060,11 +2177,16 @@
                         document.cookie = base + '; domain=.' + window.location.hostname;
                     });
                 } catch (_) { }
+                /* Cache API */
+                try {
+                    var cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(function (n) { return caches.delete(n); }));
+                } catch (_) { }
 
                 var logEl = document.getElementById('reset-log');
-                logEl.textContent = '\u2713 Локальные данные Tandem Sites успешно очищены.';
+                logEl.textContent = '✓ Локальные данные Tandem Sites успешно очищены.';
                 logEl.classList.add('visible');
-                refreshEnvCounts();
+                await refreshEnvCounts();
             }
 
             /* ─ Swipe-to-confirm ─ */
