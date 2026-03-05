@@ -1765,7 +1765,9 @@ body.s4 #cursor-dot {
     text-decoration: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.15);
     padding-bottom: 1px;
-    transition: color 0.2s, border-color 0.2s;
+    transition:
+        color 0.2s,
+        border-color 0.2s;
     white-space: nowrap;
 }
 
@@ -1777,7 +1779,9 @@ body.s4 #cursor-dot {
     background: currentColor;
     opacity: 0.4;
     flex-shrink: 0;
-    transition: width 0.2s, opacity 0.2s;
+    transition:
+        width 0.2s,
+        opacity 0.2s;
 }
 
 .oferta-link:hover {
