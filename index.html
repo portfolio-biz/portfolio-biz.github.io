@@ -867,6 +867,10 @@
             document.addEventListener('mouseleave', () => {
                 dot.style.opacity = '0';
                 if (trailCanvas) trailCanvas.style.opacity = '0';
+                // сбрасываем хвост и флаг — при возврате курсора в другом месте
+                // не будет мгновенной черты через весь экран
+                TRAIL.length = 0;
+                trailActive = false;
             }, { passive: true });
             document.addEventListener('mouseenter', () => {
                 dot.style.opacity = '1';
