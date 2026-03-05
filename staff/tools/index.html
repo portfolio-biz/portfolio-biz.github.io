@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<!--
+    Tandem Sites — Staff Tools
+    /staff/tools/index.html
+    Генератор ссылок + валидатор подписей
+    Только для внутреннего использования.
+-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Tools — Tandem Sites</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" />
+    <style>
+
+/* ══════════════════════════════════════════════════════
+   RESET + ROOT
+══════════════════════════════════════════════════════ */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+*:focus          { outline: none; }
+*:focus-visible  { outline: none; }
+
+:root {
+    --bg:         #0b0b14;
+    --bg2:        #0f0f1a;
+    --surface:    #13131e;
+    --surface2:   #1a1a28;
+    --surface3:   #20202f;
+    --border:     rgba(255,255,255,.06);
+    --border2:    rgba(255,255,255,.10);
+    --border3:    rgba(255,255,255,.15);
+    --text:       rgba(255,255,255,.88);
+    --muted:      rgba(255,255,255,.42);
+    --muted2:     rgba(255,255,255,.22);
+    --accent:     #7c6ef5;
+    --accent2:    #5b4fd4;
+    --accent-dim: rgba(124,110,245,.12);
+    --accent-bdr: rgba(124,110,245,.22);
+    --ok:         #34d399;
+    --ok-bg:      rgba(52,211,153,.07);
+    --ok-bdr:     rgba(52,211,153,.20);
+    --fail:       #f87171;
+    --fail-bg:    rgba(248,113,113,.07);
+    --fail-bdr:   rgba(248,113,113,.20);
+    --warn:       #fbbf24;
+    --warn-bg:    rgba(251,191,36,.07);
+    --warn-bdr:   rgba(251,191,36,.20);
+    --r:          .22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ══════════════════════════════════════════════════════
+   HTML / BODY — фирменный фон, запрет выделения на UI
+══════════════════════════════════════════════════════ */
+html {
+    scrollbar-gutter: stable;
+}
+
+html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Текст в полях ввода и результатах — выделять разрешено */
+input, textarea, .selectable {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+/* ══════════════════════════════════════════════════════
+   ANIMATED MESH BACKGROUND
+══════════════════════════════════════════════════════ */
+.bg-mesh {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+.bg-mesh::before,
+.bg-mesh::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: .28;
+    animation: mesh-drift 18s ease-in-out infinite alternate;
+}
+.bg-mesh::before {
+    width: 720px; height: 720px;
+    top: -200px; left: -100px;
+    background: radial-gradient(circle, #5b4fd4 0%, transparent 70%);
+}
+.bg-mesh::after {
+    width: 560px; height: 560px;
+    bottom: -160px; right: -80px;
+    background: radial-gradient(circle, #3b2d9e 0%, transparent 70%);
+    animation-delay: -9s;
+}
+@keyframes mesh-drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.07); }
+}
+
+/* ══════════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════════ */
+.page {
+    position: relative;
+    z-index: 1;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 52px 24px 100px;
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════════ */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 52px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: default;
+}
+
+.logo-img {
+    height: 30px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
+
+.logo-name {
+    font-family: "Syne", system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+.staff-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: 7px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-bdr);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    cursor: default;
+}
+.staff-badge svg { width: 9px; height: 9px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════
+   PAGE TITLE
+══════════════════════════════════════════════════════ */
+.page-title-block {
+    margin-bottom: 44px;
+}
+.page-title {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    color: var(--text);
+}
+.page-title-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════ */
+.tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border2);
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 22px 12px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--r), border-color var(--r);
+    white-space: nowrap;
+    position: relative;
+    margin-bottom: -1px;
+}
+.tab-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+.tab-btn.active svg { color: var(--accent); }
+
+.tab-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    background: rgba(255,255,255,.06);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted2);
+    flex-shrink: 0;
+    transition: background var(--r), color var(--r);
+}
+.tab-btn.active .tab-step {
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+
+/* ══════════════════════════════════════════════════════
+   PANELS
+══════════════════════════════════════════════════════ */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   CARD
+══════════════════════════════════════════════════════ */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.card-section {
+    padding: 22px 24px;
+}
+.card-section + .card-section {
+    border-top: 1px solid var(--border);
+}
+
+.section-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+/* ══════════════════════════════════════════════════════
+   INPUT ROW
+══════════════════════════════════════════════════════ */
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.text-input {
+    flex: 1;
+    height: 44px;
+    padding: 0 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 11px;
+    color: var(--text);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    transition: border-color var(--r), box-shadow var(--r);
+}
+.text-input::placeholder { color: var(--muted2); }
+.text-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,110,245,.12);
+}
+
+.btn-primary {
+    height: 44px;
+    padding: 0 22px;
+    border-radius: 11px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity var(--r), transform var(--r);
+}
+.btn-primary:hover  { opacity: .88; }
+.btn-primary:active { opacity: .75; transform: scale(.98); }
+
+/* ══════════════════════════════════════════════════════
+   GENERATOR RESULT
+══════════════════════════════════════════════════════ */
+.gen-result {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+}
+.gen-result.visible { display: flex; }
+
+.gen-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    font-size: 12px;
+}
+.chip-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--muted2);
+}
+.chip-val {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--text);
+}
+.chip.ok  { border-color: var(--ok-bdr); background: var(--ok-bg); }
+.chip.ok  .chip-val { color: var(--ok); }
+
+.url-block {
+    display: flex;
+    align-items: stretch;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 11px;
+    overflow: hidden;
+    transition: border-color var(--r);
+}
+.url-block:focus-within { border-color: var(--border3); }
+
+.url-textarea {
+    flex: 1;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.6;
+    resize: none;
+    height: 44px;
+    overflow: auto;
+    scrollbar-width: none;
+}
+.url-textarea::-webkit-scrollbar { display: none; }
+
+.copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 18px;
+    border: none;
+    border-left: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--r), background var(--r);
+    flex-shrink: 0;
+}
+.copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.copy-btn:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.copy-btn.done  { color: var(--ok); }
+
+/* ══════════════════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════════════════ */
+.hist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.hist-clear-btn {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--muted2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    transition: color var(--r);
+    line-height: 1;
+}
+.hist-clear-btn:hover { color: var(--fail); }
+
+.hist-empty {
+    padding: 14px 0 2px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    font-style: italic;
+}
+
+.hist-list { display: flex; flex-direction: column; gap: 5px; }
+
+.hist-item {
+    display: flex;
+    align-items: stretch;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color var(--r);
+}
+.hist-item:hover { border-color: var(--border2); }
+
+.hist-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background var(--r);
+}
+.hist-main:hover { background: rgba(124,110,245,.06); }
+
+.hist-agrid {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.hist-date {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.hist-actions {
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+}
+.hist-act {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    border: none;
+    background: transparent;
+    color: var(--muted2);
+    cursor: pointer;
+    transition: color var(--r), background var(--r);
+}
+.hist-act + .hist-act { border-left: 1px solid var(--border); }
+.hist-act svg { display: block; width: 13px; height: 13px; }
+.hist-act:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.hist-act.del:hover { color: var(--fail); background: var(--fail-bg); }
+
+/* ══════════════════════════════════════════════════════
+   WORKFLOW STEPS
+══════════════════════════════════════════════════════ */
+.workflow {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+.wf-step {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.wf-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; height: 24px;
+    border-radius: 7px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-bdr);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+.wf-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+}
+.wf-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+.wf-desc code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,.07);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+}
+
+/* ══════════════════════════════════════════════════════
+   CHECKER — DROP ZONE
+══════════════════════════════════════════════════════ */
+.drop-zone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 188px;
+    border: 1.5px dashed var(--border3);
+    border-radius: 14px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: border-color var(--r), background var(--r);
+    padding: 36px 24px;
+    text-align: center;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(124,110,245,.05);
+}
+.drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.dz-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-bdr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+}
+.dz-icon svg   { width: 22px; height: 22px; }
+.dz-label      { font-size: 15px; font-weight: 600; color: var(--text); }
+.dz-hint       { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.dz-ext {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(255,255,255,.07);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+}
+
+/* ══════════════════════════════════════════════════════
+   CHECKER — PARSE ERROR
+══════════════════════════════════════════════════════ */
+.parse-error {
+    display: none;
+    margin-top: 16px;
+    padding: 13px 16px;
+    border-radius: 11px;
+    background: var(--fail-bg);
+    border: 1px solid var(--fail-bdr);
+    font-size: 13px;
+    color: var(--fail);
+    line-height: 1.55;
+}
+.parse-error.visible { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   CHECKER — RESULT CARD
+══════════════════════════════════════════════════════ */
+.chk-result { display: none; margin-top: 24px; }
+.chk-result.visible { display: block; }
+
+/* --- Status header --- */
+.rc-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border-radius: 14px 14px 0 0;
+    border: 1px solid var(--border2);
+    border-bottom: none;
+    background: var(--surface2);
+    transition: background var(--r), border-color var(--r);
+}
+.rc-head.ok   { background: var(--ok-bg);   border-color: var(--ok-bdr); }
+.rc-head.fail { background: var(--fail-bg); border-color: var(--fail-bdr); }
+
+.rc-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,.06);
+}
+.rc-icon svg { width: 18px; height: 18px; }
+.rc-head.ok   .rc-icon { background: var(--ok-bg);   color: var(--ok); }
+.rc-head.fail .rc-icon { background: var(--fail-bg); color: var(--fail); }
+
+.rc-title-block {}
+.rc-title     { font-size: 15px; font-weight: 700; }
+.rc-sub       { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.rc-head.ok   .rc-title { color: var(--ok); }
+.rc-head.fail .rc-title { color: var(--fail); }
+
+/* --- Meta table --- */
+.rc-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0;
+    border: 1px solid var(--border2);
+    border-top: none;
+    border-bottom: none;
+    background: var(--surface);
+}
+.rc-meta-item {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--border);
+}
+.rc-meta-item:nth-child(even) { background: rgba(255,255,255,.018); }
+.rc-meta-key { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.rc-meta-val { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--text); word-break: break-all; }
+
+/* --- Checks --- */
+.rc-checks {
+    border: 1px solid var(--border2);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    background: var(--surface);
+}
+
+.chk {
+    display: flex;
+    gap: 14px;
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    transition: background var(--r);
+}
+.chk:first-child { border-top: none; }
+.chk.ok          { background: rgba(52,211,153,.025); }
+.chk.fail        { background: rgba(248,113,113,.03); }
+
+.chk-indicator {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    background: rgba(255,255,255,.05);
+    color: var(--muted);
+}
+.chk-indicator svg { width: 14px; height: 14px; }
+.chk.ok   .chk-indicator { background: var(--ok-bg);   color: var(--ok); }
+.chk.fail .chk-indicator { background: var(--fail-bg); color: var(--fail); }
+
+.chk-body      { flex: 1; min-width: 0; }
+.chk-label     { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.chk-desc      { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+.chk-hash-row  { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+.chk-hash      { display: flex; align-items: flex-start; gap: 8px; }
+.chk-hash-key  { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted2); flex-shrink: 0; padding-top: 2px; min-width: 70px; }
+.chk-hash-val  { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ok); word-break: break-all; line-height: 1.55; }
+.chk-hash-val.computed { color: var(--fail); }
+
+/* --- Reset button --- */
+.reset-btn {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--r), border-color var(--r), background var(--r);
+}
+.reset-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.reset-btn:hover { color: var(--text); border-color: var(--border3); background: rgba(255,255,255,.04); }
+
+/* ══════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════ */
+.site-footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.footer-copy {
+    font-size: 12px;
+    color: var(--muted);
+}
+.footer-copy b { color: var(--muted); font-weight: 600; }
+.footer-version {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--muted2);
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+    .page { padding: 32px 16px 72px; }
+    .tab-btn { padding: 10px 12px 11px; font-size: 12.5px; gap: 7px; }
+    .tab-step { display: none; }
+    .input-row { flex-direction: column; align-items: stretch; }
+    .btn-primary { width: 100%; justify-content: center; }
+    .site-header { margin-bottom: 36px; }
+    .page-title  { font-size: 24px; }
+    .workflow { grid-template-columns: 1fr; }
+    .env-grid { grid-template-columns: 1fr 1fr; }
+    .swipe-label { font-size: 12px; }
+}
+@media (max-width: 380px) {
+    .env-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ENV PANEL
+══════════════════════════════════════════════════════ */
+.env-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.env-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.env-card-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-bdr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+.env-card-icon svg { width: 15px; height: 15px; }
+.env-card-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted2);
+}
+.env-card-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+}
+.env-card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+/* ─ Danger card ─ */
+.env-danger-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.env-danger-icon {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: var(--fail-bg);
+    border: 1px solid var(--fail-bdr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fail);
+    flex-shrink: 0;
+}
+.env-danger-icon svg { width: 18px; height: 18px; }
+.env-danger-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+.env-danger-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 4px;
+}
+
+/* ─ Swipe-to-confirm ─ */
+.swipe-wrap { position: relative; }
+
+.swipe-confirm {
+    position: relative;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(248,113,113,.06);
+    border: 1px solid rgba(248,113,113,.22);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    cursor: default;
+}
+.swipe-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: rgba(248,113,113,.10);
+    pointer-events: none;
+    transition: none;
+}
+.swipe-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(248,113,113,.55);
+    pointer-events: none;
+    transition: opacity .25s;
+}
+.swipe-label svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.swipe-handle {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    bottom: 5px;
+    width: 46px;
+    background: var(--fail);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(248,113,113,.45), 0 0 0 0 rgba(248,113,113,0);
+    transform: translateX(0);
+    transition: box-shadow .2s, background .2s;
+    will-change: transform;
+    z-index: 2;
+}
+.swipe-handle:active { cursor: grabbing; }
+.swipe-handle svg { width: 18px; height: 18px; pointer-events: none; }
+
+.swipe-confirm.completed .swipe-fill {
+    width: 100% !important;
+    background: rgba(52,211,153,.15);
+    transition: width .3s cubic-bezier(.4,0,.2,1);
+}
+.swipe-confirm.completed .swipe-label {
+    color: var(--ok);
+}
+.swipe-confirm.completed .swipe-handle {
+    background: var(--ok);
+    box-shadow: 0 2px 10px rgba(52,211,153,.45);
+    cursor: default;
+}
+
+/* ─ Reset log ─ */
+.reset-log {
+    margin-top: 14px;
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-bdr);
+    border-radius: 11px;
+    padding: 13px 16px;
+    font-size: 12.5px;
+    color: var(--ok);
+    line-height: 1.6;
+    display: none;
+}
+.reset-log.visible { display: block; }
+
+    </style>
+</head>
+
+<body>
+
+<div class="bg-mesh"></div>
+
+<div class="page">
+
+    <!-- ══ HEADER ══ -->
+    <header class="site-header">
+        <div class="logo-wrap">
+            <img src="/logo.png" alt="Tandem Sites" class="logo-img" draggable="false" />
+            <div class="logo-name">Tandem<span>·</span>Sites</div>
+        </div>
+        <div class="staff-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Staff only
+        </div>
+    </header>
+
+    <!-- ══ TITLE ══ -->
+    <div class="page-title-block">
+        <div class="page-title">Staff Tools</div>
+        <div class="page-title-sub">Утилиты для работы с договорами — генератор ссылок и валидатор подписей.</div>
+    </div>
+
+    <!-- ══ TABS ══ -->
+    <div class="tabs" role="tablist">
+        <button class="tab-btn active" id="tab-gen" role="tab" aria-selected="true" aria-controls="panel-gen" type="button">
+            <span class="tab-step">1</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            Генератор ссылок
+        </button>
+        <button class="tab-btn" id="tab-chk" role="tab" aria-selected="false" aria-controls="panel-chk" type="button">
+            <span class="tab-step">2</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Валидатор подписи
+        </button>
+    </div>
+
+    <!-- ══════════════════ PANEL: GENERATOR ══════════════════ -->
+    <div class="panel active" id="panel-gen" role="tabpanel" aria-labelledby="tab-gen">
+
+        <div class="card">
+
+            <!-- Ввод agrid -->
+            <div class="card-section">
+                <span class="section-label">Идентификатор договора (agrid)</span>
+                <div class="input-row">
+                    <input class="text-input" id="gen-input" type="text"
+                        placeholder="напр. AGR-2026-001"
+                        autocomplete="off" spellcheck="false" />
+                    <button class="btn-primary" id="gen-btn" type="button">Создать ссылку</button>
+                </div>
+            </div>
+
+            <!-- Результат -->
+            <div class="card-section" id="gen-result-section" style="display:none">
+                <span class="section-label">Готовая ссылка</span>
+                <div class="gen-result visible" id="gen-result">
+                    <div class="gen-chips">
+                        <div class="chip ok">
+                            <span class="chip-label">agrid</span>
+                            <span class="chip-val" id="out-agrid">—</span>
+                        </div>
+                        <div class="chip">
+                            <span class="chip-label">crc32</span>
+                            <span class="chip-val" id="out-crc">—</span>
+                        </div>
+                    </div>
+                    <div class="url-block">
+                        <textarea class="url-textarea selectable" id="url-text" readonly rows="2"></textarea>
+                        <button class="copy-btn" id="copy-btn" type="button">
+                            <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span id="copy-label">Копировать</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- История -->
+            <div class="card-section" id="hist-section">
+                <div class="hist-header">
+                    <span class="section-label" style="margin-bottom:0">История</span>
+                    <button class="hist-clear-btn" id="hist-clear-btn" type="button">Очистить всё</button>
+                </div>
+                <div id="hist-list"></div>
+            </div>
+
+        </div>
+
+        <div class="workflow">
+            <div class="wf-step">
+                <div class="wf-num">1</div>
+                <div class="wf-title">Создайте ссылку</div>
+                <div class="wf-desc">Введите идентификатор договора и нажмите «Создать ссылку». Ссылка привязана к этому договору.</div>
+            </div>
+            <div class="wf-step">
+                <div class="wf-num">2</div>
+                <div class="wf-title">Отправьте клиенту</div>
+                <div class="wf-desc">Скопируйте ссылку и отправьте клиенту. По ней откроется страница для подписания договора.</div>
+            </div>
+            <div class="wf-step">
+                <div class="wf-num">3</div>
+                <div class="wf-title">Проверьте подпись</div>
+                <div class="wf-desc">Получите от клиента файл <code>.tandemsign</code> и перейдите на вкладку «Валидатор» для проверки.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════ PANEL: CHECKER ══════════════════ -->
+    <div class="panel" id="panel-chk" role="tabpanel" aria-labelledby="tab-chk">
+
+        <div class="card">
+            <div class="card-section" style="padding-bottom:24px">
+                <span class="section-label">Файл подписи</span>
+                <div class="drop-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept=".tandemsign,text/plain" />
+                    <div class="dz-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="dz-label">Загрузите файл подписи</div>
+                        <div class="dz-hint">Перетащите или нажмите &nbsp;<span class="dz-ext">.tandemsign</span></div>
+                    </div>
+                </div>
+
+                <div class="parse-error" id="parse-error"></div>
+            </div>
+        </div>
+
+        <!-- Результат верификации -->
+        <div class="chk-result" id="chk-result">
+            <div class="rc-head" id="rc-head">
+                <div class="rc-icon" id="rc-icon"></div>
+                <div class="rc-title-block">
+                    <div class="rc-title" id="rc-title"></div>
+                    <div class="rc-sub"   id="rc-sub"></div>
+                </div>
+            </div>
+            <div class="rc-meta"   id="rc-meta"></div>
+            <div class="rc-checks" id="rc-checks"></div>
+        </div>
+
+        <button class="reset-btn" id="reset-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-4"/>
+            </svg>
+            Проверить другой файл
+        </button>
+
+    </div>
+
+    <!-- ══ FOOTER ══ -->
+    <footer class="site-footer">
+        <div class="footer-copy">© <b>Tandem Sites</b> — внутренний инструмент</div>
+        <div class="footer-version">TandemSign/1.0 · staff-tools</div>
+    </footer>
+
+</div><!-- .page -->
+
+<script src="/security/libs/tandemsign.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════════════════
+   CRC32  (UTF-8, та же реализация что в scripts.js)
+══════════════════════════════════════════════════════ */
+function crc32(str) {
+    var t = crc32._t;
+    if (!t) {
+        t = new Uint32Array(256);
+        for (var i = 0; i < 256; i++) {
+            var c = i;
+            for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+            t[i] = c;
+        }
+        crc32._t = t;
+    }
+    var crc = 0xFFFFFFFF;
+    for (var j = 0; j < str.length; j++) {
+        var n = str.charCodeAt(j);
+        if (n < 0x80) {
+            crc = (crc >>> 8) ^ t[(crc ^ n) & 0xFF];
+        } else if (n < 0x800) {
+            crc = (crc >>> 8) ^ t[(crc ^ (0xC0 | (n >> 6))) & 0xFF];
+            crc = (crc >>> 8) ^ t[(crc ^ (0x80 | (n & 0x3F))) & 0xFF];
+        } else {
+            crc = (crc >>> 8) ^ t[(crc ^ (0xE0 | (n >> 12))) & 0xFF];
+            crc = (crc >>> 8) ^ t[(crc ^ (0x80 | ((n >> 6) & 0x3F))) & 0xFF];
+            crc = (crc >>> 8) ^ t[(crc ^ (0x80 | (n & 0x3F))) & 0xFF];
+        }
+    }
+    return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0');
+}
+
+var CRC_SALT = '~0_UNIQUE|';
+var BASE_URL = window.location.origin + '/agreement/';
+var HIST_KEY = 'ts_gen_history';
+var MAX_HIST = 12;
+
+/* ══════════════════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════════════════ */
+var tabGen   = document.getElementById('tab-gen');
+var tabChk   = document.getElementById('tab-chk');
+var panelGen = document.getElementById('panel-gen');
+var panelChk = document.getElementById('panel-chk');
+
+function switchTab(toGen) {
+    tabGen.classList.toggle('active', toGen);
+    tabChk.classList.toggle('active', !toGen);
+    tabGen.setAttribute('aria-selected', toGen ? 'true' : 'false');
+    tabChk.setAttribute('aria-selected', toGen ? 'false' : 'true');
+    panelGen.classList.toggle('active', toGen);
+    panelChk.classList.toggle('active', !toGen);
+}
+tabGen.addEventListener('click', function () { switchTab(true); });
+tabChk.addEventListener('click', function () { switchTab(false); });
+
+/* ══════════════════════════════════════════════════════
+   GENERATOR
+══════════════════════════════════════════════════════ */
+var genInput      = document.getElementById('gen-input');
+var genBtn        = document.getElementById('gen-btn');
+var genResultSec  = document.getElementById('gen-result-section');
+var outAgrid      = document.getElementById('out-agrid');
+var outCrc        = document.getElementById('out-crc');
+var urlText       = document.getElementById('url-text');
+var copyBtn       = document.getElementById('copy-btn');
+var copyIcon      = document.getElementById('copy-icon');
+var copyLabel     = document.getElementById('copy-label');
+var histListEl    = document.getElementById('hist-list');
+
+function buildUrl(agrid) {
+    return BASE_URL + '?agrid=' + encodeURIComponent(agrid) + '&c=' + crc32(CRC_SALT + agrid);
+}
+
+function generate() {
+    var agrid = genInput.value.trim();
+    if (!agrid) { genInput.focus(); return; }
+    var c   = crc32(CRC_SALT + agrid);
+    var url = BASE_URL + '?agrid=' + encodeURIComponent(agrid) + '&c=' + c;
+    outAgrid.textContent = agrid;
+    outCrc.textContent   = c;
+    /* авто-высота textarea */
+    urlText.value = url;
+    urlText.style.height = 'auto';
+    urlText.style.height = urlText.scrollHeight + 'px';
+    genResultSec.style.display = '';
+    setCopyIdle();
+    saveHistory(agrid, c);
+    renderHistory();
+}
+
+/* copy */
+var _copyTimer = null;
+function setCopyIdle() {
+    clearTimeout(_copyTimer);
+    copyIcon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+    copyLabel.textContent = 'Копировать';
+    copyBtn.classList.remove('done');
+}
+function setCopyDone() {
+    copyIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+    copyLabel.textContent = 'Скопировано';
+    copyBtn.classList.add('done');
+    _copyTimer = setTimeout(setCopyIdle, 2400);
+}
+
+copyBtn.addEventListener('click', function () {
+    var url = urlText.value; if (!url) return;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(setCopyDone).catch(function () { _legacyCopy(); });
+    } else { _legacyCopy(); }
+});
+function _legacyCopy() {
+    urlText.select();
+    try { document.execCommand('copy'); setCopyDone(); } catch (_) {}
+}
+
+genBtn.addEventListener('click', generate);
+genInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') generate(); });
+genInput.addEventListener('input',   function ()  { genResultSec.style.display = 'none'; });
+
+/* ── history ── */
+function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch (_) { return []; }
+}
+function saveHistory(agrid, c) {
+    var h = loadHistory().filter(function (x) { return x.agrid !== agrid; });
+    h.unshift({ agrid: agrid, c: c, ts: Date.now() });
+    if (h.length > MAX_HIST) h.length = MAX_HIST;
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (_) {}
+}
+function deleteHistoryItem(agrid) {
+    var h = loadHistory().filter(function (x) { return x.agrid !== agrid; });
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (_) {}
+    renderHistory();
+}
+function clearHistory() {
+    try { localStorage.removeItem(HIST_KEY); } catch (_) {}
+    renderHistory();
+}
+function fmtDate(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    var pad = function (n) { return n < 10 ? '0' + n : n; };
+    return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear()
+        + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderHistory() {
+    var hist = loadHistory();
+    var clearBtn = document.getElementById('hist-clear-btn');
+    if (!hist.length) {
+        histListEl.innerHTML = '<div class="hist-empty">История пуста</div>';
+        if (clearBtn) clearBtn.style.visibility = 'hidden';
+        return;
+    }
+    if (clearBtn) clearBtn.style.visibility = '';
+    histListEl.innerHTML = '';
+    hist.forEach(function (h) {
+        var url  = buildUrl(h.agrid);
+        var item = document.createElement('div');
+        item.className = 'hist-item';
+
+        /* Основная кликабельная область */
+        var main = document.createElement('div');
+        main.className = 'hist-main';
+        main.title     = 'Загрузить в форму';
+        main.innerHTML =
+            '<div class="hist-agrid">' + esc(h.agrid) + '</div>' +
+            '<div class="hist-date">' + (h.ts ? fmtDate(h.ts) : 'дата неизвестна') + '</div>';
+        main.addEventListener('click', function () {
+            genInput.value = h.agrid;
+            generate();
+            genResultSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        /* Кнопки действий */
+        var actions = document.createElement('div');
+        actions.className = 'hist-actions';
+
+        /* Копировать ссылку */
+        var copyAct = document.createElement('button');
+        copyAct.className = 'hist-act';
+        copyAct.title     = 'Скопировать ссылку';
+        copyAct.type      = 'button';
+        copyAct.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        copyAct.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var done = function () {
+                copyAct.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                copyAct.style.color = 'var(--ok)';
+                setTimeout(function () {
+                    copyAct.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+                    copyAct.style.color = '';
+                }, 2000);
+            };
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(done).catch(function () {
+                    var t = document.createElement('textarea');
+                    t.value = url; document.body.appendChild(t); t.select();
+                    try { document.execCommand('copy'); done(); } catch (_) {}
+                    document.body.removeChild(t);
+                });
+            }
+        });
+
+        /* Удалить */
+        var delAct = document.createElement('button');
+        delAct.className = 'hist-act del';
+        delAct.title     = 'Удалить из истории';
+        delAct.type      = 'button';
+        delAct.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+        delAct.addEventListener('click', function (e) {
+            e.stopPropagation();
+            deleteHistoryItem(h.agrid);
+        });
+
+        actions.appendChild(copyAct);
+        actions.appendChild(delAct);
+        item.appendChild(main);
+        item.appendChild(actions);
+        histListEl.appendChild(item);
+    });
+}
+
+document.getElementById('hist-clear-btn').addEventListener('click', function () {
+    if (confirm('Очистить всю историю?')) clearHistory();
+});
+
+renderHistory();
+
+/* ══════════════════════════════════════════════════════
+   CHECKER
+══════════════════════════════════════════════════════ */
+var ICO_OK   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var ICO_FAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+var ICO_PEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+
+function escVal(s) { return esc(s || ''); }
+
+function renderMeta(sig) {
+    var items = [
+        ['Agreement ID', sig.agreementId],
+        ['Signed At',    sig.signedAt],
+        ['Algorithm',    sig.algorithm],
+        ['Issuer',       sig.issuer],
+        ['Format',       sig.version],
+    ];
+    if (sig.envHash) items.push(['Env-Hash', sig.envHash.slice(0, 16) + '…']);
+    return items.map(function (item) {
+        return '<div class="rc-meta-item">'
+             + '<div class="rc-meta-key">' + item[0] + '</div>'
+             + '<div class="rc-meta-val selectable">' + escVal(item[1]) + '</div>'
+             + '</div>';
+    }).join('');
+}
+
+function chkRow(state, label, desc, expected, computed) {
+    var ico = state === 'ok' ? ICO_OK : state === 'fail' ? ICO_FAIL : ICO_PEND;
+    var hashes = computed !== undefined ? (
+        '<div class="chk-hash-row">'
+        + '<div class="chk-hash"><span class="chk-hash-key">Ожидается</span><span class="chk-hash-val selectable">' + escVal(expected) + '</span></div>'
+        + '<div class="chk-hash"><span class="chk-hash-key">Получено</span><span class="chk-hash-val computed selectable">' + escVal(computed) + '</span></div>'
+        + '</div>'
+    ) : '';
+    return '<div class="chk ' + state + '">'
+        + '<div class="chk-indicator">' + ico + '</div>'
+        + '<div class="chk-body">'
+        + '<div class="chk-label">' + label + '</div>'
+        + '<div class="chk-desc">'  + desc  + '</div>'
+        + hashes
+        + '</div></div>';
+}
+
+async function renderResult(sig) {
+    var result   = document.getElementById('chk-result');
+    var rcHead   = document.getElementById('rc-head');
+    var rcIcon   = document.getElementById('rc-icon');
+    var rcTitle  = document.getElementById('rc-title');
+    var rcSub    = document.getElementById('rc-sub');
+    var rcMeta   = document.getElementById('rc-meta');
+    var rcChecks = document.getElementById('rc-checks');
+    var resetBtn = document.getElementById('reset-btn');
+
+    rcMeta.innerHTML = renderMeta(sig);
+
+    /* placeholder пока считаем */
+    rcHead.className    = 'rc-head';
+    rcIcon.innerHTML    = ICO_PEND;
+    rcTitle.textContent = 'Верификация…';
+    rcSub.textContent   = 'Вычисляем хеши, подождите';
+    rcChecks.innerHTML  =
+          chkRow('pending', 'Формат полей',          'Проверяем…')
+        + chkRow('pending', 'Хеш документа',         'Проверяем…')
+        + chkRow('pending', 'Контрольная сумма',     'Проверяем…')
+        + chkRow('pending', 'Верификационный токен', 'Проверяем…');
+    result.classList.add('visible');
+    resetBtn.style.display = 'flex';
+
+    var checks    = await TandemSign.verify(sig);
+    var fmtIssues = TandemSign.validateFormat(sig);
+    var fmtOk     = fmtIssues.length === 0;
+    var allOk     = checks.every(function (c) { return c.ok; }) && fmtOk;
+
+    rcHead.className    = 'rc-head ' + (allOk ? 'ok' : 'fail');
+    rcIcon.innerHTML    = allOk ? ICO_OK : ICO_FAIL;
+    rcTitle.textContent = allOk ? 'Подпись действительна' : 'Подпись недействительна';
+    rcSub.textContent   = allOk
+        ? 'Все четыре проверки прошли успешно. Документ не был изменён после подписания.'
+        : 'Одна или несколько проверок не прошли. Файл мог быть подделан или повреждён.';
+
+    var fmtDesc = fmtOk
+        ? 'Все поля (версия, ID, таймстамп, хеши, структура Full-Data) соответствуют спецификации TandemSign/1.0.'
+        : 'Нарушения: ' + fmtIssues.join(' • ');
+
+    rcChecks.innerHTML = chkRow(fmtOk ? 'ok' : 'fail', 'Формат полей', fmtDesc)
+        + checks.map(function (c) {
+            return chkRow(
+                c.ok ? 'ok' : 'fail',
+                c.label,
+                c.desc,
+                c.expected,
+                c.ok ? undefined : c.computed
+            );
+        }).join('');
+}
+
+async function handleFile(file) {
+    var errEl = document.getElementById('parse-error');
+    errEl.classList.remove('visible');
+    document.getElementById('chk-result').classList.remove('visible');
+    document.getElementById('reset-btn').style.display = 'none';
+    if (!file) return;
+    var text;
+    try { text = await file.text(); }
+    catch (e) { errEl.textContent = 'Не удалось прочитать файл: ' + e.message; errEl.classList.add('visible'); return; }
+    var sig = TandemSign.parse(text);
+    if (!sig) {
+        errEl.textContent = 'Файл не распознан. Убедитесь, что это корректный файл .tandemsign формата TandemSign/1.0.';
+        errEl.classList.add('visible');
+        return;
+    }
+    await renderResult(sig);
+}
+
+var zone     = document.getElementById('drop-zone');
+var fileInput = document.getElementById('file-input');
+
+zone.addEventListener('dragover',  function (e) { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', function ()  { zone.classList.remove('drag-over'); });
+zone.addEventListener('drop',      function (e) {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0]; if (f) handleFile(f);
+});
+fileInput.addEventListener('change', function () { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+document.getElementById('reset-btn').addEventListener('click', function () {
+    document.getElementById('chk-result').classList.remove('visible');
+    document.getElementById('parse-error').classList.remove('visible');
+    document.getElementById('reset-btn').style.display = 'none';
+    fileInput.value = '';
+});
+
+})();
+</script>
+
+</body>
+</html>

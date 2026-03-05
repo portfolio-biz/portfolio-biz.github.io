@@ -501,8 +501,14 @@ body {
 }
 
 @keyframes sign-result-in {
-    from { opacity: 0; transform: translateY(18px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0)    scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 #sign-result-badge {
@@ -530,12 +536,26 @@ body {
 /* #sign-hash-label, #sign-hash-wrap, #sign-hash-value — стили переехали в .sdr / .sdr-val */
 
 /* ─── BUTTON LOADING STATE ─── */
-.sbtn-busy { display: none; align-items: center; gap: 10px; }
-#sign-btn.signing .sbtn-idle { display: none; }
-#sign-btn.signing .sbtn-busy { display: inline-flex; }
-#sign-btn:disabled { cursor: not-allowed; }
+.sbtn-busy {
+    display: none;
+    align-items: center;
+    gap: 10px;
+}
+#sign-btn.signing .sbtn-idle {
+    display: none;
+}
+#sign-btn.signing .sbtn-busy {
+    display: inline-flex;
+}
+#sign-btn:disabled {
+    cursor: not-allowed;
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 .sbtn-spinner {
     width: 16px;
     height: 16px;
@@ -546,7 +566,7 @@ body {
 /* ─── DATA ROWS ─── */
 #sign-data-rows {
     width: 100%;
-    border: 1px solid rgba(0, 0, 0, 0.10);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.018);
@@ -557,8 +577,12 @@ body {
     border-bottom: 1px solid rgba(0, 0, 0, 0.07);
     transition: background 0.15s;
 }
-.sdr:last-child { border-bottom: none; }
-.sdr:hover { background: rgba(0, 0, 0, 0.025); }
+.sdr:last-child {
+    border-bottom: none;
+}
+.sdr:hover {
+    background: rgba(0, 0, 0, 0.025);
+}
 
 .sdr-label {
     display: flex;
@@ -569,7 +593,7 @@ body {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.40);
+    color: rgba(0, 0, 0, 0.4);
     margin-bottom: 8px;
 }
 .sdr-label svg {
@@ -590,11 +614,11 @@ body {
     color: rgba(0, 0, 0, 0.45);
 }
 .sdr-pill--key {
-    background: rgba(79, 70, 229, 0.10);
-    color: rgba(79, 70, 229, 0.80);
+    background: rgba(79, 70, 229, 0.1);
+    color: rgba(79, 70, 229, 0.8);
 }
 .sdr-pill--sum {
-    background: rgba(0, 0, 0, 0.10);
+    background: rgba(0, 0, 0, 0.1);
     color: rgba(0, 0, 0, 0.55);
 }
 
@@ -624,7 +648,7 @@ body {
 .sdr--key .sdr-val {
     border-color: rgba(79, 70, 229, 0.18);
     background: rgba(79, 70, 229, 0.025);
-    color: rgba(52, 46, 180, 0.80);
+    color: rgba(52, 46, 180, 0.8);
 }
 
 /* Checksum row — slightly bolder */
@@ -649,8 +673,11 @@ body {
     border-radius: 6px;
     background: #ffffff;
     cursor: pointer;
-    color: rgba(0, 0, 0, 0.40);
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    color: rgba(0, 0, 0, 0.4);
+    transition:
+        background 0.15s,
+        border-color 0.15s,
+        color 0.15s;
 }
 .sdr-copy-btn:hover {
     background: #f4f4f4;
@@ -669,9 +696,15 @@ body {
     pointer-events: none;
 }
 /* иконки внутри кнопки копирования */
-.sdr-copy-btn .ico-check { display: none; }
-.sdr-copy-btn.copied .ico-copy  { display: none; }
-.sdr-copy-btn.copied .ico-check { display: block; }
+.sdr-copy-btn .ico-check {
+    display: none;
+}
+.sdr-copy-btn.copied .ico-copy {
+    display: none;
+}
+.sdr-copy-btn.copied .ico-check {
+    display: block;
+}
 
 /* ─── META ROW (алгоритм + время) ─── */
 #sign-meta-row {
@@ -682,9 +715,11 @@ body {
     justify-content: center;
     font-family: "Inter", sans-serif;
     font-size: 11px;
-    color: rgba(0, 0, 0, 0.30);
+    color: rgba(0, 0, 0, 0.3);
 }
-.sign-meta-sep { opacity: 0.4; }
+.sign-meta-sep {
+    opacity: 0.4;
+}
 #sign-algo-label {
     font-weight: 600;
     letter-spacing: 0.03em;
@@ -714,7 +749,7 @@ body {
 #sign-full-label svg {
     width: 12px;
     height: 12px;
-    opacity: 0.50;
+    opacity: 0.5;
 }
 #sign-full-inner {
     display: flex;
@@ -754,7 +789,7 @@ body {
     user-select: none;
 }
 .sdr-secret.sdr-revealed {
-    color: rgba(52, 46, 180, 0.80);
+    color: rgba(52, 46, 180, 0.8);
     user-select: auto;
 }
 
@@ -772,10 +807,12 @@ body {
     background: transparent;
     cursor: pointer;
     color: rgba(0, 0, 0, 0.28);
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 .sdr-eye-btn:hover {
-    color: rgba(79, 70, 229, 0.80);
+    color: rgba(79, 70, 229, 0.8);
     background: rgba(79, 70, 229, 0.07);
 }
 .sdr-eye-btn svg {
@@ -784,9 +821,15 @@ body {
     pointer-events: none;
 }
 /* иконки*/
-.sdr-eye-btn .ico-eye-off { display: none; }
-.sdr-eye-btn.is-revealed .ico-eye { display: none; }
-.sdr-eye-btn.is-revealed .ico-eye-off { display: block; }
+.sdr-eye-btn .ico-eye-off {
+    display: none;
+}
+.sdr-eye-btn.is-revealed .ico-eye {
+    display: none;
+}
+.sdr-eye-btn.is-revealed .ico-eye-off {
+    display: block;
+}
 
 /* ─── КНОПКА СКАЧИВАНИЯ ─── */
 #sign-download-btn {
@@ -805,7 +848,10 @@ body {
     font-weight: 500;
     color: rgba(0, 0, 0, 0.45);
     cursor: pointer;
-    transition: border-color 0.18s, color 0.18s, background 0.18s;
+    transition:
+        border-color 0.18s,
+        color 0.18s,
+        background 0.18s;
 }
 #sign-result.visible #sign-download-btn {
     display: flex;
@@ -817,7 +863,7 @@ body {
 }
 #sign-download-btn:hover {
     border-color: rgba(124, 110, 245, 0.55);
-    color: rgba(124, 110, 245, 0.90);
+    color: rgba(124, 110, 245, 0.9);
     background: rgba(124, 110, 245, 0.04);
 }
 #sign-download-btn:active {
@@ -850,7 +896,8 @@ body {
         font-size: 13px;
     }
 
-    .sdr-val, #sign-full-value {
+    .sdr-val,
+    #sign-full-value {
         font-size: 9.5px;
     }
 }

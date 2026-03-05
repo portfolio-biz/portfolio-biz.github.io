@@ -177,8 +177,8 @@
     const enc = new TextEncoder();
 
     /* Криптографические примитивы — делегируем в TandemSign */
-    const sha256hex  = TandemSign.sha256hex;
-    const sha256buf  = TandemSign.sha256buf;
+    const sha256hex = TandemSign.sha256hex;
+    const sha256buf = TandemSign.sha256buf;
     const hexToBytes = TandemSign.hexToBytes;
 
     /* ─── AES-GCM шифрование localStorage ───
@@ -209,7 +209,7 @@
             enc.encode(JSON.stringify(data))
         );
         localStorage.setItem(key, JSON.stringify({
-            v:  2,
+            v: 2,
             iv: btoa(String.fromCharCode(...iv)),
             ct: btoa(String.fromCharCode(...new Uint8Array(ct)))
         }));
@@ -242,12 +242,12 @@
     function downloadSign(data) {
         /* data.agrid есть в новых записях; для старых берём из замыкания */
         var fullData = Object.assign({ agrid: agrid }, data);
-        var content  = TandemSign.serialize(fullData);
-        var blob     = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        var url      = URL.createObjectURL(blob);
-        var a        = document.createElement('a');
-        a.href       = url;
-        a.download   = 'tandem-' + (data.agrid || agrid) + '.tandemsign';
+        var content = TandemSign.serialize(fullData);
+        var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'tandem-' + (data.agrid || agrid) + '.tandemsign';
         document.body.appendChild(a);
         a.click();
         setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -262,22 +262,22 @@
         const result = document.getElementById('sign-result');
         result.classList.add('visible');
 
-        document.getElementById('sign-hash-value').textContent      = docHash;
-        document.getElementById('sign-checksum-value').textContent   = checksum;
+        document.getElementById('sign-hash-value').textContent = docHash;
+        document.getElementById('sign-checksum-value').textContent = checksum;
         /* Показываем единый токен — SHA-256 от полной строки */
-        document.getElementById('sign-full-value').textContent       = finalHash || fullString;
-        document.getElementById('sign-timestamp').textContent        = 'Подписано: ' + timestamp;
-        document.getElementById('sign-algo-label').textContent       = algoName;
+        document.getElementById('sign-full-value').textContent = finalHash || fullString;
+        document.getElementById('sign-timestamp').textContent = 'Подписано: ' + timestamp;
+        document.getElementById('sign-algo-label').textContent = algoName;
 
         if (credId) {
             var credEl = document.getElementById('sign-cred-value');
             credEl.dataset.value = credId;
-            credEl.textContent   = '●'.repeat(credId.length);
+            credEl.textContent = '●'.repeat(credId.length);
             document.getElementById('sdr-credid').style.display = '';
         }
         if (cdHash) {
             document.getElementById('sign-cd-value').textContent = cdHash;
-            document.getElementById('sdr-cdh').style.display     = '';
+            document.getElementById('sdr-cdh').style.display = '';
         }
 
         var dlBtn = document.getElementById('sign-download-btn');
@@ -303,15 +303,15 @@
             /* Отменяем предыдущую анимацию если есть */
             if (el._sdrTimer) { clearInterval(el._sdrTimer); el._sdrTimer = null; }
 
-            var len     = real.length;
-            var CYCLES  = 6;           /* сколько рандомных итераций на символ */
-            var FRAME   = 22;          /* мс на фрейм */
+            var len = real.length;
+            var CYCLES = 6;           /* сколько рандомных итераций на символ */
+            var FRAME = 22;          /* мс на фрейм */
             /* stagger: чем больше строка — тем быстрее наполнение,
                но не быстрее 0.5 фрейма и не медленнее 2 */
             var stagger = Math.min(2, Math.max(0.5, 20 / len));
 
             var frame = 0;
-            var arr   = new Array(len).fill('');
+            var arr = new Array(len).fill('');
 
             el._sdrTimer = setInterval(function () {
                 frame++;
@@ -346,12 +346,12 @@
             var real = el.dataset.value;
             if (!real) { el.textContent = ''; return; }
 
-            var len     = real.length;
-            var CYCLES  = 4;
-            var FRAME   = 18;
+            var len = real.length;
+            var CYCLES = 4;
+            var FRAME = 18;
             var stagger = Math.min(2, Math.max(0.5, 20 / len));
-            var frame   = 0;
-            var arr     = real.split('');
+            var frame = 0;
+            var arr = real.split('');
 
             el._sdrTimer = setInterval(function () {
                 frame++;
@@ -405,7 +405,7 @@
     function initCopyBtns() {
         document.querySelectorAll('.sdr-copy-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var el   = document.getElementById(btn.dataset.target);
+                var el = document.getElementById(btn.dataset.target);
                 /* Если есть data-value (секретное поле) — копируем реальное значение, не точки */
                 var text = el ? (el.dataset.value || el.textContent) : '';
                 if (!text) return;
@@ -502,7 +502,7 @@
                     return { reason: 'incognito', msg: 'Подписание недоступно в режиме инкогнито. Пожалуйста, откройте страницу в обычном окне браузера.' };
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
         /* Firefox private mode: caches.open() бросает SecurityError */
         try {
             await caches.open('__ts_probe__');
@@ -708,8 +708,8 @@
                 'Я СОГЛАСЕН С УСЛОВИЯМИ ДОГОВОРА | ' + agrid
             );
 
-            let credId   = null;
-            let cdHash   = null;
+            let credId = null;
+            let cdHash = null;
             let algoName = 'SHA-256';
 
             /* 2. Попытка WebAuthn */
@@ -733,12 +733,12 @@
                                 displayName: 'Договор ' + agrid
                             },
                             pubKeyCredParams: [
-                                { type: 'public-key', alg: -7   }, /* ES256 – ECDSA P-256 */
+                                { type: 'public-key', alg: -7 }, /* ES256 – ECDSA P-256 */
                                 { type: 'public-key', alg: -257 }, /* RS256 – RSA-PKCS    */
                             ],
                             authenticatorSelection: {
                                 userVerification: 'required',
-                                residentKey:      'discouraged',
+                                residentKey: 'discouraged',
                             },
                             attestation: 'none',
                             timeout: 60000,
@@ -753,9 +753,9 @@
                     /* Название алгоритма */
                     if (credential.response.getPublicKeyAlgorithm) {
                         const alg = credential.response.getPublicKeyAlgorithm();
-                        if      (alg === -7)   algoName = 'ES256 · ECDSA P-256';
+                        if (alg === -7) algoName = 'ES256 · ECDSA P-256';
                         else if (alg === -257) algoName = 'RS256 · RSA-PKCS';
-                        else                  algoName  = 'WebAuthn alg ' + alg;
+                        else algoName = 'WebAuthn alg ' + alg;
                     } else {
                         algoName = 'WebAuthn · ES256';
                     }
@@ -928,10 +928,10 @@
 
     /* создаём элемент курсора */
     var cur = document.createElement('img');
-    cur.id          = 'custom-cursor';
-    cur.src         = '/agreement/cursor.png';
-    cur.alt         = '';
-    cur.draggable   = false;
+    cur.id = 'custom-cursor';
+    cur.src = '/agreement/cursor.png';
+    cur.alt = '';
+    cur.draggable = false;
     cur.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cur);
 
