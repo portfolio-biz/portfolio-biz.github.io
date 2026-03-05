@@ -22,16 +22,52 @@
 }
 
 :root {
+    /* ─ Viewer panel ─ */
     --panel-h: 64px;
-    --accent: #7c6ef5;
-    --accent2: #5b4fd4;
     --panel-bg: rgba(10, 10, 18, 0.82);
     --panel-border: rgba(255, 255, 255, 0.08);
-    --text-primary: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.48);
     --btn-hover: rgba(124, 110, 245, 0.18);
     --radius: 10px;
     --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-primary: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.48);
+
+    /* ─ Фирменные акценты ─ */
+    --accent:  #7c6ef5;
+    --accent2: #5b4fd4;
+    --accent-dim: rgba(124, 110, 245, 0.12);
+    --accent-bdr: rgba(124, 110, 245, 0.22);
+
+    /* ─ Фоны / поверхности ─ */
+    --bg:      #0b0b14;
+    --bg2:     #0f0f1a;
+    --surface:  #13131e;
+    --surface2: #1a1a28;
+    --surface3: #20202f;
+
+    /* ─ Границы ─ */
+    --border:  rgba(255, 255, 255, 0.06);
+    --border2: rgba(255, 255, 255, 0.10);
+    --border3: rgba(255, 255, 255, 0.15);
+
+    /* ─ Текст ─ */
+    --text:   rgba(255, 255, 255, 0.88);
+    --muted:  rgba(255, 255, 255, 0.42);
+    --muted2: rgba(255, 255, 255, 0.22);
+
+    /* ─ Семантические цвета ─ */
+    --ok:      #34d399;
+    --ok-bg:   rgba(52, 211, 153, 0.07);
+    --ok-bdr:  rgba(52, 211, 153, 0.20);
+    --fail:    #f87171;
+    --fail-bg: rgba(248, 113, 113, 0.07);
+    --fail-bdr: rgba(248, 113, 113, 0.20);
+    --warn:    #fbbf24;
+    --warn-bg: rgba(251, 191, 36, 0.07);
+    --warn-bdr: rgba(251, 191, 36, 0.20);
+
+    /* ─ Универсальный timing ─ */
+    --r: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html,
@@ -42,4 +78,13 @@ body {
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
     user-select: none;
     -webkit-user-select: none;
+}
+
+/* Поля ввода и выделяемые области — выделение разрешено */
+input,
+textarea,
+.selectable {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
 }
