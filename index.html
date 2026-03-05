@@ -671,26 +671,28 @@
                 setTimeout(() => document.getElementById('s1').classList.add('neural-ready'), 600);
             }
 
-            function drawParticles() {
+            function drawParticles(t) {
                 if (!pCtx || !particles.length) return;
                 pCtx.clearRect(0, 0, pW, pH);
-                const t = performance.now() * 0.001;
+                pCtx.fillStyle = 'rgb(124,110,245)'; // цвет один раз — меняется только alpha
                 for (const p of particles) {
                     p.x += p.vx; p.y += p.vy;
                     if (p.x < -10) p.x = pW + 10;
                     else if (p.x > pW + 10) p.x = -10;
                     if (p.y < -10) p.y = pH + 10;
                     else if (p.y > pH + 10) p.y = -10;
-                    const a = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
+                    pCtx.globalAlpha = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
                     pCtx.beginPath();
                     pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
-                    pCtx.fillStyle = `rgba(124,110,245,${a})`;
                     pCtx.fill();
                 }
+                pCtx.globalAlpha = 1; // сбрасываем для остальных операций
             }
-            const TRAIL_LEN = 22;  // количество точек в хвосте
+            const TRAIL_LEN = 22;  // размер шахматного буфера
             const TRAIL_LIFE = 200; // время жизни точки, мс
-            const TRAIL = [];       // начинаем пустым — нет «призрака» при загрузке
+            // circular buffer без GC: не создаём новых объектов 60 раз/с, переиспользуем существующие
+            const TBUF = Array.from({ length: TRAIL_LEN }, () => ({ x: 0, y: 0, t: 0 }));
+            let tHead = 0, tSize = 0; // голова и заполненность буфера
             let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
             let trailW = 0, trailH = 0; // логические CSS-пиксели, используются в clearRect
 
@@ -711,7 +713,10 @@
                     trailCanvas.width  = Math.round(w * dpr);
                     trailCanvas.height = Math.round(h * dpr);
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                    TRAIL.length = 0; // старые точки устарели — чистим хвост
+                    // canvas.width/height сбрасывают все состояние — восстанавливаем постоянные свойства
+                    trailCtx.lineCap  = 'round';
+                    trailCtx.lineJoin = 'round';
+                    tHead = 0; tSize = 0; // старые точки устарели — чистим буфер
                 };
 
                 // первоначальная установка bitmap по фактическому размеру viewport
@@ -752,18 +757,22 @@
             }
 
             function updateDotMag() {
-                const PROX = 60;
+                const PROX = 60, PROX2 = 3600; // PROX^2 — избегаем sqrt в hypot
                 dotCache.forEach(({ el, cx, cy }) => {
                     if (el.classList.contains('active')) { el.style.background = ''; return; }
-                    const dist = Math.hypot(mx - cx, my - cy);
-                    if (dist < PROX) {
-                        const t = 1 - dist / PROX;
+                    const dx = mx - cx, dy = my - cy;
+                    const dist2 = dx * dx + dy * dy;
+                    if (dist2 < PROX2) {
+                        const t = 1 - Math.sqrt(dist2) / PROX;
                         el.style.background = `rgba(124,110,245,${(t * 0.65).toFixed(2)})`;
                     } else {
                         el.style.background = '';
                     }
                 });
             }
+
+            // позиция мыши на момент последнего вызова updateDotMag — пропускаем если не изменилась
+            let _dotMx = -9999, _dotMy = -9999;
 
             /* single RAF loop */
             let rafId;
@@ -786,33 +795,40 @@
                     const b2x = Math.sin(t * 0.2244 + 1.2) * 19, b2y = Math.cos(t * 0.2244 + 0.7) * 14;
                     const b2s = 1 + Math.sin(t * 0.1122) * 0.065;
                     const b3x = Math.sin(t * 0.3491 + 2.1) * 16, b3y = Math.cos(t * 0.3491 + 0.5) * 19;
-                    if (blobs[0]) blobs[0].style.transform = `translate(${blobPx * 20 + b1x}px,${blobPy * 13 + b1y}px) scale(${b1s})`;
-                    if (blobs[1]) blobs[1].style.transform = `translate(${blobPx * -13 + b2x}px,${blobPy * 9 + b2y}px) scale(${b2s})`;
-                    if (blobs[2]) blobs[2].style.transform = `translate(${blobPx * 9 + b3x}px,${blobPy * -16 + b3y}px)`;
-                    drawParticles();
+                    // пишем в DOM только если блоб реально сдвинулся (> 0.15пк) — избегаем лишних style при неподвижной мыши
+                    const nx0 = blobPx * 20 + b1x, ny0 = blobPy * 13 + b1y;
+                    const nx1 = blobPx * -13 + b2x, ny1 = blobPy * 9 + b2y;
+                    const nx2 = blobPx * 9 + b3x,  ny2 = blobPy * -16 + b3y;
+                    if (blobs[0]) blobs[0].style.transform = `translate(${nx0}px,${ny0}px) scale(${b1s})`;
+                    if (blobs[1]) blobs[1].style.transform = `translate(${nx1}px,${ny1}px) scale(${b2s})`;
+                    if (blobs[2]) blobs[2].style.transform = `translate(${nx2}px,${ny2}px)`;
+                    drawParticles(t);
                 }
 
                 /* ── Trail ── */
                 if (trailCtx && trailActive) {
-                    TRAIL.push({ x: mx, y: my, t: now });
-                    if (TRAIL.length > TRAIL_LEN) TRAIL.shift();
+                    // запись в circular buffer — нет аллокации объектов, нет shift() O(n)
+                    TBUF[tHead].x = mx; TBUF[tHead].y = my; TBUF[tHead].t = now;
+                    tHead = (tHead + 1) % TRAIL_LEN;
+                    if (tSize < TRAIL_LEN) tSize++;
 
                     trailCtx.clearRect(0, 0, trailW, trailH);
-                    const len = TRAIL.length;
+                    const len = tSize;
 
                     if (len > 1) {
-                        trailCtx.lineCap = 'round';
-                        trailCtx.lineJoin = 'round';
-                        const lastIdx = len - 1; // кэшируем len-1, не вычисляем в каждой итерации
+                        const lastIdx = len - 1;
+                        const tBase = (tHead - len + TRAIL_LEN) % TRAIL_LEN; // индекс старейшей точки
 
-                        // pass 1 — wide soft glow (lines only, no circles)
+                        // pass 1 — wide soft glow
                         for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
+                            const pb = TBUF[(tBase + i) % TRAIL_LEN];
+                            const a = Math.max(0, 1 - (now - pb.t) / TRAIL_LIFE);
                             if (a <= 0) continue;
-                            const prog = i / lastIdx; // 0=tail … 1=head
+                            const pa = TBUF[(tBase + i - 1) % TRAIL_LEN];
+                            const prog = i / lastIdx;
                             trailCtx.beginPath();
-                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
+                            trailCtx.moveTo(pa.x, pa.y);
+                            trailCtx.lineTo(pb.x, pb.y);
                             trailCtx.strokeStyle = `rgba(104,60,240,${a * prog * 0.28})`;
                             trailCtx.lineWidth = 2 + prog * 16;
                             trailCtx.stroke();
@@ -820,12 +836,14 @@
 
                         // pass 2 — bright core spine
                         for (let i = 1; i < len; i++) {
-                            const a = Math.max(0, 1 - (now - TRAIL[i].t) / TRAIL_LIFE);
+                            const pb = TBUF[(tBase + i) % TRAIL_LEN];
+                            const a = Math.max(0, 1 - (now - pb.t) / TRAIL_LIFE);
                             if (a <= 0) continue;
+                            const pa = TBUF[(tBase + i - 1) % TRAIL_LEN];
                             const prog = i / lastIdx;
                             trailCtx.beginPath();
-                            trailCtx.moveTo(TRAIL[i - 1].x, TRAIL[i - 1].y);
-                            trailCtx.lineTo(TRAIL[i].x, TRAIL[i].y);
+                            trailCtx.moveTo(pa.x, pa.y);
+                            trailCtx.lineTo(pb.x, pb.y);
                             trailCtx.strokeStyle = `rgba(200,170,255,${a * prog * 0.75})`;
                             trailCtx.lineWidth = 0.8 + prog * 2.5;
                             trailCtx.stroke();
@@ -834,7 +852,10 @@
                 }
 
                 /* dot proximity magnetism */
-                if (isPointerFine) updateDotMag();
+                if (isPointerFine && (mx !== _dotMx || my !== _dotMy)) {
+                    _dotMx = mx; _dotMy = my;
+                    updateDotMag();
+                }
 
                 rafId = requestAnimationFrame(tick);
             }
@@ -846,7 +867,7 @@
                 rafId = null;
             }
             function restartLoop() {
-                TRAIL.length = 0; // сбрасываем хвост, чтобы не было «призрака»
+                tHead = 0; tSize = 0; // сбрасываем буфер, чтобы не было «призрака»
                 trailActive = false;
                 tick();
             }
@@ -867,9 +888,9 @@
             document.addEventListener('mouseleave', () => {
                 dot.style.opacity = '0';
                 if (trailCanvas) trailCanvas.style.opacity = '0';
-                // сбрасываем хвост и флаг — при возврате курсора в другом месте
+                // сбрасываем буфер и флаг — при возврате курсора в другом месте
                 // не будет мгновенной черты через весь экран
-                TRAIL.length = 0;
+                tHead = 0; tSize = 0;
                 trailActive = false;
             }, { passive: true });
             document.addEventListener('mouseenter', () => {
