@@ -729,7 +729,7 @@ body.s4 #cursor-dot {
     color: var(--accent);
     margin-bottom: 28px;
     letter-spacing: 0.02em;
-    animation: fade-up 0.55s ease both;
+    opacity: 0;
     box-shadow: 0 4px 16px rgba(124, 110, 245, 0.1);
     font-family: "Syne", sans-serif;
 }
@@ -777,7 +777,7 @@ body.s4 #cursor-dot {
     line-height: 0.9;
     letter-spacing: -0.044em;
     color: var(--black);
-    animation: fade-up 0.65s 0.1s ease both;
+    opacity: 0;
 }
 
 .hero-h1 .accent-line {
@@ -810,7 +810,7 @@ body.s4 #cursor-dot {
     line-height: 1.75;
     max-width: 510px;
     margin: 22px 0 38px;
-    animation: fade-up 0.65s 0.22s ease both;
+    opacity: 0;
 }
 
 .hero-actions {
@@ -818,14 +818,14 @@ body.s4 #cursor-dot {
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
-    animation: fade-up 0.65s 0.34s ease both;
+    opacity: 0;
 }
 
 .hero-stats {
     display: flex;
     align-items: center;
     margin-top: 52px;
-    animation: fade-up 0.65s 0.46s ease both;
+    opacity: 0;
 }
 
 .hero-stat {
@@ -883,7 +883,7 @@ body.s4 #cursor-dot {
     align-items: center;
     cursor: pointer;
     opacity: 0;
-    animation: hint-in 1s 2.4s ease forwards;
+    animation: none;
     z-index: 5;
 }
 
@@ -2046,6 +2046,14 @@ body.s4 #cursor-dot {
         transform: translateY(0);
     }
 }
+
+/* ── Hero: анимации запускаются только после исчезновения лоадера (body.hero-ready) ── */
+body.hero-ready .hero-tag         { animation: fade-up 0.55s       ease both; }
+body.hero-ready .hero-h1          { animation: fade-up 0.65s 0.12s ease both; }
+body.hero-ready .hero-sub         { animation: fade-up 0.65s 0.26s ease both; }
+body.hero-ready .hero-actions     { animation: fade-up 0.65s 0.40s ease both; }
+body.hero-ready .hero-stats       { animation: fade-up 0.65s 0.54s ease both; }
+body.hero-ready .hero-scroll-down { animation: hint-in 1s    2.0s  ease forwards; }
 
 /* ─ RESPONSIVE ─ */
 @media (max-width: 1024px) {

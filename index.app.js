@@ -175,19 +175,25 @@
         function initParticles() {
             pW = particleCanvas.offsetWidth;
             pH = particleCanvas.offsetHeight;
-            const dpr = window.devicePixelRatio || 1;
-            particleCanvas.width = pW * dpr;
-            particleCanvas.height = pH * dpr;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            particleCanvas.width = Math.round(pW * dpr);
+            particleCanvas.height = Math.round(pH * dpr);
             pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            const count = Math.min(Math.floor(pW * pH / 10000), 80);
-            particles = Array.from({ length: count }, () => ({
-                x: Math.random() * pW,
-                y: Math.random() * pH,
-                vx: (Math.random() - 0.5) * 0.18,
-                vy: (Math.random() - 0.5) * 0.18,
-                r: 0.8 + Math.random() * 1.6,
-                phase: Math.random() * Math.PI * 2, // opacity pulse phase
-            }));
+            const count = Math.min(Math.floor(pW * pH / 200), 350); // кучность
+            // Jittered grid: делим canvas на ячейки, одна частица на ячейку → нет проплешин
+            const cols = Math.round(Math.sqrt(count * (pW / pH)));
+            const rows = Math.ceil(count / cols);
+            const cellW = pW / cols, cellH = pH / rows;
+            particles = [];
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (particles.length >= count) break;
+                    const ox = (c + 0.1 + Math.random() * 0.8) * cellW;
+                    const oy = (r + 0.1 + Math.random() * 0.8) * cellH;
+                    const depth = 0.3 + Math.random() * 0.7;
+                    particles.push({ x: ox, y: oy, ox, oy, vx: 0, vy: 0, r: 0.7 + depth * 1.4, depth, phase: Math.random() * 6.2832 });
+                }
+            }
         }
 
         initParticles();
@@ -195,22 +201,75 @@
         setTimeout(() => document.getElementById('s1').classList.add('neural-ready'), 600);
     }
 
+    // Параметры constellation
+    const CONN_D2 = 95 * 95;         // дистанция соединения² — кучнее, меньше «длинных» линий
+    const GRAV_R = 200, GRAV_R2 = 200 * 200;
+    const TORCH_R = 220;
+
     function drawParticles(t) {
         if (!pCtx || !particles.length) return;
         pCtx.clearRect(0, 0, pW, pH);
-        pCtx.fillStyle = 'rgb(124,110,245)'; // цвет один раз — меняется только alpha
+
+        // ── Физика: медленный органический дрейф + гравитация курсора + toroidal wrap
         for (const p of particles) {
+            p.vx += Math.sin(t * 0.11 * p.depth + p.phase) * 0.014; // медленнее ×0.44
+            p.vy += Math.cos(t * 0.085 * p.depth + p.phase * 1.37) * 0.012;
+            p.vx += Math.cos(t * 0.045 + p.phase * 2.1) * 0.006;
+            p.vy += Math.sin(t * 0.065 + p.phase * 0.73) * 0.006;
+            if (isPointerFine && trailActive) {
+                const gdx = mx - p.x, gdy = my - p.y, gd2 = gdx * gdx + gdy * gdy;
+                if (gd2 < GRAV_R2 && gd2 > 1) {
+                    const gd = Math.sqrt(gd2);
+                    const gf = 0.007 * p.depth * (1 - gd / GRAV_R);
+                    p.vx += gdx / gd * gf; p.vy += gdy / gd * gf;
+                }
+            }
+            const spd2 = p.vx * p.vx + p.vy * p.vy;
+            if (spd2 > 0.8 * 0.8) { const s = 0.8 / Math.sqrt(spd2); p.vx *= s; p.vy *= s; } // предел скорости ×0.44
+            p.vx *= 0.988; p.vy *= 0.988;
             p.x += p.vx; p.y += p.vy;
             if (p.x < -10) p.x = pW + 10;
             else if (p.x > pW + 10) p.x = -10;
             if (p.y < -10) p.y = pH + 10;
             else if (p.y > pH + 10) p.y = -10;
-            pCtx.globalAlpha = 0.12 + Math.sin(t * 0.7 + p.phase) * 0.09; // 0.03..0.21
+        }
+
+        if (!isPointerFine || !trailActive) return;
+
+        // ── Линии: светлый оттенок + низкий alpha = мягкое акварельное свечение
+        pCtx.strokeStyle = 'rgb(168,158,255)';
+        pCtx.lineWidth = 0.7;
+        pCtx.globalAlpha = 0.38;
+        pCtx.beginPath();
+        for (let i = 0; i < particles.length; i++) {
+            const a = particles[i];
+            for (let j = i + 1; j < particles.length; j++) {
+                const b = particles[j];
+                const dx = a.x - b.x, dy = a.y - b.y;
+                if (dx * dx + dy * dy < CONN_D2) { pCtx.moveTo(a.x, a.y); pCtx.lineTo(b.x, b.y); }
+            }
+        }
+        pCtx.stroke();
+
+        // ── Точки: тот же светлый тон
+        pCtx.fillStyle = 'rgb(168,158,255)';
+        for (const p of particles) {
+            pCtx.globalAlpha = 0.45 + p.depth * 0.30;
             pCtx.beginPath();
-            pCtx.arc(p.x, p.y, p.r, 0, 6.2832);
+            pCtx.arc(p.x, p.y, p.r * 0.75, 0, 6.2832);
             pCtx.fill();
         }
-        pCtx.globalAlpha = 1; // сбрасываем для остальных операций
+
+        // ── Маска «факел»
+        const torch = pCtx.createRadialGradient(mx, my, 0, mx, my, TORCH_R);
+        torch.addColorStop(0.0, 'rgba(0,0,0,1)');
+        torch.addColorStop(0.62, 'rgba(0,0,0,0.88)');
+        torch.addColorStop(1.0, 'rgba(0,0,0,0)');
+        pCtx.globalCompositeOperation = 'destination-in';
+        pCtx.fillStyle = torch;
+        pCtx.fillRect(0, 0, pW, pH);
+        pCtx.globalCompositeOperation = 'source-over';
+        pCtx.globalAlpha = 1;
     }
     const TRAIL_LEN = 22;          // размер кольцевого буфера
     const TRAIL_LIFE = 200;        // время жизни точки, мс
@@ -350,9 +409,9 @@
             _s4VignW = CW; _s4VignH = CH;
             const gx = CW / 2, gy = CH / 2, gr = Math.sqrt(gx * gx + gy * gy) * 0.96;
             s4VignGrad = s4Ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-            s4VignGrad.addColorStop(0,    'rgba(0,0,0,1)');
+            s4VignGrad.addColorStop(0, 'rgba(0,0,0,1)');
             s4VignGrad.addColorStop(0.65, 'rgba(0,0,0,0.4)');
-            s4VignGrad.addColorStop(1,    'rgba(0,0,0,0)');
+            s4VignGrad.addColorStop(1, 'rgba(0,0,0,0)');
         }
         s4Ctx.globalCompositeOperation = 'destination-in';
         s4Ctx.fillStyle = s4VignGrad;
@@ -585,7 +644,11 @@
 
     function hideLoader() {
         loader.classList.add('is-hidden');
-        setTimeout(function () { if (loader.parentNode) loader.remove(); }, 520);
+        // 520мс > длительность CSS opacity transition (500мс) — лоадер уже полностью невидим
+        setTimeout(function () {
+            if (loader.parentNode) loader.remove();
+            document.body.classList.add('hero-ready'); // запускает fade-up анимации героя
+        }, 520);
     }
 
     var t = setTimeout(complete, 3500); // fallback — макс 3.5с
