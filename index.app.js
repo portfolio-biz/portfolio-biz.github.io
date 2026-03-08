@@ -744,6 +744,9 @@
 (function () {
     const card = document.querySelector('.svc-card.featured');
     if (!card) return;
+    // слайд #s3, в который помещаем outer canvas
+    const s3el = document.getElementById('s3');
+    if (!s3el) return;
 
     /* ── Inner canvas: звёзды внутри карточки ── */
     const inner = document.createElement('canvas');
@@ -752,15 +755,20 @@
     card.insertBefore(inner, card.firstChild);
     const ic = inner.getContext('2d');
 
-    /* ── Outer canvas: частицы снаружи карточки ── */
+    /* ── Outer canvas: частицы снаружи карточки ──
+       Помещаем внутрь слайда (#s3), а не в body —
+       избегаем WebKit-баг: position:fixed + overflow:hidden на body
+       на iOS/Android даёт неправильную позицию canvas относительно вьюпорта */
     const outer = document.createElement('canvas');
     outer.setAttribute('aria-hidden', 'true');
-    outer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9997;';
-    document.body.appendChild(outer);
+    outer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9997;';
+    s3el.appendChild(outer);
     const oc = outer.getContext('2d');
 
     let IW = 0, IH = 0, OW = 0, OH = 0;
     let raf = null, visible = true, spawnT = 0;
+    // частицы не спаунятся во время транзишна слайда — иначе getBoundingClientRect даёт позицию полуехавшего слайда
+    let partsReady = false, partsReadyTimer = null;
 
     /* ── Звёзды ── */
     const STARS = 60;
@@ -783,15 +791,20 @@
     const parts = [];
     function mkPart() {
         const rect = card.getBoundingClientRect();
+        const orig = outer.getBoundingClientRect(); // реальный origin canvas — вычитаем чтобы не зависеть от CSS-позиционирования
+        // координаты частиц — относительно начала canvas
+        const l = rect.left - orig.left, t = rect.top - orig.top;
+        const r = rect.right - orig.left, b = rect.bottom - orig.top;
+        const w = rect.width, h = rect.height;
         // спаун — случайная точка на периметре карточки
-        const side = Math.random() * (2 * rect.width + 2 * rect.height);
+        const side = Math.random() * (2 * w + 2 * h);
         let sx, sy;
-        if (side < rect.width) { sx = rect.left + side; sy = rect.top; }
-        else if (side < 2 * rect.width) { sx = rect.left + side - rect.width; sy = rect.bottom; }
-        else if (side < 2 * rect.width + rect.height) { sx = rect.left; sy = rect.top + side - 2 * rect.width; }
-        else { sx = rect.right; sy = rect.top + side - 2 * rect.width - rect.height; }
+        if (side < w)              { sx = l + side;     sy = t; }
+        else if (side < 2 * w)     { sx = l + side - w; sy = b; }
+        else if (side < 2 * w + h) { sx = l;            sy = t + side - 2 * w; }
+        else                       { sx = r;            sy = t + side - 2 * w - h; }
         // направление — от центра карточки наружу + небольшой разброс
-        const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+        const cx = l + w / 2, cy = t + h / 2;
         const angle = Math.atan2(sy - cy, sx - cx) + (Math.random() - 0.5) * 0.9;
         const spd = 0.25 + Math.random() * 0.55;
         return {
@@ -816,7 +829,8 @@
     }
     function resizeOuter() {
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        OW = window.innerWidth; OH = window.innerHeight;
+        // outer canvas — absolute внутри #s3, берём размеры слайда, а не window
+        OW = s3el.offsetWidth; OH = s3el.offsetHeight;
         outer.width = Math.round(OW * dpr);
         outer.height = Math.round(OH * dpr);
         oc.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -861,7 +875,7 @@
         oc.clearRect(0, 0, OW, OH);
         oc.fillStyle = 'rgb(60,40,140)';
         spawnT++;
-        if (spawnT >= 10 && parts.length < PARTS) { spawnT = 0; parts.push(mkPart()); }
+        if (spawnT >= 10 && parts.length < PARTS && partsReady) { spawnT = 0; parts.push(mkPart()); }
         for (let i = parts.length - 1; i >= 0; i--) {
             const p = parts[i];
             p.x += p.vx; p.y += p.vy; p.life++;
@@ -881,12 +895,27 @@
     requestAnimationFrame(function () {
         init();
         draw();
-        window.addEventListener('resize', function () { resizeInner(); resizeOuter(); }, { passive: true });
+        window.addEventListener('resize', function () {
+            resizeInner();
+            resizeOuter();
+            // сбрасываем живые частицы — их координаты опирались на старый размер canvas
+            parts.length = 0;
+            partsReady = false;
+            clearTimeout(partsReadyTimer);
+            if (visible) partsReadyTimer = setTimeout(function () { partsReady = true; }, 200);
+        }, { passive: true });
         new IntersectionObserver(function (entries) {
             visible = entries[0].isIntersecting;
             if (visible && !raf) draw();
+            if (visible && !partsReady) {
+                // ждём завершения транзишна слайда (750мс) + запас 100мс
+                clearTimeout(partsReadyTimer);
+                partsReadyTimer = setTimeout(function () { partsReady = true; }, 850);
+            }
             if (!visible) {
                 // чистим оба canvas чтобы частицы не зависали при перелистывании
+                partsReady = false;
+                clearTimeout(partsReadyTimer);
                 ic.clearRect(0, 0, IW, IH);
                 oc.clearRect(0, 0, OW, OH);
                 parts.length = 0;
