@@ -799,10 +799,10 @@
         // спаун — случайная точка на периметре карточки
         const side = Math.random() * (2 * w + 2 * h);
         let sx, sy;
-        if (side < w)              { sx = l + side;     sy = t; }
-        else if (side < 2 * w)     { sx = l + side - w; sy = b; }
-        else if (side < 2 * w + h) { sx = l;            sy = t + side - 2 * w; }
-        else                       { sx = r;            sy = t + side - 2 * w - h; }
+        if (side < w) { sx = l + side; sy = t; }
+        else if (side < 2 * w) { sx = l + side - w; sy = b; }
+        else if (side < 2 * w + h) { sx = l; sy = t + side - 2 * w; }
+        else { sx = r; sy = t + side - 2 * w - h; }
         // направление — от центра карточки наружу + небольшой разброс
         const cx = l + w / 2, cy = t + h / 2;
         const angle = Math.atan2(sy - cy, sx - cx) + (Math.random() - 0.5) * 0.9;
