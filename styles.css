@@ -1060,6 +1060,8 @@ body.s4 #cursor-dot {
     .svc-carousel-track .svc-card.featured:hover {
         transform: none;
         box-shadow: none;
+        margin: 0;
+        padding: 28px 24px 26px;
     }
     .svc-carousel-nav {
         display: flex;
@@ -1433,12 +1435,9 @@ body.s4 #cursor-dot {
 
 .s4-grid {
     position: absolute;
-    inset: 0;
+    inset: -30px;
     pointer-events: none;
-    background-image: linear-gradient(rgba(124, 110, 245, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 110, 245, 0.1) 1px, transparent 1px);
-    background-size: 54px 54px;
-    mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 0%, transparent 72%);
-    -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 0%, transparent 72%);
+    /* grid drawn on canvas in JS — fish-eye at cursor */
 }
 
 .portfolio-eyebrow {

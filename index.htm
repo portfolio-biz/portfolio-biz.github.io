@@ -503,6 +503,15 @@
                 document.querySelector('#s4 .s4-glow'),
                 document.querySelector('#s5 .s5-blob')
             ];
+            const s4Grid = document.querySelector('#s4 .s4-grid');
+            let gridX = 0, gridY = 0; // интерполированная позиция курсора для линзы
+            let s4Canvas = null, s4Ctx = null, s4Dpr = 1, _s4DrawX = -9999, _s4DrawY = -9999;
+            if (s4Grid) {
+                s4Canvas = document.createElement('canvas');
+                s4Canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+                s4Grid.appendChild(s4Canvas);
+                s4Ctx = s4Canvas.getContext('2d');
+            }
 
             // dvh корректно учитывает browser UI на мобильных (Chrome 108+), vh — fallback
             const slideUnit = CSS.supports('height', '100dvh') ? 'dvh' : 'vh';
@@ -774,6 +783,64 @@
             // позиция мыши на момент последнего вызова updateDotMag — пропускаем если не изменилась
             let _dotMx = -9999, _dotMy = -9999;
 
+            /* ── s4 grid: canvas fish-eye ── */
+            function initS4Canvas() {
+                if (!s4Canvas || !s4Grid) return;
+                s4Dpr = Math.min(window.devicePixelRatio || 1, 2);
+                s4Canvas.width  = Math.round(s4Grid.offsetWidth  * s4Dpr);
+                s4Canvas.height = Math.round(s4Grid.offsetHeight * s4Dpr);
+                s4Ctx.setTransform(s4Dpr, 0, 0, s4Dpr, 0, 0);
+                _s4DrawX = -9999;
+                // на мобайле — рисуем статичную сетку без искажений и больше не трогаем
+                if (!isPointerFine) {
+                    const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
+                    drawS4Grid(CW / 2, CH / 2, 0);
+                }
+            }
+            requestAnimationFrame(initS4Canvas);
+            window.addEventListener('resize', initS4Canvas, { passive: true });
+
+            function drawS4Grid(lx, ly, str) {
+                if (!s4Canvas || !s4Ctx || s4Canvas.width === 0) return;
+                const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
+                s4Ctx.clearRect(0, 0, CW, CH);
+                const R = 280, CELL = 54, STEP = 10;
+                s4Ctx.strokeStyle = 'rgba(124,110,245,0.12)';
+                s4Ctx.lineWidth = 1;
+                // вертикальные линии
+                for (let x = CELL; x < CW; x += CELL) {
+                    s4Ctx.beginPath();
+                    for (let y = 0; y <= CH; y += STEP) {
+                        const dx = x - lx, dy = y - ly, d = Math.sqrt(dx * dx + dy * dy);
+                        let nx = x, ny = y;
+                        if (str > 0 && d < R && d > 0.1) { const f = 1 + str * Math.pow(1 - d / R, 2); nx = lx + dx * f; ny = ly + dy * f; }
+                        y === 0 ? s4Ctx.moveTo(nx, ny) : s4Ctx.lineTo(nx, ny);
+                    }
+                    s4Ctx.stroke();
+                }
+                // горизонтальные линии
+                for (let y = CELL; y < CH; y += CELL) {
+                    s4Ctx.beginPath();
+                    for (let x = 0; x <= CW; x += STEP) {
+                        const dx = x - lx, dy = y - ly, d = Math.sqrt(dx * dx + dy * dy);
+                        let nx = x, ny = y;
+                        if (str > 0 && d < R && d > 0.1) { const f = 1 + str * Math.pow(1 - d / R, 2); nx = lx + dx * f; ny = ly + dy * f; }
+                        x === 0 ? s4Ctx.moveTo(nx, ny) : s4Ctx.lineTo(nx, ny);
+                    }
+                    s4Ctx.stroke();
+                }
+                // виньетка
+                const gx = CW / 2, gy = CH / 2, gr = Math.sqrt(gx * gx + gy * gy) * 0.96;
+                const vg = s4Ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+                vg.addColorStop(0,    'rgba(0,0,0,1)');
+                vg.addColorStop(0.65, 'rgba(0,0,0,0.4)');
+                vg.addColorStop(1,    'rgba(0,0,0,0)');
+                s4Ctx.globalCompositeOperation = 'destination-in';
+                s4Ctx.fillStyle = vg;
+                s4Ctx.fillRect(0, 0, CW, CH);
+                s4Ctx.globalCompositeOperation = 'source-over';
+            }
+
             /* single RAF loop */
             let rafId;
             let _prevMx = -9999, _prevMy = -9999, _prevSd = -9999;
@@ -855,6 +922,16 @@
                 if (isPointerFine && (mx !== _dotMx || my !== _dotMy)) {
                     _dotMx = mx; _dotMy = my;
                     updateDotMag();
+                }
+
+                /* s4 grid fish-eye — только на десктопе со слайдом 4 */
+                if (cur === 3 && s4Canvas && isPointerFine) {
+                    gridX += (mx - gridX) * 0.03;
+                    gridY += (my - gridY) * 0.03;
+                    if (Math.abs(gridX - _s4DrawX) > 0.2 || Math.abs(gridY - _s4DrawY) > 0.2) {
+                        _s4DrawX = gridX; _s4DrawY = gridY;
+                        drawS4Grid(gridX + 30, gridY + 30, 0.15);
+                    }
                 }
 
                 rafId = requestAnimationFrame(tick);
@@ -1107,6 +1184,12 @@
                 new IntersectionObserver(function (entries) {
                     visible = entries[0].isIntersecting;
                     if (visible && !raf) draw();
+                    if (!visible) {
+                        // чистим оба canvas чтобы частицы не зависали при перелистывании
+                        ic.clearRect(0, 0, IW, IH);
+                        oc.clearRect(0, 0, OW, OH);
+                        parts.length = 0;
+                    }
                 }, { threshold: 0.05 }).observe(card);
             });
         })();
