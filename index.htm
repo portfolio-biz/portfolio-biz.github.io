@@ -115,8 +115,13 @@
 </head>
 
 <body>
-    <!-- прелодер: виден пока не загрузятся шрифты -->
-    <div id="page-loader" aria-hidden="true"></div>
+    <!-- прелодер: показывается только если шрифты НЕ в кэше -->
+    <div id="page-loader" aria-hidden="true">
+        <div class="pl-inner">
+            <img src="/icon.png" class="pl-logo" alt="" draggable="false" />
+            <div class="pl-bar"><div class="pl-bar-fill"></div></div>
+        </div>
+    </div>
     <div id="grain"></div>
     <div id="cursor-dot"></div>
 

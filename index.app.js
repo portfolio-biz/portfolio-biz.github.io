@@ -554,17 +554,47 @@
 (function () {
     var loader = document.getElementById('page-loader');
     if (!loader) return;
+
+    var fill = loader.querySelector('.pl-bar-fill');
+    var progress = 0;
+    var startTime = Date.now();
+    var fontsReady = false;
+
+    // Имитация прогресса: первый тик +20% через 900мс,
+    // каждый следующий тик в 1.6× медленнее и добавляет в 1.6× меньше.
+    // Естественно «зависает» около 88% — резкий рывок до 100% при готовности шрифтов.
+    function step(amount, delay) {
+        setTimeout(function () {
+            if (fontsReady) return;
+            progress = Math.min(progress + amount, 88);
+            if (fill) fill.style.width = progress + '%';
+            step(amount / 1.6, delay * 1.6);
+        }, delay);
+    }
+    step(20, 900);
+
+    function complete() {
+        if (fontsReady) return;
+        fontsReady = true;
+        var wait = Math.max(0, 300 - (Date.now() - startTime)); // минимум 300мс показа
+        setTimeout(function () {
+            if (fill) fill.style.width = '100%';   // резкий финальный рывок
+            setTimeout(hideLoader, 400);            // ждём transition (0.65s), потом fade
+        }, wait);
+    }
+
     function hideLoader() {
         loader.classList.add('is-hidden');
         setTimeout(function () { if (loader.parentNode) loader.remove(); }, 520);
     }
-    var t = setTimeout(hideLoader, 3500); // fallback — макс 3.5с на случай медленного интернета
+
+    var t = setTimeout(complete, 3500); // fallback — макс 3.5с
     Promise.allSettled([
         document.fonts.load('800 1em "Syne"'),
         document.fonts.load('400 1em "Inter"'),
         document.fonts.load('200 1em "Raleway"'),
         document.fonts.load('800 1em "Exo 2"')
-    ]).then(function () { clearTimeout(t); hideLoader(); });
+    ]).then(function () { clearTimeout(t); complete(); });
 })();
 
 
