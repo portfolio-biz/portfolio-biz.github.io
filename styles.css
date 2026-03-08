@@ -1206,6 +1206,16 @@ body.s4 #cursor-dot {
     opacity: 1;
 }
 
+/* контент всегда поверх canvas-эффекта */
+.svc-card.featured > *:not(canvas) {
+    position: relative;
+    z-index: 2;
+    /* фикс размытости текста внутри transform:scale — принудительный GPU-слой */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    backface-visibility: hidden;
+}
+
 .svc-card.featured {
     background: var(--black);
     border: 1.5px solid var(--accent);

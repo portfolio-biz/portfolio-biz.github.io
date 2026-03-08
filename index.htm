@@ -970,6 +970,148 @@
         })();
     </script>
 
+    <!-- ══ Featured card: stars + particles effect ══════════════════════════════ -->
+    <script>
+        (function () {
+            const card = document.querySelector('.svc-card.featured');
+            if (!card) return;
+
+            /* ── Inner canvas: звёзды внутри карточки ── */
+            const inner = document.createElement('canvas');
+            inner.setAttribute('aria-hidden', 'true');
+            inner.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit;z-index:0;';
+            card.insertBefore(inner, card.firstChild);
+            const ic = inner.getContext('2d');
+
+            /* ── Outer canvas: частицы снаружи карточки ── */
+            const outer = document.createElement('canvas');
+            outer.setAttribute('aria-hidden', 'true');
+            outer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9997;';
+            document.body.appendChild(outer);
+            const oc = outer.getContext('2d');
+
+            let IW = 0, IH = 0, OW = 0, OH = 0;
+            let raf = null, visible = true, spawnT = 0;
+
+            /* ── Звёзды ── */
+            const STARS = 60;
+            const stars = [];
+            function mkStar() {
+                return {
+                    x: Math.random() * IW,
+                    y: Math.random() * IH,
+                    r: 0.3 + Math.random() * 1.3,
+                    a: 0,
+                    maxA: 0.12 + Math.random() * 0.60,
+                    da:  0.004 + Math.random() * 0.010,
+                    hold: 0,
+                    phase: 'in',
+                };
+            }
+
+            /* ── Частицы снаружи ── */
+            const PARTS = 24;
+            const parts = [];
+            function mkPart() {
+                const rect = card.getBoundingClientRect();
+                // спаун — случайная точка на периметре карточки
+                const side = Math.random() * (2 * rect.width + 2 * rect.height);
+                let sx, sy;
+                if (side < rect.width)            { sx = rect.left + side;               sy = rect.top; }
+                else if (side < 2 * rect.width)   { sx = rect.left + side - rect.width;  sy = rect.bottom; }
+                else if (side < 2 * rect.width + rect.height) { sx = rect.left;          sy = rect.top + side - 2 * rect.width; }
+                else                              { sx = rect.right;                     sy = rect.top + side - 2 * rect.width - rect.height; }
+                // направление — от центра карточки наружу + небольшой разброс
+                const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+                const angle = Math.atan2(sy - cy, sx - cx) + (Math.random() - 0.5) * 0.9;
+                const spd = 0.25 + Math.random() * 0.55;
+                return {
+                    x: sx, y: sy,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    r: 0.8 + Math.random() * 1.6,
+                    a: 0.18 + Math.random() * 0.22,
+                    life: 0,
+                    maxLife: 90 + Math.random() * 110 | 0,
+                };
+            }
+
+            function resizeInner() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const rect = card.getBoundingClientRect();
+                IW = rect.width  || card.offsetWidth  || 300;
+                IH = rect.height || card.offsetHeight || 460;
+                inner.width  = Math.round(IW * dpr);
+                inner.height = Math.round(IH * dpr);
+                ic.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            function resizeOuter() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                OW = window.innerWidth; OH = window.innerHeight;
+                outer.width  = Math.round(OW * dpr);
+                outer.height = Math.round(OH * dpr);
+                oc.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+
+            function init() {
+                resizeInner(); resizeOuter();
+                stars.length = 0;
+                for (let i = 0; i < STARS; i++) stars.push(mkStar());
+            }
+
+            function draw() {
+                if (!visible) { raf = null; return; }
+
+                /* звёзды */
+                ic.clearRect(0, 0, IW, IH);
+                for (const s of stars) {
+                    if (s.phase === 'in') {
+                        s.a += s.da;
+                        if (s.a >= s.maxA) { s.a = s.maxA; s.phase = 'hold'; s.hold = 40 + Math.random() * 80 | 0; }
+                    } else if (s.phase === 'hold') {
+                        if (--s.hold <= 0) s.phase = 'out';
+                    } else {
+                        s.a -= s.da * 0.7;
+                        if (s.a <= 0) { Object.assign(s, mkStar()); s.x = Math.random() * IW; s.y = Math.random() * IH; }
+                    }
+                    ic.beginPath();
+                    ic.arc(s.x, s.y, s.r, 0, 6.2832);
+                    ic.fillStyle = `rgba(255,255,255,${s.a.toFixed(3)})`;
+                    ic.fill();
+                }
+
+                /* частицы снаружи */
+                oc.clearRect(0, 0, OW, OH);
+                spawnT++;
+                if (spawnT >= 10 && parts.length < PARTS) { spawnT = 0; parts.push(mkPart()); }
+                for (let i = parts.length - 1; i >= 0; i--) {
+                    const p = parts[i];
+                    p.x += p.vx; p.y += p.vy; p.life++;
+                    const prog  = p.life / p.maxLife;
+                    const alpha = p.a * (1 - prog);
+                    if (alpha < 0.005) { parts.splice(i, 1); continue; }
+                    oc.beginPath();
+                    oc.arc(p.x, p.y, p.r * (1 - prog * 0.4), 0, 6.2832);
+                    // тёмно-фиолетовые — видны на белом фоне слайда
+                    oc.fillStyle = `rgba(60,40,140,${alpha.toFixed(3)})`;
+                    oc.fill();
+                }
+
+                raf = requestAnimationFrame(draw);
+            }
+
+            requestAnimationFrame(function () {
+                init();
+                draw();
+                window.addEventListener('resize', function () { resizeInner(); resizeOuter(); }, { passive: true });
+                new IntersectionObserver(function (entries) {
+                    visible = entries[0].isIntersecting;
+                    if (visible && !raf) draw();
+                }, { threshold: 0.05 }).observe(card);
+            });
+        })();
+    </script>
+
     <!-- ══ PWA: Service Worker ════════════════════════════════════════════════════ -->
     <script>
         if ('serviceWorker' in navigator) {
