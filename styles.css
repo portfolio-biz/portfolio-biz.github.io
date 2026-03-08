@@ -88,6 +88,7 @@ body {
     object-fit: contain;
     filter: drop-shadow(0 4px 20px rgba(124,110,245,0.22));
     animation: pl-breathe 2.6s ease-in-out 0.5s infinite;
+    will-change: transform;
 }
 .pl-bar {
     position: relative;
@@ -110,8 +111,8 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pl-breathe {
-    0%, 100% { transform: scale(1);     opacity: 0.88; }
-    50%       { transform: scale(1.04); opacity: 1;    }
+    0%, 100% { transform: scale(1);    }
+    50%       { transform: scale(1.05); }
 }
 
 /* custom cursor — pointer devices only */
