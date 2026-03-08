@@ -1153,11 +1153,12 @@ body.s4 #cursor-dot {
 }
 
 .svc-card.featured {
-    transform: scale(1.03);
+    margin: -10px -8px;
+    padding: 36px 30px 32px;
 }
 
 .svc-card.featured:hover {
-    transform: scale(1.05) translateY(-2px);
+    transform: translateY(-2px);
 }
 
 /* accent stripe left:
