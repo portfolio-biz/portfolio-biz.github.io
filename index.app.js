@@ -40,6 +40,12 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
+        // Плавная подсветка "любой" на слайде #s2
+        if (cur === 1) {
+            document.body.classList.remove('anim-s2');
+            requestAnimationFrame(() => document.body.classList.add('anim-s2'));
+        }
+
         // ════ ОСОБЫЙ ПЕРЕХОД: «Наши услуги» (2) → «Наше портфолио» (3) ════
         // Старый слайд остаётся на месте, новый выезжает снизу и перекрывает его
         if (prev === 2 && cur === 3) {
@@ -799,10 +805,10 @@
         // спаун — случайная точка на периметре карточки
         const side = Math.random() * (2 * w + 2 * h);
         let sx, sy;
-        if (side < w) { sx = l + side; sy = t; }
-        else if (side < 2 * w) { sx = l + side - w; sy = b; }
-        else if (side < 2 * w + h) { sx = l; sy = t + side - 2 * w; }
-        else { sx = r; sy = t + side - 2 * w - h; }
+        if (side < w)              { sx = l + side;     sy = t; }
+        else if (side < 2 * w)     { sx = l + side - w; sy = b; }
+        else if (side < 2 * w + h) { sx = l;            sy = t + side - 2 * w; }
+        else                       { sx = r;            sy = t + side - 2 * w - h; }
         // направление — от центра карточки наружу + небольшой разброс
         const cx = l + w / 2, cy = t + h / 2;
         const angle = Math.atan2(sy - cy, sx - cx) + (Math.random() - 0.5) * 0.9;
