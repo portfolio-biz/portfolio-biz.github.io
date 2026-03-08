@@ -1114,7 +1114,18 @@ body.anim-s2 #s2 .big-h em {
     95%, 100% { stroke-dashoffset: 11; }
 }
 
-/* 6. Кому это нужно? — сердце бьётся (overflow:visible на SVG-элементе) */
+/* 6. Кому это нужно? — человечек машет рукой */
+.cap-i-wavearm {
+    transform-origin: 12px 10.5px;
+    animation: cap-wave 1.6s ease-in-out infinite;
+}
+@keyframes cap-wave {
+    0%, 100% { transform: rotate(0deg);   }
+    25%      { transform: rotate(-28deg); }
+    75%      { transform: rotate(16deg);  }
+}
+
+/* 2. Авторский дизайн — сердце бьётся */
 .cap-i-heart {
     transform-box: fill-box;
     transform-origin: center;
