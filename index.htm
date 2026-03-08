@@ -787,7 +787,7 @@
             function initS4Canvas() {
                 if (!s4Canvas || !s4Grid) return;
                 s4Dpr = Math.min(window.devicePixelRatio || 1, 2);
-                s4Canvas.width  = Math.round(s4Grid.offsetWidth  * s4Dpr);
+                s4Canvas.width = Math.round(s4Grid.offsetWidth * s4Dpr);
                 s4Canvas.height = Math.round(s4Grid.offsetHeight * s4Dpr);
                 s4Ctx.setTransform(s4Dpr, 0, 0, s4Dpr, 0, 0);
                 _s4DrawX = -9999;
@@ -804,7 +804,7 @@
                 if (!s4Canvas || !s4Ctx || s4Canvas.width === 0) return;
                 const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
                 s4Ctx.clearRect(0, 0, CW, CH);
-                const R = 280, CELL = 54, STEP = 10;
+                const R = 450, CELL = 54, STEP = 10;
                 s4Ctx.strokeStyle = 'rgba(124,110,245,0.12)';
                 s4Ctx.lineWidth = 1;
                 // вертикальные линии
@@ -832,9 +832,9 @@
                 // виньетка
                 const gx = CW / 2, gy = CH / 2, gr = Math.sqrt(gx * gx + gy * gy) * 0.96;
                 const vg = s4Ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-                vg.addColorStop(0,    'rgba(0,0,0,1)');
+                vg.addColorStop(0, 'rgba(0,0,0,1)');
                 vg.addColorStop(0.65, 'rgba(0,0,0,0.4)');
-                vg.addColorStop(1,    'rgba(0,0,0,0)');
+                vg.addColorStop(1, 'rgba(0,0,0,0)');
                 s4Ctx.globalCompositeOperation = 'destination-in';
                 s4Ctx.fillStyle = vg;
                 s4Ctx.fillRect(0, 0, CW, CH);
@@ -930,7 +930,7 @@
                     gridY += (my - gridY) * 0.03;
                     if (Math.abs(gridX - _s4DrawX) > 0.2 || Math.abs(gridY - _s4DrawY) > 0.2) {
                         _s4DrawX = gridX; _s4DrawY = gridY;
-                        drawS4Grid(gridX + 30, gridY + 30, 0.15);
+                        drawS4Grid(gridX + 30, gridY + 30, 0.07);
                     }
                 }
 
