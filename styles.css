@@ -136,6 +136,9 @@ body {
     #cursor-trail-canvas {
         display: none !important;
     }
+    .slide-inner {
+        will-change: auto; /* снимаем GPU-promotion с 5 inner'ов — экономим VRAM на мобайле */
+    }
 }
 
 ::selection {
@@ -493,7 +496,7 @@ body.s4 #cursor-dot {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    contain: layout style;
+    contain: layout style paint; /* paint — рисование не вытекает за границу слайда */
 }
 
 .slide-inner {

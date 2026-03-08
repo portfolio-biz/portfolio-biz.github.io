@@ -2,7 +2,7 @@
     const TOTAL = 5;
     const DARK = new Set([3]); // slides with dark bg (0-indexed)
 
-    let cur = 0, busy = false, tyY = 0, tyX = 0;
+    let cur = 0, busy = false, transitioning = false, tyY = 0, tyX = 0;
 
     const wrap = document.getElementById('fp-wrap');
     const bar = document.getElementById('progress');
@@ -35,7 +35,7 @@
 
     function goTo(idx) {
         if (busy || idx === cur || idx < 0 || idx >= TOTAL) return;
-        busy = true;
+        busy = true; transitioning = true;
         const prev = cur;
         cur = idx;
         const dir = cur > prev ? 1 : -1;
@@ -73,7 +73,7 @@
                 }
                 // восстанавливаем transition на inner входящего — чтобы обратный переход мог плавно анимировать
                 if (inners[cur]) inners[cur].style.transition = '';
-                busy = false;
+                transitioning = false; busy = false;
             }, 820);
             return;
         }
@@ -106,7 +106,7 @@
                     inners[prev].style.opacity = '1';
                 }
                 if (inners[cur]) inners[cur].style.transition = '';
-                busy = false;
+                transitioning = false; busy = false;
             }, 820);
             return;
         }
@@ -162,7 +162,7 @@
                 inners[prev].style.opacity = '1';
             }
             if (bgEl) { bgEl.style.transform = 'translateY(0)'; }
-            busy = false;
+            transitioning = false; busy = false;
         }, 820);
     }
 
@@ -500,12 +500,14 @@
     function tick() {
         const now = performance.now();
 
-        const tsd = hovering ? 0.5 : 1;
-        sd += (tsd - sd) * 0.18;
-        // пишем в DOM только при реальном изменении — избегаем лишних layout/paint
-        if (mx !== _prevMx || my !== _prevMy || Math.abs(sd - _prevSd) > 0.0005) {
-            dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
-            _prevMx = mx; _prevMy = my; _prevSd = sd;
+        if (isPointerFine && dot) {
+            const tsd = hovering ? 0.5 : 1;
+            sd += (tsd - sd) * 0.18;
+            // пишем в DOM только при реальном изменении — избегаем лишних layout/paint
+            if (mx !== _prevMx || my !== _prevMy || Math.abs(sd - _prevSd) > 0.0005) {
+                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
+                _prevMx = mx; _prevMy = my; _prevSd = sd;
+            }
         }
 
         if (cur === 0) {
@@ -522,7 +524,7 @@
             if (blobs[0]) blobs[0].style.transform = `translate(${nx0}px,${ny0}px) scale(${b1s})`;
             if (blobs[1]) blobs[1].style.transform = `translate(${nx1}px,${ny1}px) scale(${b2s})`;
             if (blobs[2]) blobs[2].style.transform = `translate(${nx2}px,${ny2}px)`;
-            drawParticles(t);
+            if (!transitioning) drawParticles(t); // пропускаем O(n²) physics во время перехода слайдов
         }
 
         /* ── Trail ── */
