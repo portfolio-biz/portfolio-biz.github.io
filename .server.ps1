@@ -150,8 +150,22 @@ try {
                 continue
             }
 
+            # ── Directory: serve index.html or index.htm ────
             if (Test-Path $filePath -PathType Container) {
-                $filePath = Join-Path $filePath "index.html"
+                $indexFile = $null
+                foreach ($filename in @("index.html", "index.htm")) {
+                    $candidate = Join-Path $filePath $filename
+                    if (Test-Path $candidate -PathType Leaf) {
+                        $indexFile = $candidate
+                        break
+                    }
+                }
+                if ($indexFile) {
+                    $filePath = $indexFile
+                } else {
+                    # Directory exists but no index file found — treat as 404
+                    $filePath = $null
+                }
             }
 
             # ── Serve file (GET / HEAD) ──────────────────────
@@ -176,14 +190,23 @@ try {
 
             # ── 404 ─────────────────────────────────────────
             } else {
-                $notFoundPage = Join-Path $root "404.html"
-                if (Test-Path $notFoundPage -PathType Leaf) {
+                $notFoundPage = $null
+                foreach ($filename in @("404.html", "404.htm")) {
+                    $candidate = Join-Path $root $filename
+                    if (Test-Path $candidate -PathType Leaf) {
+                        $notFoundPage = $candidate
+                        break
+                    }
+                }
+
+                if ($notFoundPage) {
                     $body = [System.IO.File]::ReadAllBytes($notFoundPage)
                     $resp.ContentType = "text/html; charset=utf-8"
                 } else {
                     $body = [System.Text.Encoding]::UTF8.GetBytes("404 - Not Found: $urlPath")
                     $resp.ContentType = "text/plain; charset=utf-8"
                 }
+
                 $resp.StatusCode      = 404
                 $resp.ContentLength64 = $body.Length
                 if ($method -ne 'HEAD') {

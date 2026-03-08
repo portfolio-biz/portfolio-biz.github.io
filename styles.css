@@ -102,7 +102,6 @@ a {
 h1,
 h2,
 h3,
-.svc-price,
 .eyebrow,
 .contact-h2,
 .portfolio-h2,
@@ -114,7 +113,6 @@ h3,
 .btn,
 .btn-pf,
 .tg-btn,
-.footer-note,
 .pf-more {
     font-family: "Syne", system-ui, sans-serif;
 }
@@ -1257,12 +1255,17 @@ body.s4 #cursor-dot {
 }
 
 .svc-price {
+    font-family: "Exo 2", "Syne", sans-serif;
     font-size: clamp(26px, 3.5vw, 38px);
     font-weight: 800;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
+    font-variant-numeric: lining-nums tabular-nums;
     color: var(--black);
     line-height: 1;
     margin-bottom: 3px;
+    display: inline-block;
+    transform: scaleX(1.2);
+    transform-origin: left center;
 }
 
 .svc-card.featured .svc-price {
@@ -1958,11 +1961,12 @@ body.s4 #cursor-dot {
     left: 50%;
     transform: translateX(-50%);
     z-index: 4; /* поверх волн */
+    font-family: "Inter", "Syne", sans-serif;
     font-size: 10.5px;
     color: rgba(0, 0, 0, 0.38);
     white-space: nowrap;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-weight: 200;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 

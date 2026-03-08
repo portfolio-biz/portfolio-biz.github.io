@@ -110,7 +110,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- async font load — non-render-blocking (LCP fix) -->
     <!-- шрифты загружаются синхронно: сайт покажется только после их загрузки -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Raleway:wght@200;300&family=Exo+2:wght@700;800&display=swap" />
     <link rel="stylesheet" href="/styles.css">
 </head>
 
@@ -462,7 +462,7 @@
                     </div>
                 </div>
             </div>
-            <div class="footer-note">© 2026 TANDEM SITES — все сайты с любовью</div>
+            <div class="footer-note">ИНН 780644295882, Воронин Артём Дмитриевич<br>© 2026 TANDEM SITES — все сайты с любовью</div>
             <!-- cliff waves — animated -->
             <div class="s5-cliff" aria-hidden="true">
                 <!-- wave 1 — самый медленный, высокая амплитуда -->
@@ -710,11 +710,11 @@
                     const dpr = window.devicePixelRatio || 1;
                     trailW = w;
                     trailH = h;
-                    trailCanvas.width  = Math.round(w * dpr);
+                    trailCanvas.width = Math.round(w * dpr);
                     trailCanvas.height = Math.round(h * dpr);
                     trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
                     // canvas.width/height сбрасывают все состояние — восстанавливаем постоянные свойства
-                    trailCtx.lineCap  = 'round';
+                    trailCtx.lineCap = 'round';
                     trailCtx.lineJoin = 'round';
                     tHead = 0; tSize = 0; // старые точки устарели — чистим буфер
                 };
@@ -798,7 +798,7 @@
                     // пишем в DOM только если блоб реально сдвинулся (> 0.15пк) — избегаем лишних style при неподвижной мыши
                     const nx0 = blobPx * 20 + b1x, ny0 = blobPy * 13 + b1y;
                     const nx1 = blobPx * -13 + b2x, ny1 = blobPy * 9 + b2y;
-                    const nx2 = blobPx * 9 + b3x,  ny2 = blobPy * -16 + b3y;
+                    const nx2 = blobPx * 9 + b3x, ny2 = blobPy * -16 + b3y;
                     if (blobs[0]) blobs[0].style.transform = `translate(${nx0}px,${ny0}px) scale(${b1s})`;
                     if (blobs[1]) blobs[1].style.transform = `translate(${nx1}px,${ny1}px) scale(${b2s})`;
                     if (blobs[2]) blobs[2].style.transform = `translate(${nx2}px,${ny2}px)`;
@@ -963,7 +963,9 @@
             var t = setTimeout(hideLoader, 3500); // fallback — макс 3.5с на случай медленного интернета
             Promise.allSettled([
                 document.fonts.load('800 1em "Syne"'),
-                document.fonts.load('400 1em "Inter"')
+                document.fonts.load('400 1em "Inter"'),
+                document.fonts.load('200 1em "Raleway"'),
+                document.fonts.load('800 1em "Exo 2"')
             ]).then(function () { clearTimeout(t); hideLoader(); });
         })();
     </script>
