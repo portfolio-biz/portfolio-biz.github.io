@@ -1003,7 +1003,7 @@
                     r: 0.3 + Math.random() * 1.3,
                     a: 0,
                     maxA: 0.12 + Math.random() * 0.60,
-                    da:  0.004 + Math.random() * 0.010,
+                    da: 0.004 + Math.random() * 0.010,
                     hold: 0,
                     phase: 'in',
                 };
@@ -1017,10 +1017,10 @@
                 // спаун — случайная точка на периметре карточки
                 const side = Math.random() * (2 * rect.width + 2 * rect.height);
                 let sx, sy;
-                if (side < rect.width)            { sx = rect.left + side;               sy = rect.top; }
-                else if (side < 2 * rect.width)   { sx = rect.left + side - rect.width;  sy = rect.bottom; }
-                else if (side < 2 * rect.width + rect.height) { sx = rect.left;          sy = rect.top + side - 2 * rect.width; }
-                else                              { sx = rect.right;                     sy = rect.top + side - 2 * rect.width - rect.height; }
+                if (side < rect.width) { sx = rect.left + side; sy = rect.top; }
+                else if (side < 2 * rect.width) { sx = rect.left + side - rect.width; sy = rect.bottom; }
+                else if (side < 2 * rect.width + rect.height) { sx = rect.left; sy = rect.top + side - 2 * rect.width; }
+                else { sx = rect.right; sy = rect.top + side - 2 * rect.width - rect.height; }
                 // направление — от центра карточки наружу + небольшой разброс
                 const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
                 const angle = Math.atan2(sy - cy, sx - cx) + (Math.random() - 0.5) * 0.9;
@@ -1039,16 +1039,16 @@
             function resizeInner() {
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 const rect = card.getBoundingClientRect();
-                IW = rect.width  || card.offsetWidth  || 300;
+                IW = rect.width || card.offsetWidth || 300;
                 IH = rect.height || card.offsetHeight || 460;
-                inner.width  = Math.round(IW * dpr);
+                inner.width = Math.round(IW * dpr);
                 inner.height = Math.round(IH * dpr);
                 ic.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
             function resizeOuter() {
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 OW = window.innerWidth; OH = window.innerHeight;
-                outer.width  = Math.round(OW * dpr);
+                outer.width = Math.round(OW * dpr);
                 outer.height = Math.round(OH * dpr);
                 oc.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
@@ -1087,7 +1087,7 @@
                 for (let i = parts.length - 1; i >= 0; i--) {
                     const p = parts[i];
                     p.x += p.vx; p.y += p.vy; p.life++;
-                    const prog  = p.life / p.maxLife;
+                    const prog = p.life / p.maxLife;
                     const alpha = p.a * (1 - prog);
                     if (alpha < 0.005) { parts.splice(i, 1); continue; }
                     oc.beginPath();
