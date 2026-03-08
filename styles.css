@@ -78,7 +78,7 @@ body {
     gap: 28px;
     opacity: 0;
     transform: translateY(8px);
-    animation: pl-enter 0.5s cubic-bezier(.4,0,.2,1) 0.1s forwards;
+    animation: pl-enter 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
 }
 .pl-logo {
     height: auto;
@@ -86,7 +86,7 @@ body {
     max-width: 200px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 4px 20px rgba(124,110,245,0.22));
+    filter: drop-shadow(0 4px 20px rgba(124, 110, 245, 0.22));
     animation: pl-breathe 2.6s ease-in-out 0.5s infinite;
     will-change: transform;
 }
@@ -94,7 +94,7 @@ body {
     position: relative;
     width: 100px;
     height: 1.5px;
-    background: rgba(124,110,245,0.12);
+    background: rgba(124, 110, 245, 0.12);
     border-radius: 2px;
     overflow: hidden;
 }
@@ -105,14 +105,22 @@ body {
     width: 0%;
     background: linear-gradient(90deg, #7c6ef5, #a89af5);
     border-radius: 2px;
-    transition: width 0.65s cubic-bezier(.4,0,.2,1);
+    transition: width 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 @keyframes pl-enter {
-    to { opacity: 1; transform: translateY(0); }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 @keyframes pl-breathe {
-    0%, 100% { transform: scale(1);    }
-    50%       { transform: scale(1.05); }
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 /* custom cursor — pointer devices only */
@@ -278,15 +286,34 @@ body.s4 #site-logo .logo-img {
 }
 .s3-cat.cat-run {
     will-change: transform;
-    animation: cat-run 9.6s 0.15s linear forwards;
+    animation: cat-run 12s 0.15s linear forwards;
 }
 @keyframes cat-run {
-    0%   { transform: translateX(-110%); opacity: 1; }
-    92%  { opacity: 1; }
-    100% { transform: translateX(calc(100vw + 110%)); opacity: 0; }
+    0% {
+        transform: translateX(-110%);
+        opacity: 1;
+    }
+    92% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(calc(100vw + 110%));
+        opacity: 0;
+    }
 }
 
+@media (max-width: 900px) {
+    .s3-cat {
+        width: clamp(143px, 20.8vw, 260px);
+        max-height: 260px;
+    }
+    .s3-cat.cat-run {
+        animation-duration: 5.2s;
+    }
+}
 
+/* ─ PROGRESS ─ */
+#progress {
     position: fixed;
     top: 0;
     left: 0;
@@ -981,8 +1008,12 @@ body.anim-s2 #s2 .big-h em {
     animation: s2-em-in 0.95s 0.2s var(--ease) both;
 }
 @keyframes s2-em-in {
-    from { color: #09090f; }
-    to   { color: #7c6ef5; }
+    from {
+        color: #09090f;
+    }
+    to {
+        color: #7c6ef5;
+    }
 }
 
 .cap-grid {
@@ -1075,14 +1106,32 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-draw2 2.8s 0.7s ease-in-out infinite;
 }
 @keyframes cap-draw1 {
-    0%, 8%   { stroke-dashoffset: 8; }
-    45%, 60% { stroke-dashoffset: 0; }
-    92%, 100%{ stroke-dashoffset: 8; }
+    0%,
+    8% {
+        stroke-dashoffset: 8;
+    }
+    45%,
+    60% {
+        stroke-dashoffset: 0;
+    }
+    92%,
+    100% {
+        stroke-dashoffset: 8;
+    }
 }
 @keyframes cap-draw2 {
-    0%, 8%   { stroke-dashoffset: 5; }
-    45%, 60% { stroke-dashoffset: 0; }
-    92%, 100%{ stroke-dashoffset: 5; }
+    0%,
+    8% {
+        stroke-dashoffset: 5;
+    }
+    45%,
+    60% {
+        stroke-dashoffset: 0;
+    }
+    92%,
+    100% {
+        stroke-dashoffset: 5;
+    }
 }
 
 /* 2. Авторский дизайн — лучи вращаются */
@@ -1092,7 +1141,9 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-spin 10s linear infinite;
 }
 @keyframes cap-spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* 3. Полная адаптивность — углы рамки пульсируют, центральная точка мигает */
@@ -1105,12 +1156,24 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-dot-pulse 2.4s ease-in-out infinite;
 }
 @keyframes cap-expand {
-    0%, 100% { transform: scale(1);    opacity: 0.6; }
-    50%      { transform: scale(1.1);  opacity: 1;   }
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
 }
 @keyframes cap-dot-pulse {
-    0%, 100% { opacity: 0.5; }
-    50%      { opacity: 1;   }
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
 }
 
 /* 4. Анимации & эффекты — молния пульсирует */
@@ -1120,8 +1183,16 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-zap 2s ease-in-out infinite;
 }
 @keyframes cap-zap {
-    0%, 100%  { opacity: 0.5;  transform: scale(0.88); }
-    45%, 55%  { opacity: 1;    transform: scale(1.1);  }
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(0.88);
+    }
+    45%,
+    55% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
 /* 5. Качество — галочка рисуется */
@@ -1131,9 +1202,18 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-check 2.8s ease-in-out infinite;
 }
 @keyframes cap-check {
-    0%, 12%   { stroke-dashoffset: 11; }
-    50%, 68%  { stroke-dashoffset: 0;  }
-    95%, 100% { stroke-dashoffset: 11; }
+    0%,
+    12% {
+        stroke-dashoffset: 11;
+    }
+    50%,
+    68% {
+        stroke-dashoffset: 0;
+    }
+    95%,
+    100% {
+        stroke-dashoffset: 11;
+    }
 }
 
 /* 6. Кому это нужно? — человечек машет рукой */
@@ -1142,9 +1222,16 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-wave 1.4s ease-in-out infinite;
 }
 @keyframes cap-wave {
-    0%, 100% { transform: rotate(0deg);   }
-    30%      { transform: rotate(-18deg); }
-    65%      { transform: rotate(22deg);  }
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    30% {
+        transform: rotate(-18deg);
+    }
+    65% {
+        transform: rotate(22deg);
+    }
 }
 
 /* 2. Авторский дизайн — сердце бьётся */
@@ -1154,11 +1241,22 @@ body.anim-s2 #s2 .big-h em {
     animation: cap-beat 1.7s ease-in-out infinite;
 }
 @keyframes cap-beat {
-    0%, 100% { transform: scale(1);    }
-    15%      { transform: scale(1.18); }
-    35%      { transform: scale(0.93); }
-    50%      { transform: scale(1.1);  }
-    65%      { transform: scale(1);    }
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    15% {
+        transform: scale(1.18);
+    }
+    35% {
+        transform: scale(0.93);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    65% {
+        transform: scale(1);
+    }
 }
 
 .cap-card h3 {
@@ -2183,12 +2281,24 @@ body.anim-s2 #s2 .big-h em {
 }
 
 /* ── Hero: анимации запускаются только после исчезновения лоадера (body.hero-ready) ── */
-body.hero-ready .hero-tag         { animation: fade-up 0.55s       ease both; }
-body.hero-ready .hero-h1          { animation: fade-up 0.65s 0.12s ease both; }
-body.hero-ready .hero-sub         { animation: fade-up 0.65s 0.26s ease both; }
-body.hero-ready .hero-actions     { animation: fade-up 0.65s 0.40s ease both; }
-body.hero-ready .hero-stats       { animation: fade-up 0.65s 0.54s ease both; }
-body.hero-ready .hero-scroll-down { animation: hint-in 1s    2.0s  ease forwards; }
+body.hero-ready .hero-tag {
+    animation: fade-up 0.55s ease both;
+}
+body.hero-ready .hero-h1 {
+    animation: fade-up 0.65s 0.12s ease both;
+}
+body.hero-ready .hero-sub {
+    animation: fade-up 0.65s 0.26s ease both;
+}
+body.hero-ready .hero-actions {
+    animation: fade-up 0.65s 0.4s ease both;
+}
+body.hero-ready .hero-stats {
+    animation: fade-up 0.65s 0.54s ease both;
+}
+body.hero-ready .hero-scroll-down {
+    animation: hint-in 1s 2s ease forwards;
+}
 
 /* ─ RESPONSIVE ─ */
 @media (max-width: 1024px) {

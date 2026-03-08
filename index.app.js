@@ -40,6 +40,19 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
+        // Скрываем scroll-hint при уходе с главной
+        if (prev === 0) {
+            const hint = document.getElementById('scroll-hint');
+            if (hint) {
+                hint.style.opacity = '1';        // фиксируем 1 ДО снятия анимации
+                hint.style.animation = 'none';   // снимаем forwards-fill
+                void hint.offsetHeight;          // reflow
+                hint.style.transition = 'opacity 0.3s ease';
+                hint.style.opacity = '0';
+                setTimeout(() => hint.remove(), 350);
+            }
+        }
+
         // Плавная подсветка "любой" на слайде #s2 — только при первом посещении
         if (cur === 1 && !document.body.classList.contains('anim-s2')) {
             requestAnimationFrame(() => document.body.classList.add('anim-s2'));
@@ -648,9 +661,12 @@
     const hint = document.getElementById('scroll-hint');
     if (hint) {
         const hideHint = () => {
-            hint.style.transition = 'opacity .4s';
+            hint.style.opacity = '1';        // фиксируем 1 ДО снятия анимации
+            hint.style.animation = 'none';   // снимаем forwards-fill
+            void hint.offsetHeight;          // reflow
+            hint.style.transition = 'opacity 0.4s ease';
             hint.style.opacity = '0';
-            setTimeout(() => hint.remove(), 500);
+            setTimeout(() => hint.remove(), 450);
         };
         setTimeout(() => {
             window.addEventListener('wheel', hideHint, { once: true });
