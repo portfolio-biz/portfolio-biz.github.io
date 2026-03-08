@@ -20,6 +20,7 @@
     const s4Grid = document.querySelector('#s4 .s4-grid');
     let gridX = 0, gridY = 0; // интерполированная позиция курсора для линзы
     let s4Canvas = null, s4Ctx = null, s4Dpr = 1, _s4DrawX = -9999, _s4DrawY = -9999;
+    let s4VignGrad = null, _s4VignW = -1, _s4VignH = -1; // кэш виньетки — пересоздаётся лишь при resize
     if (s4Grid) {
         s4Canvas = document.createElement('canvas');
         s4Canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
@@ -79,7 +80,7 @@
         bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
         counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
 
-        dotEls.forEach((d, i) => d.classList.toggle('active', i === cur));
+        for (let i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === cur);
         document.body.classList.toggle('s4', DARK.has(cur));
         document.body.classList.toggle('on-home', cur === 0);
 
@@ -211,8 +212,9 @@
         }
         pCtx.globalAlpha = 1; // сбрасываем для остальных операций
     }
-    const TRAIL_LEN = 22;  // размер шахматного буфера
-    const TRAIL_LIFE = 200; // время жизни точки, мс
+    const TRAIL_LEN = 22;          // размер кольцевого буфера
+    const TRAIL_LIFE = 200;        // время жизни точки, мс
+    const INV_TRAIL_LIFE = 1 / TRAIL_LIFE; // кэш обратной величины для делений в trail hot loop
     // circular buffer без GC: не создаём новых объектов 60 раз/с, переиспользуем существующие
     const TBUF = Array.from({ length: TRAIL_LEN }, () => ({ x: 0, y: 0, t: 0 }));
     let tHead = 0, tSize = 0; // голова и заполненность буфера
@@ -280,18 +282,18 @@
     }
 
     function updateDotMag() {
-        const PROX = 60, PROX2 = 3600; // PROX^2 — избегаем sqrt в hypot
-        dotCache.forEach(({ el, cx, cy }) => {
-            if (el.classList.contains('active')) { el.style.background = ''; return; }
-            const dx = mx - cx, dy = my - cy;
-            const dist2 = dx * dx + dy * dy;
+        const PROX = 60, PROX2 = 3600, invPROX = 1 / 60;
+        for (let i = 0; i < dotCache.length; i++) {
+            const { el, cx, cy } = dotCache[i];
+            if (el.classList.contains('active')) { el.style.background = ''; continue; }
+            const dx = mx - cx, dy = my - cy, dist2 = dx * dx + dy * dy;
             if (dist2 < PROX2) {
-                const t = 1 - Math.sqrt(dist2) / PROX;
+                const t = 1 - Math.sqrt(dist2) * invPROX;
                 el.style.background = `rgba(124,110,245,${(t * 0.65).toFixed(2)})`;
             } else {
                 el.style.background = '';
             }
-        });
+        }
     }
 
     // позиция мыши на момент последнего вызова updateDotMag — пропускаем если не изменилась
@@ -318,16 +320,16 @@
         if (!s4Canvas || !s4Ctx || s4Canvas.width === 0) return;
         const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
         s4Ctx.clearRect(0, 0, CW, CH);
-        const R = 450, CELL = 54, STEP = 10;
+        const R = 450, R2 = R * R, invR = 1 / R, CELL = 54, STEP = 10;
         s4Ctx.strokeStyle = 'rgba(124,110,245,0.12)';
         s4Ctx.lineWidth = 1;
         // вертикальные линии
         for (let x = CELL; x < CW; x += CELL) {
             s4Ctx.beginPath();
             for (let y = 0; y <= CH; y += STEP) {
-                const dx = x - lx, dy = y - ly, d = Math.sqrt(dx * dx + dy * dy);
+                const dx = x - lx, dy = y - ly, d2 = dx * dx + dy * dy;
                 let nx = x, ny = y;
-                if (str > 0 && d < R && d > 0.1) { const f = 1 + str * Math.pow(1 - d / R, 2); nx = lx + dx * f; ny = ly + dy * f; }
+                if (str > 0 && d2 < R2 && d2 > 0.01) { const t = 1 - Math.sqrt(d2) * invR; const f = 1 + str * t * t; nx = lx + dx * f; ny = ly + dy * f; }
                 y === 0 ? s4Ctx.moveTo(nx, ny) : s4Ctx.lineTo(nx, ny);
             }
             s4Ctx.stroke();
@@ -336,21 +338,24 @@
         for (let y = CELL; y < CH; y += CELL) {
             s4Ctx.beginPath();
             for (let x = 0; x <= CW; x += STEP) {
-                const dx = x - lx, dy = y - ly, d = Math.sqrt(dx * dx + dy * dy);
+                const dx = x - lx, dy = y - ly, d2 = dx * dx + dy * dy;
                 let nx = x, ny = y;
-                if (str > 0 && d < R && d > 0.1) { const f = 1 + str * Math.pow(1 - d / R, 2); nx = lx + dx * f; ny = ly + dy * f; }
+                if (str > 0 && d2 < R2 && d2 > 0.01) { const t = 1 - Math.sqrt(d2) * invR; const f = 1 + str * t * t; nx = lx + dx * f; ny = ly + dy * f; }
                 x === 0 ? s4Ctx.moveTo(nx, ny) : s4Ctx.lineTo(nx, ny);
             }
             s4Ctx.stroke();
         }
-        // виньетка
-        const gx = CW / 2, gy = CH / 2, gr = Math.sqrt(gx * gx + gy * gy) * 0.96;
-        const vg = s4Ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-        vg.addColorStop(0, 'rgba(0,0,0,1)');
-        vg.addColorStop(0.65, 'rgba(0,0,0,0.4)');
-        vg.addColorStop(1, 'rgba(0,0,0,0)');
+        // виньетка — градиент кэшируется, пересоздаётся только при изменении размера canvas
+        if (s4VignGrad === null || _s4VignW !== CW || _s4VignH !== CH) {
+            _s4VignW = CW; _s4VignH = CH;
+            const gx = CW / 2, gy = CH / 2, gr = Math.sqrt(gx * gx + gy * gy) * 0.96;
+            s4VignGrad = s4Ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+            s4VignGrad.addColorStop(0,    'rgba(0,0,0,1)');
+            s4VignGrad.addColorStop(0.65, 'rgba(0,0,0,0.4)');
+            s4VignGrad.addColorStop(1,    'rgba(0,0,0,0)');
+        }
         s4Ctx.globalCompositeOperation = 'destination-in';
-        s4Ctx.fillStyle = vg;
+        s4Ctx.fillStyle = s4VignGrad;
         s4Ctx.fillRect(0, 0, CW, CH);
         s4Ctx.globalCompositeOperation = 'source-over';
     }
@@ -399,14 +404,15 @@
             if (len > 1) {
                 const lastIdx = len - 1;
                 const tBase = (tHead - len + TRAIL_LEN) % TRAIL_LEN; // индекс старейшей точки
+                const invLastIdx = 1 / lastIdx; // кэш деления — i/lastIdx → i*invLastIdx в hot loop
 
                 // pass 1 — wide soft glow
                 for (let i = 1; i < len; i++) {
                     const pb = TBUF[(tBase + i) % TRAIL_LEN];
-                    const a = Math.max(0, 1 - (now - pb.t) / TRAIL_LIFE);
+                    const a = Math.max(0, 1 - (now - pb.t) * INV_TRAIL_LIFE);
                     if (a <= 0) continue;
                     const pa = TBUF[(tBase + i - 1) % TRAIL_LEN];
-                    const prog = i / lastIdx;
+                    const prog = i * invLastIdx;
                     trailCtx.beginPath();
                     trailCtx.moveTo(pa.x, pa.y);
                     trailCtx.lineTo(pb.x, pb.y);
@@ -418,10 +424,10 @@
                 // pass 2 — bright core spine
                 for (let i = 1; i < len; i++) {
                     const pb = TBUF[(tBase + i) % TRAIL_LEN];
-                    const a = Math.max(0, 1 - (now - pb.t) / TRAIL_LIFE);
+                    const a = Math.max(0, 1 - (now - pb.t) * INV_TRAIL_LIFE);
                     if (a <= 0) continue;
                     const pa = TBUF[(tBase + i - 1) % TRAIL_LEN];
-                    const prog = i / lastIdx;
+                    const prog = i * invLastIdx;
                     trailCtx.beginPath();
                     trailCtx.moveTo(pa.x, pa.y);
                     trailCtx.lineTo(pb.x, pb.y);
@@ -510,12 +516,12 @@
     const svcPips = document.querySelectorAll('.svc-pip');
     let svcIdx = 1; // CSS starts at translateX(-100%) = card 1
 
+    const svcCardCount = svcTrack ? svcTrack.querySelectorAll('.svc-card').length : 0;
     function svcGoTo(idx) {
-        const cards = svcTrack ? svcTrack.querySelectorAll('.svc-card') : [];
-        if (idx < 0 || idx >= cards.length) return;
+        if (idx < 0 || idx >= svcCardCount) return;
         svcIdx = idx;
         svcTrack.style.transform = `translateX(${-svcIdx * 100}%)`;
-        svcPips.forEach((p, i) => p.classList.toggle('svc-pip-active', i === svcIdx));
+        for (let i = 0; i < svcPips.length; i++) svcPips[i].classList.toggle('svc-pip-active', i === svcIdx);
     }
 
     // click works instantly on mobile when touch-action:manipulation is set in CSS
@@ -655,8 +661,9 @@
     function draw() {
         if (!visible) { raf = null; return; }
 
-        /* звёзды */
+        /* звёзды — ic.globalAlpha вместо rgba-строки (нет аллокации строк 60×/кадр) */
         ic.clearRect(0, 0, IW, IH);
+        ic.fillStyle = '#fff';
         for (const s of stars) {
             if (s.phase === 'in') {
                 s.a += s.da;
@@ -665,16 +672,24 @@
                 if (--s.hold <= 0) s.phase = 'out';
             } else {
                 s.a -= s.da * 0.7;
-                if (s.a <= 0) { Object.assign(s, mkStar()); s.x = Math.random() * IW; s.y = Math.random() * IH; }
+                if (s.a <= 0) {
+                    s.x = Math.random() * IW; s.y = Math.random() * IH;
+                    s.r = 0.3 + Math.random() * 1.3; s.a = 0;
+                    s.maxA = 0.09 + Math.random() * 0.46;
+                    s.da = 0.004 + Math.random() * 0.010;
+                    s.hold = 0; s.phase = 'in';
+                }
             }
+            ic.globalAlpha = s.a;
             ic.beginPath();
             ic.arc(s.x, s.y, s.r, 0, 6.2832);
-            ic.fillStyle = `rgba(255,255,255,${s.a.toFixed(3)})`;
             ic.fill();
         }
+        ic.globalAlpha = 1;
 
-        /* частицы снаружи */
+        /* частицы снаружи — аналогично */
         oc.clearRect(0, 0, OW, OH);
+        oc.fillStyle = 'rgb(60,40,140)';
         spawnT++;
         if (spawnT >= 10 && parts.length < PARTS) { spawnT = 0; parts.push(mkPart()); }
         for (let i = parts.length - 1; i >= 0; i--) {
@@ -683,12 +698,12 @@
             const prog = p.life / p.maxLife;
             const alpha = p.a * (1 - prog);
             if (alpha < 0.005) { parts.splice(i, 1); continue; }
+            oc.globalAlpha = alpha;
             oc.beginPath();
             oc.arc(p.x, p.y, p.r * (1 - prog * 0.4), 0, 6.2832);
-            // тёмно-фиолетовые — видны на белом фоне слайда
-            oc.fillStyle = `rgba(60,40,140,${alpha.toFixed(3)})`;
             oc.fill();
         }
+        oc.globalAlpha = 1;
 
         raf = requestAnimationFrame(draw);
     }
