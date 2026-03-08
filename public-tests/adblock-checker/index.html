@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UADBDetector — Тест обнаружения AdBlock</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:       #0d0e12;
+            --card-bg:  #13141a;
+            --border:   rgba(255,255,255,0.07);
+            --accent:   #7c6ef5;
+            --green:    #4eca7a;
+            --red:      #e05252;
+            --amber:    #e0a04a;
+            --text:     #e0e1e8;
+            --muted:    #6b7089;
+            --code-bg:  rgba(124,110,245,0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .page-wrap {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 52px 20px 80px;
+        }
+
+        /* ── Шапка ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+        .header-icon {
+            width: 46px; height: 46px;
+            background: linear-gradient(135deg, #7c6ef5, #a78bfa);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(124,110,245,0.35);
+        }
+        .header-title { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+        .header-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .version-badge {
+            margin-left: auto;
+            font-size: 11px; font-weight: 600;
+            color: var(--accent);
+            background: var(--code-bg);
+            border: 1px solid rgba(124,110,245,0.22);
+            border-radius: 6px;
+            padding: 3px 9px;
+            font-family: 'Menlo', 'Consolas', monospace;
+            white-space: nowrap;
+        }
+
+        /* ── Карточка вердикта ── */
+        .verdict-card {
+            border-radius: 16px;
+            padding: 26px 24px;
+            margin-bottom: 22px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            transition: border-color .4s, background .4s;
+        }
+        .verdict-card.state-blocked {
+            border-color: rgba(224,82,82,0.32);
+            background:   rgba(224,82,82,0.05);
+        }
+        .verdict-card.state-clean {
+            border-color: rgba(78,202,122,0.28);
+            background:   rgba(78,202,122,0.04);
+        }
+        .verdict-card.state-partial {
+            border-color: rgba(224,160,74,0.30);
+            background:   rgba(224,160,74,0.04);
+        }
+
+        .verdict-top {
+            display: flex; align-items: center; gap: 16px;
+        }
+        .verdict-icon {
+            width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 22px;
+            transition: background .4s;
+        }
+        .verdict-icon.loading { background: rgba(124,110,245,0.14); }
+        .verdict-icon.blocked { background: rgba(224,82,82,0.14); }
+        .verdict-icon.clean   { background: rgba(78,202,122,0.14); }
+        .verdict-icon.partial { background: rgba(224,160,74,0.14); }
+
+        .verdict-label {
+            font-size: 19px; font-weight: 700; letter-spacing: -.02em;
+            line-height: 1.25;
+        }
+        .verdict-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+        /* ── Полоса confidence ── */
+        .conf-bar-wrap { margin-top: 20px; }
+        .conf-bar-label {
+            display: flex; justify-content: space-between;
+            font-size: 12px; color: var(--muted); margin-bottom: 7px;
+        }
+        .conf-bar-label span:last-child {
+            font-weight: 700;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+        }
+        .conf-bar-track {
+            height: 6px; border-radius: 3px;
+            background: rgba(255,255,255,0.07);
+            overflow: hidden;
+        }
+        .conf-bar-fill {
+            height: 100%; border-radius: 3px;
+            transition: width .9s cubic-bezier(0.4,0,0.2,1), background .4s;
+            width: 0%;
+        }
+
+        /* ── Спиннер ── */
+        .spinner {
+            width: 22px; height: 22px;
+            border: 2.5px solid rgba(124,110,245,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Техники ── */
+        .section-title {
+            font-size: 11.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .09em;
+            color: var(--muted);
+            margin-bottom: 11px;
+        }
+        .technique-list {
+            display: flex; flex-direction: column; gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .tech-card {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            padding: 14px 16px;
+            display: flex; align-items: flex-start; gap: 12px;
+            opacity: 0.48;
+            transition: opacity .35s, border-color .35s, background .35s;
+        }
+        .tech-card.done         { opacity: 1; }
+        .tech-card.done.blocked { border-color: rgba(224,82,82,0.26); background: rgba(224,82,82,0.045); }
+        .tech-card.done.clean   { border-color: rgba(78,202,122,0.20); }
+        .tech-card.done.skipped { opacity: 0.62; }
+
+        .tech-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            margin-top: 5px; flex-shrink: 0;
+            background: var(--muted);
+            transition: background .3s;
+        }
+        .tech-dot.blocked { background: var(--red); }
+        .tech-dot.clean   { background: var(--green); }
+        .tech-dot.skipped { background: var(--amber); }
+        .tech-dot.loading {
+            background: transparent;
+            border: 2px solid var(--accent);
+            animation: dotpulse 1s ease-in-out infinite alternate;
+        }
+        @keyframes dotpulse { from { opacity: .25; } to { opacity: 1; } }
+
+        .tech-body { flex: 1; min-width: 0; }
+        .tech-name {
+            font-size: 14px; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .tech-tag {
+            font-size: 11px; font-weight: 600;
+            font-family: 'Menlo', 'Consolas', monospace;
+            padding: 1px 6px; border-radius: 4px;
+            background: var(--code-bg);
+            color: var(--accent);
+            letter-spacing: .01em;
+        }
+        .tech-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+        .tech-result {
+            display: none;
+            font-size: 12px;
+            font-family: 'Menlo', 'Consolas', monospace;
+            margin-top: 7px;
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            word-break: break-all;
+            line-height: 1.55;
+        }
+        .tech-result.visible          { display: block; color: var(--muted); }
+        .tech-result.visible.blocked  { color: var(--red); }
+        .tech-result.visible.clean    { color: var(--green); }
+        .tech-result.visible.skipped  { color: var(--amber); }
+
+        /* ── Кнопка ── */
+        .btn-row {
+            display: flex; justify-content: center; margin-bottom: 28px;
+        }
+        .btn-rerun {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--accent);
+            color: #fff; border: none; border-radius: 10px;
+            padding: 10px 22px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: opacity .2s, transform .1s;
+        }
+        .btn-rerun:hover    { opacity: 0.84; }
+        .btn-rerun:active   { transform: scale(0.97); }
+        .btn-rerun:disabled { opacity: 0.38; cursor: default; }
+
+        /* ── Информационный блок ── */
+        .info-box {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            padding: 16px 18px;
+        }
+        .info-box h3 {
+            font-size: 11.5px; font-weight: 600; margin-bottom: 11px;
+            color: var(--muted); text-transform: uppercase; letter-spacing: .09em;
+        }
+        .info-box ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+        .info-box li {
+            font-size: 13px; color: var(--muted);
+            padding-left: 15px; position: relative;
+        }
+        .info-box li::before { content: '·'; position: absolute; left: 0; color: var(--accent); }
+        .info-box code {
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 0.88em;
+            background: var(--code-bg);
+            color: #a78bfa;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+        .info-box strong { color: var(--text); font-weight: 600; }
+
+        /* ── Raw JSON ── */
+        .raw-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: none; border: 1px solid var(--border);
+            color: var(--muted); border-radius: 8px;
+            padding: 6px 12px; font-size: 12px; cursor: pointer;
+            margin-top: 14px; transition: border-color .2s, color .2s;
+        }
+        .raw-toggle:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
+        .raw-block {
+            display: none;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: 'Menlo', 'Consolas', monospace;
+            font-size: 11.5px;
+            color: var(--muted);
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        .raw-block.open { display: block; }
+
+        @media (max-width: 480px) {
+            .page-wrap  { padding: 32px 16px 60px; }
+            .verdict-label { font-size: 17px; }
+            .header-title  { font-size: 19px; }
+        }
+    </style>
+</head>
+<body>
+<div class="page-wrap">
+
+    <!-- ── Шапка ── -->
+    <div class="header">
+        <div class="header-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                 stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="header-title">UADBDetector</div>
+            <div class="header-sub">Тест обнаружения рекламных блокировщиков</div>
+        </div>
+        <span class="version-badge" id="version-badge">v?</span>
+    </div>
+
+    <!-- ── Карточка вердикта ── -->
+    <div class="verdict-card state-loading" id="verdict-card">
+        <div class="verdict-top">
+            <div class="verdict-icon loading" id="verdict-icon">
+                <div class="spinner"></div>
+            </div>
+            <div>
+                <div class="verdict-label" id="verdict-label">Анализируем…</div>
+                <div class="verdict-sub"   id="verdict-sub">Запускаем все зонды. Подождите секунду.</div>
+            </div>
+        </div>
+
+        <div class="conf-bar-wrap" id="conf-wrap" style="display:none">
+            <div class="conf-bar-label">
+                <span>Уверенность в блокировке</span>
+                <span id="conf-pct">0%</span>
+            </div>
+            <div class="conf-bar-track">
+                <div class="conf-bar-fill" id="conf-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Техники детекции ── -->
+    <div class="section-title">Техники детекции</div>
+    <div class="technique-list" id="tech-list">
+
+        <div class="tech-card" id="tc-css-bait">
+            <div class="tech-dot loading" id="dot-css-bait"></div>
+            <div class="tech-body">
+                <div class="tech-name">
+                    CSS-приманка
+                    <span class="tech-tag">css-bait</span>
+                    <span class="tech-tag" style="color:#6b7089;background:rgba(255,255,255,0.04)">вес 50%</span>
+                </div>
+                <div class="tech-desc">
+                    Создаёт скрытые div с классами <code>adsbox</code>, <code>adsbygoogle</code> и др.
+                    Блокировщик скрывает их через CSS-фильтры → offsetHeight === 0.
+                </div>
+                <div class="tech-result" id="tr-css-bait"></div>
+            </div>
+        </div>
+
+        <div class="tech-card" id="tc-probe-google">
+            <div class="tech-dot loading" id="dot-probe-google"></div>
+            <div class="tech-body">
+                <div class="tech-name">
+                    Google Ads (fetch no-cors)
+                    <span class="tech-tag">probe-google</span>
+                    <span class="tech-tag" style="color:#6b7089;background:rgba(255,255,255,0.04)">вес 30%</span>
+                </div>
+                <div class="tech-desc">
+                    <code>fetch('pagead2.googlesyndication.com', {mode:'no-cors'})</code> —
+                    AdBlock блокирует на сетевом уровне → TypeError.
+                    Opaque-ответ означает отсутствие блокировки.
+                </div>
+                <div class="tech-result" id="tr-probe-google"></div>
+            </div>
+        </div>
+
+        <div class="tech-card" id="tc-probe-dcm">
+            <div class="tech-dot loading" id="dot-probe-dcm"></div>
+            <div class="tech-body">
+                <div class="tech-name">
+                    DoubleClick / GAM (fetch no-cors)
+                    <span class="tech-tag">probe-dcm</span>
+                    <span class="tech-tag" style="color:#6b7089;background:rgba(255,255,255,0.04)">вес 20%</span>
+                </div>
+                <div class="tech-desc">
+                    <code>fetch('securepubads.g.doubleclick.net', {mode:'no-cors'})</code> —
+                    независимый зонд к Google Ad Manager. Блокируется всеми основными
+                    листами фильтров (EasyList, uBlock Origin, EasyPrivacy).
+                </div>
+                <div class="tech-result" id="tr-probe-dcm"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Кнопка повтора ── -->
+    <div class="btn-row">
+        <button class="btn-rerun" id="btn-rerun" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Запустить повторно
+        </button>
+    </div>
+
+    <!-- ── Справка ── -->
+    <div class="info-box">
+        <h3>Как это работает</h3>
+        <ul>
+            <li>
+                <strong>css-bait (50%)</strong> — создаёт невидимые div с классами
+                <code>adsbox</code>, <code>adsbygoogle</code>, <code>doubleclick</code>.
+                Блокировщики инжектируют CSS-правило <code>display:none!important</code>,
+                и <code>offsetHeight</code> элементов становится 0.
+            </li>
+            <li>
+                <strong>probe-google (30%)</strong> — <code>fetch</code> в режиме <code>no-cors</code>
+                к <code>pagead2.googlesyndication.com</code>. Все адблокеры блокируют этот
+                домен на сетевом уровне → <code>TypeError</code>. Opaque-ответ = не заблокирован.
+            </li>
+            <li>
+                <strong>probe-dcm (20%)</strong> — аналогичный <code>no-cors fetch</code>
+                к <code>securepubads.g.doubleclick.net</code> (Google Ad Manager).
+                Независимый зонд для подтверждения результата.
+            </li>
+            <li>
+                <strong>confidence</strong> — взвешенная сумма сигналов по не-пропущенным техникам.
+                Порог вердикта «заблокировано» — ≥ 50%.
+            </li>
+        </ul>
+
+        <button class="raw-toggle" id="raw-toggle" style="display:none">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+            Сырой результат JSON
+        </button>
+        <div class="raw-block" id="raw-block"></div>
+    </div>
+
+</div><!-- .page-wrap -->
+
+<script src="uadbdetector.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    /* ── Иконки SVG ── */
+    var ICONS = {
+        blocked: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e05252" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
+        clean:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4eca7a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+        partial: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e0a04a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    };
+
+    /* ── Сброс UI перед новым запуском ── */
+    function resetUI() {
+        /* Вердикт → loading */
+        var card = document.getElementById('verdict-card');
+        card.className = 'verdict-card state-loading';
+
+        var icon = document.getElementById('verdict-icon');
+        icon.className = 'verdict-icon loading';
+        icon.innerHTML = '<div class="spinner"></div>';
+
+        document.getElementById('verdict-label').textContent = 'Анализируем…';
+        document.getElementById('verdict-sub').textContent   = 'Запускаем все зонды. Подождите секунду.';
+        document.getElementById('conf-wrap').style.display  = 'none';
+        document.getElementById('conf-bar').style.width     = '0%';
+        document.getElementById('raw-toggle').style.display = 'none';
+        document.getElementById('raw-block').classList.remove('open');
+
+        /* Техники → loading */
+        ['css-bait', 'probe-google', 'probe-dcm'].forEach(function (k) {
+            var dot  = document.getElementById('dot-' + k);
+            var tc   = document.getElementById('tc-' + k);
+            var tr   = document.getElementById('tr-' + k);
+            if (dot) dot.className  = 'tech-dot loading';
+            if (tc)  tc.className   = 'tech-card';
+            if (tr)  { tr.className = 'tech-result'; tr.textContent = ''; }
+        });
+    }
+
+    /* ── Обновить карточку одной техники ── */
+    function updateTech(s) {
+        var key    = s.technique;
+        var dot    = document.getElementById('dot-'  + key);
+        var card   = document.getElementById('tc-'   + key);
+        var result = document.getElementById('tr-'   + key);
+        if (!dot || !card || !result) return;
+
+        var state   = s.skipped ? 'skipped' : (s.blocked ? 'blocked' : 'clean');
+        var verdict = s.skipped
+            ? '⚠ Пропущено'
+            : (s.blocked ? '✕ Заблокировано' : '✓ Не заблокировано');
+        var detail  = s.detail || s.reason || '';
+
+        dot.className    = 'tech-dot '          + state;
+        card.className   = 'tech-card done '    + state;
+        result.textContent = verdict + (detail ? ' — ' + detail : '');
+        result.className = 'tech-result visible ' + state;
+    }
+
+    /* ── Показать итоговый вердикт ── */
+    function showVerdict(state, label, sub, conf) {
+        var card  = document.getElementById('verdict-card');
+        var icon  = document.getElementById('verdict-icon');
+        var lbl   = document.getElementById('verdict-label');
+        var sub_  = document.getElementById('verdict-sub');
+        var confW = document.getElementById('conf-wrap');
+        var bar   = document.getElementById('conf-bar');
+        var pct   = document.getElementById('conf-pct');
+
+        card.className  = 'verdict-card state-' + state;
+        icon.className  = 'verdict-icon ' + state;
+        icon.innerHTML  = ICONS[state] || '';
+        lbl.textContent = label;
+        sub_.textContent = sub;
+
+        confW.style.display = '';
+        pct.textContent     = conf + '%';
+        var col = conf >= 50 ? '#e05252' : conf >= 20 ? '#e0a04a' : '#4eca7a';
+        bar.style.width      = conf + '%';
+        bar.style.background = col;
+        pct.style.color      = col;
+    }
+
+    /* ── Основной запуск ── */
+    async function runDetect() {
+        document.getElementById('btn-rerun').disabled = true;
+        resetUI();
+
+        var result;
+        try {
+            result = await UADBDetector.detect();
+        } catch (e) {
+            showVerdict('partial', 'Ошибка детекции', String(e), 0);
+            document.getElementById('btn-rerun').disabled = false;
+            return;
+        }
+
+        /* Карточки техник */
+        result.signals.forEach(updateTech);
+
+        /* Итоговый вердикт */
+        if (result.blocked) {
+            showVerdict(
+                'blocked',
+                'AdBlock обнаружен',
+                'Один или несколько сигналов указывают на активный блокировщик рекламы.',
+                result.confidence
+            );
+        } else if (result.confidence >= 20) {
+            showVerdict(
+                'partial',
+                'Возможен частичный блок',
+                'Часть сигналов неоднозначна. Блокировщик может присутствовать.',
+                result.confidence
+            );
+        } else {
+            showVerdict(
+                'clean',
+                'AdBlock не обнаружен',
+                'Все проверки пройдены. Рекламный блокировщик не выявлен.',
+                result.confidence
+            );
+        }
+
+        /* Raw JSON */
+        var rawBtn   = document.getElementById('raw-toggle');
+        var rawBlock = document.getElementById('raw-block');
+        rawBlock.textContent = JSON.stringify(result, null, 2);
+        rawBtn.style.display = '';
+        rawBtn.onclick = function () {
+            rawBlock.classList.toggle('open');
+            rawBtn.querySelector('svg').style.transform =
+                rawBlock.classList.contains('open') ? 'rotate(90deg)' : '';
+        };
+
+        document.getElementById('btn-rerun').disabled = false;
+    }
+
+    /* ── Инит ── */
+    if (typeof UADBDetector === 'undefined') {
+        document.getElementById('verdict-label').textContent = 'Ошибка загрузки модуля';
+        document.getElementById('verdict-sub').textContent   = 'uadbdetector.js не загружен — проверьте путь к файлу.';
+        return;
+    }
+
+    document.getElementById('version-badge').textContent = 'v' + UADBDetector.VERSION;
+    document.getElementById('btn-rerun').addEventListener('click', runDetect);
+
+    runDetect();
+}());
+</script>
+</body>
+</html>
