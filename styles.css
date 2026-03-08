@@ -1116,13 +1116,13 @@ body.anim-s2 #s2 .big-h em {
 
 /* 6. Кому это нужно? — человечек машет рукой */
 .cap-i-wavearm {
-    transform-origin: 12px 10.5px;
-    animation: cap-wave 1.6s ease-in-out infinite;
+    transform-origin: 15px 9.5px;
+    animation: cap-wave 1.4s ease-in-out infinite;
 }
 @keyframes cap-wave {
     0%, 100% { transform: rotate(0deg);   }
-    25%      { transform: rotate(-28deg); }
-    75%      { transform: rotate(16deg);  }
+    30%      { transform: rotate(-18deg); }
+    65%      { transform: rotate(22deg);  }
 }
 
 /* 2. Авторский дизайн — сердце бьётся */
