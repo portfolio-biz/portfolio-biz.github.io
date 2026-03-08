@@ -40,6 +40,78 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
+        // ════ ОСОБЫЙ ПЕРЕХОД: «Наши услуги» (2) → «Наше портфолио» (3) ════
+        // Старый слайд остаётся на месте, новый выезжает снизу и перекрывает его
+        if (prev === 2 && cur === 3) {
+            const s3el = document.getElementById('s3');
+            // Компенсируем движение wrap'а: wrap едет на -100dvh, слайд на +100dvh = визуально стоит
+            s3el.style.transition = `transform var(--dur) var(--ease)`;
+            s3el.style.transform = `translateY(100${slideUnit})`;
+
+            // Входящий слайд (#s4) едет естественно снизу (через wrap);
+            // inner-контент без дополнительного сдвига — просто появляется
+            if (inners[cur]) {
+                inners[cur].style.transition = 'none';
+                inners[cur].style.transform = 'translateY(0)';
+                inners[cur].style.opacity = '1';
+            }
+
+            wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
+            bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+            counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+            for (let i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === cur);
+            document.body.classList.toggle('s4', DARK.has(cur));
+            document.body.classList.toggle('on-home', cur === 0);
+
+            setTimeout(() => {
+                // Убираем компенсацию без анимации — слайд уже за кадром
+                s3el.style.transition = 'none';
+                s3el.style.transform = '';
+                if (inners[prev]) {
+                    inners[prev].style.transform = 'translateY(0)';
+                    inners[prev].style.opacity = '1';
+                }
+                // восстанавливаем transition на inner входящего — чтобы обратный переход мог плавно анимировать
+                if (inners[cur]) inners[cur].style.transition = '';
+                busy = false;
+            }, 820);
+            return;
+        }
+        // ══════════════════════════════════════════════════════════════════════
+
+        // ════ ОСОБЫЙ ПЕРЕХОД: «Наше портфолио» (3) → «Готовы начать?» (4) — та же механика ════
+        if (prev === 3 && cur === 4) {
+            const s4el = document.getElementById('s4');
+            s4el.style.transition = `transform var(--dur) var(--ease)`;
+            s4el.style.transform = `translateY(100${slideUnit})`;
+
+            if (inners[cur]) {
+                inners[cur].style.transition = 'none';
+                inners[cur].style.transform = 'translateY(0)';
+                inners[cur].style.opacity = '1';
+            }
+
+            wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
+            bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+            counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
+            for (let i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === cur);
+            document.body.classList.toggle('s4', DARK.has(cur));
+            document.body.classList.toggle('on-home', cur === 0);
+
+            setTimeout(() => {
+                s4el.style.transition = 'none';
+                s4el.style.transform = '';
+                if (inners[prev]) {
+                    inners[prev].style.transform = 'translateY(0)';
+                    inners[prev].style.opacity = '1';
+                }
+                if (inners[cur]) inners[cur].style.transition = '';
+                busy = false;
+            }, 820);
+            return;
+        }
+        // ══════════════════════════════════════════════════════════════════════
+
         // OUT: outgoing content
         if (inners[prev]) {
             inners[prev].style.transform = `translateY(${dir * -60}px)`;
@@ -179,15 +251,18 @@
             particleCanvas.width = Math.round(pW * dpr);
             particleCanvas.height = Math.round(pH * dpr);
             pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            const count = Math.min(Math.floor(pW * pH / 200), 350); // кучность
+            // Кол-во узлов пропорционально площади относительно эталона 1440×900 —
+            // на маленьком экране визуальная плотность остаётся той же
+            const REF = 1440 * 900;
+            const finalCount = Math.max(Math.min(Math.round((pW * pH / REF) * 200), 320), 30);
             // Jittered grid: делим canvas на ячейки, одна частица на ячейку → нет проплешин
-            const cols = Math.round(Math.sqrt(count * (pW / pH)));
-            const rows = Math.ceil(count / cols);
+            const cols = Math.round(Math.sqrt(finalCount * (pW / pH)));
+            const rows = Math.ceil(finalCount / cols);
             const cellW = pW / cols, cellH = pH / rows;
             particles = [];
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    if (particles.length >= count) break;
+                    if (particles.length >= finalCount) break;
                     const ox = (c + 0.1 + Math.random() * 0.8) * cellW;
                     const oy = (r + 0.1 + Math.random() * 0.8) * cellH;
                     const depth = 0.3 + Math.random() * 0.7;
