@@ -269,14 +269,15 @@ body.s4 #site-logo .logo-img {
     bottom: 18px;
     left: 0;
     width: clamp(110px, 16vw, 200px);
+    max-height: 200px;
     height: auto;
     pointer-events: none;
     z-index: 5;
     transform: translateX(-110%);
     opacity: 0;
-    will-change: transform;
 }
 .s3-cat.cat-run {
+    will-change: transform;
     animation: cat-run 9.6s 0.15s linear forwards;
 }
 @keyframes cat-run {
@@ -1182,6 +1183,7 @@ body.anim-s2 #s2 .big-h em {
     ═══════════════════════════════ */
 #s3 {
     background: #ffffff;
+    overflow: hidden;
 }
 
 .s3-blob {
