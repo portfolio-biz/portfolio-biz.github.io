@@ -40,10 +40,17 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
-        // Плавная подсветка "любой" на слайде #s2
-        if (cur === 1) {
-            document.body.classList.remove('anim-s2');
+        // Плавная подсветка "любой" на слайде #s2 — только при первом посещении
+        if (cur === 1 && !document.body.classList.contains('anim-s2')) {
             requestAnimationFrame(() => document.body.classList.add('anim-s2'));
+        }
+
+        // Котик пробегает по слайду #s3 — только один раз
+        if (cur === 2) {
+            const cat = document.querySelector('.s3-cat');
+            if (cat && !cat.classList.contains('cat-run')) {
+                requestAnimationFrame(() => cat.classList.add('cat-run'));
+            }
         }
 
         // ════ ОСОБЫЙ ПЕРЕХОД: «Наши услуги» (2) → «Наше портфолио» (3) ════
