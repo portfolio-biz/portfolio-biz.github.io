@@ -278,12 +278,22 @@ body.s4 #site-logo .logo-img {
 }
 .s3-cat.cat-run {
     will-change: transform;
-    animation: cat-run 9.6s 0.15s linear forwards;
+    animation: cat-run 12s 0.15s linear forwards;
 }
 @keyframes cat-run {
     0%   { transform: translateX(-110%); opacity: 1; }
     92%  { opacity: 1; }
     100% { transform: translateX(calc(100vw + 110%)); opacity: 0; }
+}
+
+@media (max-width: 900px) {
+    .s3-cat {
+        width: clamp(143px, 20.8vw, 260px);
+        max-height: 260px;
+    }
+    .s3-cat.cat-run {
+        animation-duration: 5.2s;
+    }
 }
 
 
