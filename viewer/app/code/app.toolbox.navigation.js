@@ -10,6 +10,9 @@ let _isInitialLoad = true;
 function loadSite(index, skipSync = false) {
     if (index < 0 || index >= TANDEM_SITES.length) return;
 
+    // Smart Preload: отменяем pending таймер старого preload’а — пользователь уже перешёл
+    if (typeof SmartPreload !== 'undefined') SmartPreload.cancel();
+
     App.state.currentIndex = index;
     const site = TANDEM_SITES[index];
     const isHome = site.id === 0;

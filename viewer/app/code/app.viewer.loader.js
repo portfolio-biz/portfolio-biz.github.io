@@ -46,6 +46,8 @@ App.UI.frame.addEventListener('load', () => {
     if (!App.state.isRealLoad) return;
     App.state.isRealLoad = false;
     finishProgress();
+    // Smart Preload: основной фрейм готов, сеть свободна — запускаем фоновую загрузку следующего
+    if (typeof SmartPreload !== 'undefined') SmartPreload.scheduleNext(App.state.currentIndex);
     if (App.state.onFrameLoadCallback) {
         const cb = App.state.onFrameLoadCallback;
         App.state.onFrameLoadCallback = null;
