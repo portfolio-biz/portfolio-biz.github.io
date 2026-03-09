@@ -1,0 +1,168 @@
+/* ══════════════════════════════════════════
+   SVG ICON ANIMATIONS — cap-icon (.cap-i-*)
+   ══════════════════════════════════════════ */
+
+/* 1. Чистый код — строки кода появляются одна за другой через stroke-dashoffset */
+.cap-i-cl1 {
+    stroke-dasharray: 8;
+    stroke-dashoffset: 8;
+    animation: cap-draw1 2.8s 0.2s ease-in-out infinite;
+}
+.cap-i-cl2 {
+    stroke-dasharray: 5;
+    stroke-dashoffset: 5;
+    animation: cap-draw2 2.8s 0.7s ease-in-out infinite;
+}
+@keyframes cap-draw1 {
+    0%,
+    8% {
+        stroke-dashoffset: 8;
+    }
+    45%,
+    60% {
+        stroke-dashoffset: 0;
+    }
+    92%,
+    100% {
+        stroke-dashoffset: 8;
+    }
+}
+@keyframes cap-draw2 {
+    0%,
+    8% {
+        stroke-dashoffset: 5;
+    }
+    45%,
+    60% {
+        stroke-dashoffset: 0;
+    }
+    92%,
+    100% {
+        stroke-dashoffset: 5;
+    }
+}
+
+/* 2. Авторский дизайн — лучи вращаются */
+.cap-i-rays {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cap-spin 10s linear infinite;
+}
+@keyframes cap-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 2. Авторский дизайн — сердце бьётся */
+.cap-i-heart {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cap-beat 1.7s ease-in-out infinite;
+}
+@keyframes cap-beat {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    15% {
+        transform: scale(1.18);
+    }
+    35% {
+        transform: scale(0.93);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    65% {
+        transform: scale(1);
+    }
+}
+
+/* 3. Полная адаптивность — углы рамки пульсируют, центральная точка мигает */
+.cap-i-fr {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cap-expand 2.4s ease-in-out infinite;
+}
+.cap-i-dot {
+    animation: cap-dot-pulse 2.4s ease-in-out infinite;
+}
+@keyframes cap-expand {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+@keyframes cap-dot-pulse {
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 4. Анимации & эффекты — молния пульсирует */
+.cap-i-bolt {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cap-zap 2s ease-in-out infinite;
+}
+@keyframes cap-zap {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(0.88);
+    }
+    45%,
+    55% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* 5. Качество — галочка рисуется */
+.cap-i-check {
+    stroke-dasharray: 11;
+    stroke-dashoffset: 11;
+    animation: cap-check 2.8s ease-in-out infinite;
+}
+@keyframes cap-check {
+    0%,
+    12% {
+        stroke-dashoffset: 11;
+    }
+    50%,
+    68% {
+        stroke-dashoffset: 0;
+    }
+    95%,
+    100% {
+        stroke-dashoffset: 11;
+    }
+}
+
+/* 6. Кому это нужно? — человечек машет рукой */
+.cap-i-wavearm {
+    transform-origin: 15px 9.5px;
+    animation: cap-wave 1.4s ease-in-out infinite;
+}
+@keyframes cap-wave {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    30% {
+        transform: rotate(-18deg);
+    }
+    65% {
+        transform: rotate(22deg);
+    }
+}

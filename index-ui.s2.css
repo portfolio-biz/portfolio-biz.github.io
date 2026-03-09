@@ -1,0 +1,153 @@
+/* ══════════════════════════════════════════
+   SLIDE 2 — CAPABILITIES
+   ══════════════════════════════════════════ */
+
+#s2 {
+    background: #f6f5ff;
+}
+
+.s2-grid-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(124, 110, 245, 0.048) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 110, 245, 0.048) 1px, transparent 1px);
+    background-size: 56px 56px;
+    /* transform instead of background-position — compositor only, zero paint */
+    animation: grid-sh 30s ease-in-out infinite;
+    will-change: transform;
+    mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 0%, transparent 75%);
+}
+
+@keyframes grid-sh {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(8px, 6px);
+    }
+}
+
+.big-h {
+    font-size: clamp(38px, 6.5vw, 82px);
+    font-weight: 800;
+    letter-spacing: -0.038em;
+    line-height: 0.97;
+    color: var(--black);
+    margin-bottom: 10px;
+}
+
+.big-h em {
+    font-style: normal;
+    color: var(--black); /* начальное состояние — чёрный; анимация окрашивает при входе на слайд */
+}
+
+/* Плавная подсветка "любой" при входе на слайд #s2 */
+body.anim-s2 #s2 .big-h em {
+    animation: s2-em-in 0.95s 0.2s var(--ease) both;
+}
+@keyframes s2-em-in {
+    from {
+        color: #09090f;
+    }
+    to {
+        color: #7c6ef5;
+    }
+}
+
+.cap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 36px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    overflow: hidden;
+    counter-reset: cap-counter;
+}
+
+.cap-card {
+    position: relative;
+    background: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 26px 22px 24px;
+    counter-increment: cap-counter;
+    /* background hover via ::before opacity — compositor, no paint */
+}
+
+/* hover fill — pre-rendered, animate opacity only */
+.cap-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(124, 110, 245, 0.038);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+}
+
+.cap-card:hover::after {
+    opacity: 1;
+}
+
+/* index number */
+.cap-card::before {
+    content: counter(cap-counter, decimal-leading-zero);
+    position: absolute;
+    top: 22px;
+    right: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(0, 0, 0, 0.12);
+    font-family: "Syne", sans-serif;
+    line-height: 1;
+}
+
+.cap-card:nth-child(3n) {
+    border-right: none;
+}
+
+.cap-card:nth-child(n + 4) {
+    border-bottom: none;
+}
+
+.cap-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--black);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: #fff;
+}
+
+.cap-icon svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.cap-card h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--black);
+    margin-bottom: 7px;
+    font-family: "Syne", sans-serif;
+    line-height: 1.2;
+}
+
+.cap-card p {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.72;
+    font-family: "Inter", sans-serif;
+}

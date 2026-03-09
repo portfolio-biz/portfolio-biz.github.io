@@ -1,0 +1,59 @@
+/* ── CUSTOM CURSOR ── */
+
+/* pointer devices only */
+@media (pointer: fine) {
+    html,
+    body {
+        cursor: none;
+    }
+    * {
+        cursor: none !important;
+    }
+}
+
+/* restore defaults on touch devices */
+@media (pointer: coarse) {
+    body,
+    * {
+        cursor: auto !important;
+    }
+    #cursor-dot,
+    #cursor-trail-canvas {
+        display: none !important;
+    }
+    .slide-inner {
+        will-change: auto; /* снимаем GPU-promotion с 5 inner'ов — экономим VRAM на мобайле */
+    }
+}
+
+/* cursor elements — hidden on touch */
+#cursor-dot,
+#cursor-trail-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 100001; /* выше #page-loader (100000) — курсор виден поверх прелоадера */
+    will-change: transform;
+}
+
+/* hide all custom cursor elements on touch */
+@media (pointer: coarse) {
+    #cursor-dot,
+    #cursor-trail-canvas {
+        display: none;
+    }
+}
+
+#cursor-dot {
+    width: 4px;
+    height: 4px;
+    margin: -2px 0 0 -2px;
+    background: var(--accent);
+    /* background not animated — compositor-only via opacity below */
+}
+
+body.s4 #cursor-dot {
+    background: #c4b5fd;
+}
