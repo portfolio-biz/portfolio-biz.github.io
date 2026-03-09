@@ -337,6 +337,8 @@
     // circular buffer без GC: не создаём новых объектов 60 раз/с, переиспользуем существующие
     const TBUF = Array.from({ length: TRAIL_LEN }, () => ({ x: 0, y: 0, t: 0 }));
     let tHead = 0, tSize = 0; // голова и заполненность буфера
+    let clickScale = 1;          // пунч точки при клике — затухает обратно через lerp
+    const clickRipples = [];     // [{x, y, t}] — кольца-всплески на trailCanvas
     let trailCanvas = null, trailCtx = null; // null на мобиле (no pointer:fine)
     let trailW = 0, trailH = 0; // логические CSS-пиксели, используются в clearRect
 
@@ -487,10 +489,11 @@
         if (isPointerFine && dot) {
             const tsd = hovering ? 0.5 : 1;
             sd += (tsd - sd) * 0.18;
+            if (clickScale > 1.002) clickScale += (1 - clickScale) * 0.14; else clickScale = 1;
             // пишем в DOM только при реальном изменении — избегаем лишних layout/paint
-            if (mx !== _prevMx || my !== _prevMy || Math.abs(sd - _prevSd) > 0.0005) {
-                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd})`;
-                _prevMx = mx; _prevMy = my; _prevSd = sd;
+            if (mx !== _prevMx || my !== _prevMy || Math.abs(sd * clickScale - _prevSd) > 0.0005) {
+                dot.style.transform = `translate(${mx}px,${my}px) scale(${sd * clickScale})`;
+                _prevMx = mx; _prevMy = my; _prevSd = sd * clickScale;
             }
         }
 
@@ -521,6 +524,37 @@
             if (tSize < TRAIL_LEN) tSize++;
 
             trailCtx.clearRect(0, 0, trailW, trailH);
+
+            // ── Click ripples ──
+            const RIPPLE_DUR = 520;
+            for (let i = clickRipples.length - 1; i >= 0; i--) {
+                const rp = clickRipples[i];
+                const age = now - rp.t;
+                if (age < 0) continue; // delayed echo ещё не настал
+                if (age > RIPPLE_DUR) { clickRipples.splice(i, 1); continue; }
+                const prog = age / RIPPLE_DUR;
+                const eased = 1 - Math.pow(1 - prog, 3); // ease-out cubic
+                const radius = 3 + eased * (rp.echo ? 28 : 46);
+                const alpha = (1 - prog) * (rp.echo ? 0.38 : 0.62);
+                // кольцо
+                trailCtx.beginPath();
+                trailCtx.arc(rp.x, rp.y, radius, 0, 6.2832);
+                trailCtx.strokeStyle = `rgba(180,148,255,${alpha.toFixed(3)})`;
+                trailCtx.lineWidth = rp.echo ? 0.8 : 1.4;
+                trailCtx.stroke();
+                // внутренняя вспышка (flash) — только у главного
+                if (!rp.echo && prog < 0.4) {
+                    const flashA = (1 - prog / 0.4) * 0.16;
+                    const grad = trailCtx.createRadialGradient(rp.x, rp.y, 0, rp.x, rp.y, 3 + eased * 22);
+                    grad.addColorStop(0, `rgba(220,200,255,${flashA.toFixed(3)})`);
+                    grad.addColorStop(1, 'rgba(167,139,250,0)');
+                    trailCtx.fillStyle = grad;
+                    trailCtx.beginPath();
+                    trailCtx.arc(rp.x, rp.y, 3 + eased * 22, 0, 6.2832);
+                    trailCtx.fill();
+                }
+            }
+
             const len = tSize;
 
             if (len > 1) {
@@ -615,7 +649,15 @@
         if (e.persisted) { stopLoop(); restartLoop(); }
     });
 
-    document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
+    document.addEventListener('mousedown', () => {
+        clicking = true;
+        if (isPointerFine) {
+            clickScale = 2.8; // пунч точки — плавно затухает через lerp в tick()
+            const t = performance.now();
+            clickRipples.push({ x: mx, y: my, t });           // главное кольцо
+            clickRipples.push({ x: mx, y: my, t: t + 120, echo: true }); // эхо
+        }
+    }, { passive: true });
     document.addEventListener('mouseup', () => { clicking = false; }, { passive: true });
     document.addEventListener('mouseleave', () => {
         // Firefox ложно стреляет mouseleave во время CSS-transition на fp-wrap:
