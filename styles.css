@@ -2047,10 +2047,14 @@ body.anim-s2 #s2 .big-h em {
 .contact-cards {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    /* gap:1px + background — разделитель = 1px flex-gap, не принадлежащий ни одной карточке;
+       overflow:hidden клипает card backgrounds по border-radius контейнера — без него
+       background прорезается в угловые зазоры (12px card-radius vs 14px container-radius) */
+    gap: 1px;
+    background: rgba(0, 0, 0, 0.08);
     border: 1.5px solid rgba(0, 0, 0, 0.1);
     border-radius: 14px;
-    /* overflow: hidden убран — срезал descenders (g, p, y) в Syne */
+    overflow: hidden;
 }
 
 /* ─── OFERTA LINK ─── */
@@ -2118,23 +2122,13 @@ body.anim-s2 #s2 .big-h em {
     padding: 16px 18px;
     background: #fff;
     border-radius: 0;
-    transform: translateX(0);
-    transition: transform 0.22s ease;
+    /* margin-left вместо transform: translateX — не создаёт stacking context,
+       поэтому при hover Firefox не пересчитывает высоту карточки в физических пикселях
+       и не съедает 1px gap контейнера */
+    margin-left: 0;
+    transition: margin-left 0.22s ease;
     position: relative;
     overflow: visible;
-}
-
-/* разделитель — ::after безусловно принадлежит самой карточке (не зависит от соседей),
-   bottom:0 — нижний пиксель box карточки, поверх её фона, под фоном следующей */
-.c-card:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.08);
-    pointer-events: none;
 }
 
 /* скруглённые углы вместо overflow:hidden на родителе */
@@ -2157,7 +2151,7 @@ body.anim-s2 #s2 .big-h em {
 }
 
 .c-card:hover {
-    transform: translateX(4px);
+    margin-left: 4px;
 }
 
 .c-card:hover::before {
