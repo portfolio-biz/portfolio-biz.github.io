@@ -2117,14 +2117,19 @@ body.anim-s2 #s2 .big-h em {
     gap: 14px;
     padding: 16px 18px;
     background: #fff;
-    /* border-bottom внутри собственного stacking context — не зависит от соседа (gap:0)
-       translateX(0) всегда присутствует — Firefox не переключает режим рендеринга текста */
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    /* border-bottom перенесён на border-top следующей карточки:
+       border-bottom card 1 покрывается белым фоном card 2 при stacking context compositing;
+       border-top card 2 рисуется внутри её собственного stacking context — всегда виден */
     border-radius: 0;
     transform: translateX(0);
     transition: transform 0.22s ease;
     position: relative;
     overflow: visible;
+}
+
+/* разделитель — часть стека самой карточки, не перекрывается предыдущей */
+.c-card + .c-card {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 /* скруглённые углы вместо overflow:hidden на родителе */
@@ -2133,7 +2138,6 @@ body.anim-s2 #s2 .big-h em {
 }
 .c-card:last-child {
     border-radius: 0 0 12px 12px;
-    border-bottom: none;
 }
 
 /* background hover via opacity — no paint */
