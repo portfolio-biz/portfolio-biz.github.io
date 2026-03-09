@@ -40,6 +40,13 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
+        // сбрасываем хвост и сразу очищаем canvas — не тянем старый след через переход
+        tHead = 0; tSize = 0;
+        if (trailCtx) trailCtx.clearRect(0, 0, trailW, trailH);
+        // GPU-promotion для анимируемой пары слайдов — особенно важно на мобайле
+        if (inners[prev]) inners[prev].style.willChange = 'transform, opacity';
+        if (inners[cur])  inners[cur].style.willChange  = 'transform, opacity';
+
         // Скрываем scroll-hint при уходе с главной
         if (prev === 0) {
             const hint = document.getElementById('scroll-hint');
@@ -117,6 +124,7 @@
                 inners[prev].style.transition = 'none';
                 inners[prev].style.transform = 'translateY(0)';
                 inners[prev].style.opacity = '1';
+                inners[prev].style.willChange = ''; // высвобождаем GPU-слой у ушедшего слайда
                 requestAnimationFrame(() => { inners[prev].style.transition = ''; });
             }
             if (bgEl) {
@@ -489,6 +497,8 @@
         }
 
         /* ── Trail ── */
+        // trail рендерится всегда: position:fixed, собственный GPU-слой —
+        // не мешает переходу слайдов; буфер сброшен в goTo(), хвост отрастает плавно
         if (trailCtx && trailActive) {
             // запись в circular buffer — нет аллокации объектов, нет shift() O(n)
             TBUF[tHead].x = mx; TBUF[tHead].y = my; TBUF[tHead].t = now;
@@ -541,8 +551,10 @@
             updateDotMag();
         }
 
-        /* s4 grid fish-eye — только на десктопе со слайдом 4 */
-        if (cur === 3 && s4Canvas && isPointerFine) {
+        /* s4 grid fish-eye — только на десктопе со слайдом 4, только после перехода:
+           drawS4Grid делает ~40 stroke()-вызовов на canvas внутри трансформируемого fp-wrap —
+           на Firefox это repaint каждый кадр; пауза на 820ms перехода полностью снимает лаг */
+        if (cur === 3 && s4Canvas && isPointerFine && !transitioning) {
             gridX += (mx - gridX) * 0.03;
             gridY += (my - gridY) * 0.03;
             if (Math.abs(gridX - _s4DrawX) > 0.2 || Math.abs(gridY - _s4DrawY) > 0.2) {
@@ -580,6 +592,9 @@
     document.addEventListener('mousedown', () => { clicking = true; }, { passive: true });
     document.addEventListener('mouseup', () => { clicking = false; }, { passive: true });
     document.addEventListener('mouseleave', () => {
+        // Firefox ложно стреляет mouseleave во время CSS-transition на fp-wrap:
+        // hit-test перестраивается пока контент движется → курсор пропадает на весь переход
+        if (busy) return;
         dot.style.opacity = '0';
         if (trailCanvas) trailCanvas.style.opacity = '0';
         // сбрасываем буфер и флаг — при возврате курсора в другом месте
