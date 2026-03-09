@@ -10,12 +10,14 @@
     const dotEls = document.querySelectorAll('.dot');
     const inners = document.querySelectorAll('.slide-inner');
     // bg layers move at 0.6x — real parallax
+    // ВАЖНО: элементы с filter:blur НЕ входят в массив —
+    // transform-transition на blur-элементах = CPU repaint каждый кадр в Firefox
     const bgLayers = [
         document.querySelector('#s1 .hero-blob-wrap'),
         document.querySelector('#s2 .s2-grid-bg'),
         document.querySelector('#s3 .s3-lines'),
-        document.querySelector('#s4 .s4-glow'),
-        document.querySelector('#s5 .s5-blob')
+        null, // .s4-glow — filter:blur(70px)
+        null  // .s5-blob — filter:blur(80px)
     ];
     const s4Grid = document.querySelector('#s4 .s4-grid');
     let gridX = 0, gridY = 0; // интерполированная позиция курсора для линзы
@@ -40,7 +42,8 @@
         cur = idx;
         const dir = cur > prev ? 1 : -1;
 
-        // сбрасываем хвост и сразу очищаем canvas — не тянем старый след через переход
+        // флаг для других RAF-циклов (star IIFE) — они должны сделать паузу
+        window._fpSliding = true;
         tHead = 0; tSize = 0;
         if (trailCtx) trailCtx.clearRect(0, 0, trailW, trailH);
         // GPU-promotion для анимируемой пары слайдов — особенно важно на мобайле
@@ -131,6 +134,7 @@
                 bgEl.style.transition = 'none';
                 bgEl.style.transform = 'translateY(0)';
             }
+            window._fpSliding = false;
             transitioning = false; busy = false;
         }, 820);
     }
@@ -410,11 +414,10 @@
         s4Canvas.height = Math.round(s4Grid.offsetHeight * s4Dpr);
         s4Ctx.setTransform(s4Dpr, 0, 0, s4Dpr, 0, 0);
         _s4DrawX = -9999;
-        // на мобайле — рисуем статичную сетку без искажений и больше не трогаем
-        if (!isPointerFine) {
-            const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
-            drawS4Grid(CW / 2, CH / 2, 0);
-        }
+        // рисуем статичный центральный кадр сразу — сетка видна ещё до перехода на слайд 4;
+        // на десктопе динамика подхватит плавно (через lerp gridX/gridY) как только придём на слайд
+        const CW = s4Canvas.width / s4Dpr, CH = s4Canvas.height / s4Dpr;
+        drawS4Grid(CW / 2, CH / 2, 0);
     }
     requestAnimationFrame(initS4Canvas);
     window.addEventListener('resize', initS4Canvas, { passive: true });
@@ -730,7 +733,7 @@
     /* ── Inner canvas: звёзды внутри карточки ── */
     const inner = document.createElement('canvas');
     inner.setAttribute('aria-hidden', 'true');
-    inner.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit;z-index:0;';
+    inner.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit;z-index:0;opacity:0;transition:opacity 1s ease;';
     card.insertBefore(inner, card.firstChild);
     const ic = inner.getContext('2d');
 
@@ -740,7 +743,7 @@
        на iOS/Android даёт неправильную позицию canvas относительно вьюпорта */
     const outer = document.createElement('canvas');
     outer.setAttribute('aria-hidden', 'true');
-    outer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9997;';
+    outer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9997;opacity:0;transition:opacity 1s ease;';
     s3el.appendChild(outer);
     const oc = outer.getContext('2d');
 
@@ -748,6 +751,7 @@
     let raf = null, visible = true, spawnT = 0;
     // частицы не спаунятся во время транзишна слайда — иначе getBoundingClientRect даёт позицию полуехавшего слайда
     let partsReady = false, partsReadyTimer = null;
+    let _slidePaused = true; // true = пока не виден — первое появление тоже fade-in
 
     /* ── Звёзды ── */
     const STARS = 60;
@@ -823,6 +827,27 @@
 
     function draw() {
         if (!visible) { raf = null; return; }
+
+        // во время перехода слайдов — канвасы очищаем один раз и засыпаем:
+        // oc.clearRect на весь слайд (~1920×1080 * DPR) + 60 дуг*кадр = тяжело параллельно с fp-wrap transition
+        if (window._fpSliding) {
+            if (!_slidePaused) {
+                _slidePaused = true;
+                inner.style.opacity = '0';
+                outer.style.opacity = '0';
+                ic.clearRect(0, 0, IW, IH);
+                oc.clearRect(0, 0, OW, OH);
+                parts.length = 0;
+            }
+            raf = requestAnimationFrame(draw);
+            return;
+        }
+        // первый кадр после паузы — CSS fade-in (композитор не нагружает JS, точно 0.45с при любом FPS)
+        if (_slidePaused) {
+            _slidePaused = false;
+            inner.style.opacity = '1';
+            outer.style.opacity = '1';
+        }
 
         /* звёзды — ic.globalAlpha вместо rgba-строки (нет аллокации строк 60×/кадр) */
         ic.clearRect(0, 0, IW, IH);
