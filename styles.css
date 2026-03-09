@@ -1428,6 +1428,9 @@ body.anim-s2 #s2 .big-h em {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    /* translateY(0) в базовом состоянии — Firefox не переключает режим
+       рендеринга текста при окончании hover (transform всегда присутствует) */
+    transform: translateY(0);
     transition:
         border-color 0.25s ease,
         transform 0.25s ease;
@@ -2114,11 +2117,12 @@ body.anim-s2 #s2 .big-h em {
     gap: 14px;
     padding: 16px 18px;
     background: #fff;
+    /* border-bottom внутри собственного stacking context — не зависит от соседа (gap:0)
+       translateX(0) всегда присутствует — Firefox не переключает режим рендеринга текста */
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 0;
+    transform: translateX(0);
     transition: transform 0.22s ease;
-    /* will-change убран — compositor layer клипает ink overflow (descenders) в Safari */
-    box-shadow: none;
     position: relative;
     overflow: visible;
 }
@@ -2129,6 +2133,7 @@ body.anim-s2 #s2 .big-h em {
 }
 .c-card:last-child {
     border-radius: 0 0 12px 12px;
+    border-bottom: none;
 }
 
 /* background hover via opacity — no paint */
@@ -2140,10 +2145,6 @@ body.anim-s2 #s2 .big-h em {
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
-}
-
-.c-card:last-child {
-    border-bottom: none;
 }
 
 .c-card:hover {

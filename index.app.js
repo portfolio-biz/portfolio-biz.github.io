@@ -20,7 +20,7 @@
         null  // .s5-blob — filter:blur(80px)
     ];
     const s4Grid = document.querySelector('#s4 .s4-grid');
-    let gridX = 0, gridY = 0; // интерполированная позиция курсора для линзы
+    let gridX = 0, gridY = 0, gridStr = 0; // интерполированная позиция и сила линзы для канваса S4
     let s4Canvas = null, s4Ctx = null, s4Dpr = 1, _s4DrawX = -9999, _s4DrawY = -9999;
     let s4VignGrad = null, _s4VignW = -1, _s4VignH = -1; // кэш виньетки — пересоздаётся лишь при resize
     if (s4Grid) {
@@ -135,6 +135,9 @@
                 bgEl.style.transform = 'translateY(0)';
             }
             window._fpSliding = false;
+            // если пришли на слайд 4 — снапаем gridX/Y к текущей позиции курсора
+            // lerp (коэфф 0.03) будет интерполировать уже от точной точки — нет "проплыва
+            if (cur === 3 && isPointerFine) { gridX = mx; gridY = my; gridStr = 0; _s4DrawX = -9999; }
             transitioning = false; busy = false;
         }, 820);
     }
@@ -554,15 +557,26 @@
             updateDotMag();
         }
 
-        /* s4 grid fish-eye — только на десктопе со слайдом 4, только после перехода:
-           drawS4Grid делает ~40 stroke()-вызовов на canvas внутри трансформируемого fp-wrap —
-           на Firefox это repaint каждый кадр; пауза на 820ms перехода полностью снимает лаг */
-        if (cur === 3 && s4Canvas && isPointerFine && !transitioning) {
-            gridX += (mx - gridX) * 0.03;
-            gridY += (my - gridY) * 0.03;
-            if (Math.abs(gridX - _s4DrawX) > 0.2 || Math.abs(gridY - _s4DrawY) > 0.2) {
+        /* s4 grid fish-eye: gridStr lerp-ится к 0.07 на слайде 4 (плавный fade-in)
+           и к 0 при уходе (плавный fade-out).  drawS4Grid вызывается только
+           пока есть изменения (cursor / gridStr) — не нагружает Firefox паразитными repaint'ami */
+        if (s4Canvas && isPointerFine) {
+            const onS4 = cur === 3 && !transitioning;
+            const prevStr = gridStr;
+            gridStr += ((onS4 ? 0.07 : 0) - gridStr) * 0.05;
+            if (onS4) {
+                gridX += (mx - gridX) * 0.03;
+                gridY += (my - gridY) * 0.03;
+            }
+            const strChanged = Math.abs(gridStr - prevStr) > 0.0003;
+            const posChanged = Math.abs(gridX - _s4DrawX) > 0.2 || Math.abs(gridY - _s4DrawY) > 0.2;
+            if ((strChanged || posChanged) && gridStr > 0.0005) {
                 _s4DrawX = gridX; _s4DrawY = gridY;
-                drawS4Grid(gridX + 30, gridY + 30, 0.07);
+                drawS4Grid(gridX + 30, gridY + 30, gridStr);
+            } else if (strChanged && gridStr <= 0.0005 && prevStr > 0.0005) {
+                // полное затухание — рисуем чистый статичный кадр
+                _s4DrawX = -9999;
+                drawS4Grid(s4Canvas.width / s4Dpr / 2, s4Canvas.height / s4Dpr / 2, 0);
             }
         }
 
