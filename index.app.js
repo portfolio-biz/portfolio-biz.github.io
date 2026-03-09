@@ -346,7 +346,7 @@
         // ResizeObserver стреляет УЖЕ после layout — bitmap и CSS-размер всегда синхронны,
         // никакого race condition нет (resize event + RAF не успевали — RO успевает).
         trailCanvas.style.cssText =
-            'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9998;';
+            'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:100001;';
         document.body.appendChild(trailCanvas);
         trailCtx = trailCanvas.getContext('2d');
 
