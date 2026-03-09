@@ -282,6 +282,7 @@
             max-height: 100vh;
             display: grid;
             grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
             align-items: center;
             padding: 4.5rem 5vw 2rem;
             position: relative;
@@ -476,11 +477,13 @@
         /* Hero image side */
 
         .hero-visual {
-            position: relative;
+            position: absolute;
+            bottom: 0;
+            left: 5vw;
+            width: calc(50% - 5vw);
             z-index: 2;
             display: flex;
             justify-content: center;
-            align-items: center;
             opacity: 0;
             animation: fadeIn 1.2s 0.5s forwards;
         }
