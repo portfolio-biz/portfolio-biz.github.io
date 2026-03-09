@@ -1199,6 +1199,15 @@ body {
     }
 }
 
+/* FOUC-guard: js-rv ставится синхронно в <head> до рендера body —
+   хедер скрыт до тех пор, пока скрипт не добавит rv-p + rv-go        */
+html.js-rv #agr-logo,
+html.js-rv #agr-doc-label,
+html.js-rv #agr-title,
+html.js-rv #agr-subtitle {
+    opacity: 0;
+}
+
 /* До запуска — элемент невидим */
 .rv-p {
     opacity: 0;
