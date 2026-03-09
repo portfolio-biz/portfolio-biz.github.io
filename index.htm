@@ -106,6 +106,16 @@
     }
     </script>
 
+    <!-- ══ Resource hints ══════════════════════════════════════════════ -->
+    <!-- preload критических ресурсов — браузер начинает скачивать сразу при парсинге <head>,
+         ещё до того, как дойдёт до <body> со ссылкой / тегом <script> -->
+    <link rel="preload" as="image" href="/icon.png" />
+    <link rel="preload" as="image" href="/logo.png" />
+    <link rel="preload" as="script" href="/viewer/app/code/modules/xfetcher.js" />
+    <link rel="preload" as="script" href="/index.app.js" />
+    <!-- prefetch следующей вероятной страницы (основной CTA → портфолио) -->
+    <link rel="prefetch" href="/viewer/" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- async font load — non-render-blocking (LCP fix) -->
@@ -118,7 +128,7 @@
     <!-- прелодер -->
     <div id="page-loader" aria-hidden="true">
         <div class="pl-inner">
-            <img src="/icon.png" class="pl-logo" alt="" draggable="false" />
+            <img src="/icon.png" class="pl-logo" alt="" draggable="false" fetchpriority="high" />
             <div class="pl-bar">
                 <div class="pl-bar-fill"></div>
             </div>
@@ -298,7 +308,7 @@
         <div class="slide" id="s3" style="top:200vh">
             <button class="slide-logo" onclick="window.location.href='/'" type="button" title="Tandem Sites"><img src="/logo.png" class="logo-img" alt="Tandem Sites" draggable="false" /></button>
             <div class="s3-blob"></div>
-            <img src="/index_media/cat.gif" class="s3-cat" alt="" aria-hidden="true" draggable="false">
+            <img src="/index_media/cat.gif" class="s3-cat" alt="" aria-hidden="true" draggable="false" loading="lazy">
             <div class="slide-inner">
                 <span class="eyebrow">Прайс-лист</span>
                 <h2 class="big-h">Наши услуги</h2>
@@ -433,7 +443,7 @@
                             Нет ни одного вопроса, который нельзя обсудить.
                             Напишите — ответим быстро, честно и по делу.
                         </p>
-                        <button onclick="window.open('https\:\/\/t.me/tandem_sites','_blank','noopener,noreferrer')" class="tg-btn" type="button">
+                        <button onclick="window.open('https://t.me/tandem_sites','_blank','noopener,noreferrer')" class="tg-btn" type="button">
                             <span class="tg-icon-wrap">
                                 <svg viewBox="0 0 24 24">
                                     <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
