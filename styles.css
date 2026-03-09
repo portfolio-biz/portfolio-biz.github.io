@@ -2117,9 +2117,6 @@ body.anim-s2 #s2 .big-h em {
     gap: 14px;
     padding: 16px 18px;
     background: #fff;
-    /* border-bottom перенесён на border-top следующей карточки:
-       border-bottom card 1 покрывается белым фоном card 2 при stacking context compositing;
-       border-top card 2 рисуется внутри её собственного stacking context — всегда виден */
     border-radius: 0;
     transform: translateX(0);
     transition: transform 0.22s ease;
@@ -2127,9 +2124,17 @@ body.anim-s2 #s2 .big-h em {
     overflow: visible;
 }
 
-/* разделитель — часть стека самой карточки, не перекрывается предыдущей */
-.c-card + .c-card {
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+/* разделитель — ::after безусловно принадлежит самой карточке (не зависит от соседей),
+   bottom:0 — нижний пиксель box карточки, поверх её фона, под фоном следующей */
+.c-card:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    pointer-events: none;
 }
 
 /* скруглённые углы вместо overflow:hidden на родителе */

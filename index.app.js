@@ -198,9 +198,18 @@
 
     // skip trail until mouse moves — prevents corner-shoot on load
     let trailActive = false;
+    let _lastMoveTime = 0, _lastMoveX = 0, _lastMoveY = 0; // проверка телепорта
 
     document.addEventListener('mousemove', e => {
         trailActive = true;
+        const now = performance.now();
+        const dx = e.clientX - _lastMoveX, dy = e.clientY - _lastMoveY;
+        // если пауза >50мс и прыжок >100px (выход из окна или из devtools) — сбрасываем хвост
+        if (now - _lastMoveTime > 50 && dx * dx + dy * dy > 10000) {
+            tHead = 0; tSize = 0;
+            if (trailCtx) trailCtx.clearRect(0, 0, trailW, trailH);
+        }
+        _lastMoveTime = now; _lastMoveX = e.clientX; _lastMoveY = e.clientY;
         mx = e.clientX; my = e.clientY;
         // восстанавливаем видимость, если курсор был скрыт (выход из devtools и т.п.)
         if (dot.style.opacity === '0') {
