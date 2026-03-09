@@ -320,8 +320,10 @@ body.s4 #site-logo .logo-img {
     height: 2px;
     background: linear-gradient(90deg, var(--accent), #c4b5fd);
     z-index: 800;
-    width: 0%;
-    transition: width 0.65s var(--ease);
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.65s var(--ease); /* scaleX вместо width — compositor, zero layout */
     border-radius: 0 2px 2px 0;
     box-shadow: 0 0 14px var(--accent-glow);
 }

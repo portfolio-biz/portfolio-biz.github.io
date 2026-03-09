@@ -99,29 +99,36 @@
                 inners[cur].style.transition = '';
                 inners[cur].style.transform = 'translateY(0)';
                 inners[cur].style.opacity = '1';
+                // defer body-class style-recalc на 2 кадра — не засоряет первый commit
+                document.body.classList.toggle('s4', DARK.has(cur));
+                document.body.classList.toggle('on-home', cur === 0);
             }));
         }
 
         wrap.style.transform = `translateY(${-cur * 100}${slideUnit})`;
-        bar.style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+        bar.style.transform = `scaleX(${cur / (TOTAL - 1)})`;
         counter.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(TOTAL).padStart(2, '0');
 
         for (let i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === cur);
-        document.body.classList.toggle('s4', DARK.has(cur));
-        document.body.classList.toggle('on-home', cur === 0);
 
         setTimeout(() => {
             if (inners[prev]) {
+                // transition:none — не даём запуститься обратной 0.75s анимации на невидимом слайде
+                inners[prev].style.transition = 'none';
                 inners[prev].style.transform = 'translateY(0)';
                 inners[prev].style.opacity = '1';
+                requestAnimationFrame(() => { inners[prev].style.transition = ''; });
             }
-            if (bgEl) { bgEl.style.transform = 'translateY(0)'; }
+            if (bgEl) {
+                bgEl.style.transition = 'none';
+                bgEl.style.transform = 'translateY(0)';
+            }
             transitioning = false; busy = false;
         }, 820);
     }
 
     window.goTo = goTo;
-    bar.style.width = '0%';
+    bar.style.transform = 'scaleX(0)';
 
     // hide non-first slides before first animation
     inners.forEach((el, i) => {
@@ -528,8 +535,8 @@
             }
         }
 
-        /* dot proximity magnetism */
-        if (isPointerFine && (mx !== _dotMx || my !== _dotMy)) {
+        /* dot proximity magnetism — пауза во время перехода (экономим DOM-writes) */
+        if (isPointerFine && !busy && (mx !== _dotMx || my !== _dotMy)) {
             _dotMx = mx; _dotMy = my;
             updateDotMag();
         }
