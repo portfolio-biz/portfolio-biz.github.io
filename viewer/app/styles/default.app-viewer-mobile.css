@@ -115,9 +115,6 @@ body.phone-preview #phone-backdrop {
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 14px;
     padding: 4px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.65),
-        0 0 0 1px rgba(124, 110, 245, 0.07);
     scrollbar-width: none;
     /* Скрыты по умолчанию */
     opacity: 0;
@@ -182,7 +179,6 @@ body.phone-preview #pp-right {
 
 .pp-fmt.active {
     background: rgba(124, 110, 245, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(124, 110, 245, 0.3);
 }
 
 .pp-fmt.active .pp-fmt-label {
@@ -295,14 +291,6 @@ body.phone-preview #pp-right {
    width/height/left/top/transform управляются через JS — здесь только визуал */
 body.phone-preview #viewer-frame {
     border-radius: 20px;
-    box-shadow:
-        /* Фиолетовое свечение */
-        0 0 0 1px rgba(124, 110, 245, 0.45),
-        0 0 0 3px rgba(124, 110, 245, 0.12),
-        0 0 40px -4px rgba(124, 110, 245, 0.5),
-        /* Глубокая тень */
-        0 32px 80px rgba(0, 0, 0, 0.85),
-        0 8px 24px rgba(0, 0, 0, 0.6);
     z-index: 51;
     overflow: hidden;
 }
