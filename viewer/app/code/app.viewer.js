@@ -57,13 +57,9 @@ function getPanelH() {
 
 /** Сброс инлайн-стилей геометрии iframe (выход из phone-режима) */
 function clearFramePhoneStyles() {
-    App.UI.frame.style.width = '';
-    App.UI.frame.style.height = '';
-    App.UI.frame.style.transform = '';
-    App.UI.frame.style.transformOrigin = '';
-    App.UI.frame.style.left = '';
-    App.UI.frame.style.top = '';
-    App.UI.frame.style.bottom = '';
+    Object.assign(App.UI.frame.style, {
+        width: '', height: '', transform: '', transformOrigin: '', left: '', top: '', bottom: ''
+    });
 }
 
 /**
@@ -73,12 +69,12 @@ function clearFramePhoneStyles() {
  * поэтому кнопка «Назад» работает корректно.
  */
 function reloadFrame(src) {
-    App.UI.frame.style.transition = 'none';
+    // transitionDuration: 0ms батчится с classList.add → instant hide без layout-reflow
+    App.UI.frame.style.transitionDuration = '0ms';
     App.UI.frame.classList.add('loading');
-    void App.UI.frame.offsetWidth;
-    App.UI.frame.style.transition = '';
     App.state.isRealLoad = true;
     requestAnimationFrame(() => {
+        App.UI.frame.style.transitionDuration = ''; // восстанавливаем до смены src
         requestAnimationFrame(() => {
             // replace() не создаёт лишнюю запись в истории в отличие от src=
             try {
