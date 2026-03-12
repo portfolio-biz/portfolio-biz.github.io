@@ -24,6 +24,27 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET' || url.protocol.startsWith('chrome')) return;
 
+    // Для /viewer/works/* инжектируем охранный скрипт прямо в HTML-ответ.
+    // Браузер выполнит его до рендера: если страница открыта не в iframe — редирект.
+    if (request.mode === 'navigate' && url.pathname.startsWith('/viewer/works')) {
+        event.respondWith(
+            fetch(request).then(function (res) {
+                var ct = res.headers.get('content-type') || '';
+                if (!ct.includes('text/html')) return res;
+                return res.text().then(function (html) {
+                    var guard = '<script>if(window.self===window.top)window.location.replace("/viewer/sandbox-escape-error/");\x3c/script>';
+                    var modified = html.includes('<head>')
+                        ? html.replace('<head>', '<head>' + guard)
+                        : guard + html;
+                    var headers = new Headers(res.headers);
+                    headers.set('Content-Type', 'text/html;charset=utf-8');
+                    return new Response(modified, { status: res.status, statusText: res.statusText, headers: headers });
+                });
+            }).catch(function () { return offline404(); })
+        );
+        return;
+    }
+
     event.respondWith(
         fetch(request).catch(function () {
             if (request.mode === 'navigate') return offline404();
