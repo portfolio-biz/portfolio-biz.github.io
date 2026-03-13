@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Документация — TandemSites</title>
 
-  <!-- Marked.js — Markdown → HTML -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
-  <!-- Highlight.js — подсветка синтаксиса (VS2015 тема ≈ VS Code) -->
-  <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Marked.js + Highlight.js — локальные копии из /docs-engine/ -->
+  <link rel="stylesheet" href="docs-engine/vs2015.min.css" />
+  <script src="docs-engine/marked.min.js"></script>
+  <script src="docs-engine/highlight.min.js"></script>
 
   <style>
   /* ============================================================
@@ -107,29 +106,47 @@
     color: var(--text-muted);
     background: var(--bg);
     border: 1px solid var(--border);
-    padding: 1px 8px;
+    padding: 2px 8px;
     letter-spacing: .03em;
+    line-height: 1;
+    align-self: center;
   }
 
   #hdr-space { flex: 1; }
 
-  #hdr-search {
+  /* Search — перенесён в сайдбар */
+  #sidebar-search {
     position: relative;
     display: flex; align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
   }
-  #hdr-search svg {
-    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
-    color: var(--text-muted); pointer-events: none;
+  #sidebar-search .ss-icon {
+    position: absolute; left: 21px;
+    color: var(--text-muted); pointer-events: none; line-height: 0;
   }
   #search-inp {
+    flex: 1;
     background: var(--bg); border: 1px solid var(--border);
-    color: var(--text); font-family: inherit; font-size: 13px;
-    padding: 5px 12px 5px 30px;
-    width: 210px; outline: none;
-    transition: border-color .2s, width .25s;
+    color: var(--text); font-family: inherit; font-size: 12.5px;
+    padding: 5px 26px 5px 28px;
+    outline: none; width: 100%;
+    transition: border-color .2s;
   }
   #search-inp::placeholder { color: var(--text-muted); }
-  #search-inp:focus { border-color: var(--accent); width: 250px; }
+  #search-inp:focus { border-color: var(--accent); }
+  #search-clear {
+    position: absolute; right: 21px;
+    background: none; border: none;
+    color: var(--text-muted); cursor: pointer;
+    line-height: 0; padding: 2px;
+    display: none;
+    align-items: center; justify-content: center;
+    transition: color .14s;
+  }
+  #search-clear:hover  { color: var(--text); }
+  #search-clear.visible { display: flex; }
 
   /* ============================================================
      OVERLAY (mobile)
@@ -292,15 +309,14 @@
   }
 
   .cb-copy {
-    background: none;
-    border: 1px solid var(--border);
+    background: none; border: none;
     color: var(--text-muted); cursor: pointer;
-    padding: 1px 10px; font-size: 11px;
-    font-family: inherit;
-    transition: color .14s, border-color .14s, background .14s;
+    padding: 3px; line-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color .14s;
   }
-  .cb-copy:hover         { color: var(--text); border-color: #5a5a5e; background: var(--bg-card); }
-  .cb-copy.ok            { color: var(--green); border-color: var(--green); }
+  .cb-copy:hover { color: var(--text); }
+  .cb-copy.ok    { color: var(--green); }
 
   .cb-wrap pre {
     margin: 0 !important;
@@ -402,7 +418,6 @@
     #sidebar.open   { transform: translateX(0); }
     #main           { margin-left: 0; padding: 28px 20px 60px; }
     #hdr-menu       { display: flex; }
-    #hdr-search     { display: none; }
     #content h1     { font-size: 1.65em; }
     #content h2     { font-size: 1.3em; }
     .cb-wrap pre code.hljs { font-size: 12px !important; }
@@ -442,14 +457,6 @@
 
   <div id="hdr-badge">v1.0</div>
   <div id="hdr-space"></div>
-
-  <div id="hdr-search">
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-      <circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
-    </svg>
-    <input id="search-inp" type="text" placeholder="Поиск по разделам…" oninput="searchTOC(this.value)" autocomplete="off" spellcheck="false">
-  </div>
 </header>
 
 <!-- Overlay (mobile) -->
@@ -462,6 +469,21 @@
 
   <!-- SIDEBAR -->
   <aside id="sidebar">
+    <div id="sidebar-search">
+      <span class="ss-icon">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+        </svg>
+      </span>
+      <input id="search-inp" type="text" placeholder="Поиск по разделам…" oninput="searchTOC(this.value)" autocomplete="off" spellcheck="false">
+      <button id="search-clear" title="Очистить" onclick="clearSearch()">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square">
+          <line x1="1" y1="1" x2="10" y2="10"/>
+          <line x1="10" y1="1" x2="1" y2="10"/>
+        </svg>
+      </button>
+    </div>
     <div id="sidebar-lbl">Содержание</div>
     <ul id="toc"></ul>
   </aside>
@@ -789,11 +811,37 @@ function render() {
   });
 
   // --- 2. Подсветка кода + обёртка с хедером ---
+  const LANG_NAMES = {
+    js: 'JavaScript', javascript: 'JavaScript',
+    ts: 'TypeScript', typescript: 'TypeScript',
+    html: 'HTML', htm: 'HTML',
+    css: 'CSS', scss: 'SCSS', sass: 'SCSS',
+    bash: 'Bash', sh: 'Shell', shell: 'Shell', zsh: 'Shell',
+    json: 'JSON', yaml: 'YAML', toml: 'TOML', xml: 'XML',
+    py: 'Python', python: 'Python',
+    sql: 'SQL', php: 'PHP', java: 'Java',
+    cs: 'C#', cpp: 'C++', c: 'C',
+    rust: 'Rust', go: 'Go', kotlin: 'Kotlin', swift: 'Swift',
+    rb: 'Ruby', ruby: 'Ruby', md: 'Markdown', markdown: 'Markdown',
+    text: '', plain: '', plaintext: '',
+  };
+  const ICON_COPY  = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"><rect x="5" y="1" width="9" height="11"/><path d="M3 5H2a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-1" stroke-linejoin="miter"/></svg>`;
+  const ICON_CHECK = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter"><polyline points="2,8 6,13 14,4"/></svg>`;
+
   content.querySelectorAll('pre > code').forEach(block => {
     const langClass = Array.from(block.classList).find(c => c.startsWith('language-'));
-    const lang = langClass ? langClass.replace('language-', '') : '';
+    const lang = langClass ? langClass.replace('language-', '').toLowerCase() : '';
+    const isPlain = lang === 'text' || lang === 'plain' || lang === 'plaintext' || lang === '';
 
-    hljs.highlightElement(block);
+    if (!isPlain) {
+      hljs.highlightElement(block);
+    } else {
+      block.classList.add('hljs'); // базовые стили без подсветки
+    }
+
+    const displayLang = Object.prototype.hasOwnProperty.call(LANG_NAMES, lang)
+      ? LANG_NAMES[lang]
+      : lang.toUpperCase();
 
     const pre = block.parentElement;
     const wrap = document.createElement('div');
@@ -801,11 +849,11 @@ function render() {
 
     const head = document.createElement('div');
     head.className = 'cb-head';
-    head.innerHTML = `<span class="cb-lang">${escHtml(lang || 'text')}</span><button class="cb-copy">copy</button>`;
+    head.innerHTML = `<span class="cb-lang">${escHtml(displayLang)}</span><button class="cb-copy" title="Копировать">${ICON_COPY}</button>`;
     head.querySelector('.cb-copy').addEventListener('click', function () {
       navigator.clipboard.writeText(block.textContent.replace(/\n$/, '')).then(() => {
-        this.textContent = 'copied!'; this.classList.add('ok');
-        setTimeout(() => { this.textContent = 'copy'; this.classList.remove('ok'); }, 1800);
+        this.innerHTML = ICON_CHECK; this.classList.add('ok');
+        setTimeout(() => { this.innerHTML = ICON_COPY; this.classList.remove('ok'); }, 1800);
       });
     });
 
@@ -843,7 +891,10 @@ function buildTOC(content) {
     const li    = document.createElement('li');
     const a     = document.createElement('a');
     a.href       = '#' + h.id;
-    a.textContent = h.childNodes[0]?.textContent?.trim() ?? h.textContent.replace('#','').trim();
+    // берём весь текст заголовка (включая вложенные <code> и т.п.), без якоря «#»
+    a.textContent = Array.from(h.childNodes)
+      .filter(n => !(n.nodeType === 1 && n.classList.contains('h-anchor')))
+      .map(n => n.textContent).join('').trim();
     a.className  = 'h' + level;
     a.dataset.id = h.id;
     a.addEventListener('click', e => {
@@ -890,6 +941,16 @@ function searchTOC(q) {
     const a = li.querySelector('a');
     li.classList.toggle('hidden', !!query && !a.textContent.toLowerCase().includes(query));
   });
+  const btn = document.getElementById('search-clear');
+  if (btn) btn.classList.toggle('visible', q.length > 0);
+}
+
+function clearSearch() {
+  const inp = document.getElementById('search-inp');
+  if (!inp) return;
+  inp.value = '';
+  searchTOC('');
+  inp.focus();
 }
 
 /* ============================================================
