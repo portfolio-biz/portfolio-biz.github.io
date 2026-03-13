@@ -764,8 +764,15 @@
         e.preventDefault();
         var target = document.getElementById(a.dataset.id);
         if (target) {
+          // Паузим шпион на время smooth-скролла
+          _pauseSpy(1000);
           target.scrollIntoView({ behavior: 'smooth' });
           history.pushState(null, '', '#' + a.dataset.id);
+          // Сразу обновляем active, не ждём скролла
+          document.querySelectorAll('#td-toc a').forEach(function (x) {
+            x.classList.remove('active');
+          });
+          a.classList.add('active');
         }
         if (window.innerWidth <= 768) _toggleSidebar(false);
       });
@@ -777,31 +784,70 @@
 
   /* ============================================================
      SCROLL SPY
+     — событие scroll + rAF-тротлинг; пауза при клике и перезагрузке
   ============================================================ */
+  var _spyPaused    = false;
+  var _spyPauseTimer = null;
+
+  function _pauseSpy(ms) {
+    _spyPaused = true;
+    clearTimeout(_spyPauseTimer);
+    _spyPauseTimer = setTimeout(function () { _spyPaused = false; }, ms || 900);
+  }
+
   function _initScrollSpy() {
-    var headings = document.querySelectorAll(
+    var headings = Array.from(document.querySelectorAll(
       '#td-content h1,#td-content h2,#td-content h3,#td-content h4'
-    );
-    if (!headings.length || !root.IntersectionObserver) return;
+    ));
+    if (!headings.length) return;
 
-    var obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        document.querySelectorAll('#td-toc a').forEach(function (a) {
-          a.classList.remove('active');
-        });
-        var link = document.querySelector(
-          '#td-toc a[data-id="' + entry.target.id + '"]'
-        );
-        if (link) {
-          link.classList.add('active');
-          link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          history.replaceState(null, '', '#' + entry.target.id);
+    var rafId  = null;
+    var lastId = '';
+    // 56px — высота хедера; +16px паддинг = 72 (совпадает с scroll-margin-top)
+    var OFFSET = 72;
+
+    function _getActiveId() {
+      var active = null;
+      for (var i = 0; i < headings.length; i++) {
+        if (headings[i].getBoundingClientRect().top <= OFFSET) {
+          active = headings[i];
+        } else {
+          break;
         }
-      });
-    }, { rootMargin: '-56px 0px -55% 0px' });
+      }
+      return active ? active.id : (headings[0] ? headings[0].id : '');
+    }
 
-    headings.forEach(function (h) { obs.observe(h); });
+    function _update() {
+      if (_spyPaused) return;
+      var id = _getActiveId();
+      if (id === lastId) return;
+      lastId = id;
+      document.querySelectorAll('#td-toc a').forEach(function (a) {
+        a.classList.remove('active');
+      });
+      var link = document.querySelector('#td-toc a[data-id="' + id + '"]');
+      if (link) {
+        link.classList.add('active');
+        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        history.replaceState(null, '', '#' + id);
+      }
+    }
+
+    window.addEventListener('scroll', function () {
+      if (rafId) return;
+      rafId = requestAnimationFrame(function () {
+        rafId = null;
+        _update();
+      });
+    }, { passive: true });
+
+    // Первоначальная активация (без хаша в URL)
+    var initId = _getActiveId();
+    if (initId) {
+      var initLink = document.querySelector('#td-toc a[data-id="' + initId + '"]');
+      if (initLink) { initLink.classList.add('active'); }
+    }
   }
 
   /* ============================================================
@@ -906,11 +952,16 @@
       // Скролл к якорю из URL (после перезагрузки)
       if (location.hash) {
         var hashId = decodeURIComponent(location.hash.slice(1));
-        setTimeout(function () {
-          var target = document.getElementById(hashId)
-            || document.querySelector('[id="' + hashId.replace(/"/g, '') + '"]');
-          if (target) target.scrollIntoView({ behavior: 'smooth' });
-        }, 120);
+        var hashTarget = document.getElementById(hashId);
+        if (hashTarget) {
+          // Паузим шпион чтобы он не перебил позицию
+          _pauseSpy(600);
+          setTimeout(function () {
+            // Мгновенный скролл: без анимации, чтобы шпион после видел точную позицию
+            var top = hashTarget.getBoundingClientRect().top + window.scrollY - 72;
+            window.scrollTo(0, top < 0 ? 0 : top);
+          }, 80);
+        }
       }
     }).catch(function (err) {
       console.error('[TandemDocs]', err);
