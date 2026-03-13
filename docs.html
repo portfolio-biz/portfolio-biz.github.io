@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Документация — TandemSites</title>
+
+  <!-- Marked.js — Markdown → HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
+  <!-- Highlight.js — подсветка синтаксиса (VS2015 тема ≈ VS Code) -->
+  <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+  /* ============================================================
+     VARIABLES
+  ============================================================ */
+  :root {
+    --bg:           #1e1e1e;
+    --bg-side:      #252526;
+    --bg-card:      #2d2d2d;
+    --bg-code:      #141414;
+    --bg-hover:     #2a2d2e;
+    --bg-active:    #37373d;
+    --text:         #d4d4d4;
+    --text-soft:    #9d9d9d;
+    --text-muted:   #6e6e6e;
+    --accent:       #007acc;
+    --accent-dim:   #0e639c;
+    --accent-glow:  rgba(0, 122, 204, 0.12);
+    --border:       #3e3e42;
+    --border-soft:  #2e2e32;
+    --sel-bg:       rgba(38, 79, 120, 0.75);
+    --green:        #4ec9b0;
+    --yellow:       #d7ba7d;
+    --orange:       #ce9178;
+    --red:          #f48771;
+    --header-h:     48px;
+    --sidebar-w:    272px;
+    --scroll-w:     7px;
+  }
+
+  /* ============================================================
+     SCROLLBARS
+  ============================================================ */
+  ::-webkit-scrollbar              { width: var(--scroll-w); height: var(--scroll-w); }
+  ::-webkit-scrollbar-track        { background: var(--bg-side); }
+  ::-webkit-scrollbar-thumb        { background: #4a4a4e; }
+  ::-webkit-scrollbar-thumb:hover  { background: #6b6b70; }
+  ::-webkit-scrollbar-corner       { background: var(--bg-side); }
+  *                                 { scrollbar-width: thin; scrollbar-color: #4a4a4e var(--bg-side); }
+
+  /* ============================================================
+     SELECTION
+  ============================================================ */
+  ::selection      { background: var(--sel-bg); color: #fff; }
+  ::-moz-selection { background: var(--sel-bg); color: #fff; }
+
+  /* ============================================================
+     RESET + BASE
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ============================================================
+     HEADER
+  ============================================================ */
+  #hdr {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--bg-side);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 18px;
+    z-index: 300;
+    gap: 12px;
+  }
+
+  #hdr-menu {
+    display: none;
+    background: none; border: none;
+    color: var(--text-soft); cursor: pointer;
+    padding: 5px; line-height: 0;
+    transition: color .15s;
+  }
+  #hdr-menu:hover { color: var(--text); }
+
+  #hdr-logo {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 14px; font-weight: 600;
+    color: var(--text); letter-spacing: .02em;
+    white-space: nowrap; text-decoration: none;
+    user-select: none;
+  }
+  #hdr-logo .dot { color: var(--accent); font-size: 18px; line-height: 0; margin-top: 1px; }
+
+  #hdr-badge {
+    font-size: 11px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1px 8px;
+    letter-spacing: .03em;
+  }
+
+  #hdr-space { flex: 1; }
+
+  #hdr-search {
+    position: relative;
+    display: flex; align-items: center;
+  }
+  #hdr-search svg {
+    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); pointer-events: none;
+  }
+  #search-inp {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: inherit; font-size: 13px;
+    padding: 5px 12px 5px 30px;
+    width: 210px; outline: none;
+    transition: border-color .2s, width .25s;
+  }
+  #search-inp::placeholder { color: var(--text-muted); }
+  #search-inp:focus { border-color: var(--accent); width: 250px; }
+
+  /* ============================================================
+     OVERLAY (mobile)
+  ============================================================ */
+  #overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.55); z-index: 200;
+  }
+  #overlay.on { display: block; }
+
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
+  #wrap {
+    display: flex;
+    padding-top: var(--header-h);
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     SIDEBAR
+  ============================================================ */
+  #sidebar {
+    position: fixed; top: var(--header-h); left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg-side);
+    border-right: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+    z-index: 250;
+    display: flex; flex-direction: column;
+    transition: transform .22s ease;
+  }
+
+  #sidebar-lbl {
+    padding: 15px 18px 9px;
+    font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--text-muted);
+    font-weight: 700; border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
+  }
+
+  #toc {
+    list-style: none;
+    padding: 5px 0 40px;
+    flex: 1;
+  }
+
+  #toc li { display: block; }
+
+  #toc a {
+    display: block;
+    padding: 4px 18px;
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 13px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border-left: 2px solid transparent;
+    transition: color .14s, background .14s, border-color .14s;
+  }
+  #toc a:hover   { color: var(--text); background: var(--bg-hover); }
+  #toc a.active  { color: var(--accent); border-left-color: var(--accent); background: var(--accent-glow); }
+
+  #toc a.h1 { font-weight: 600; color: var(--text); font-size: 13px; padding-left: 18px; }
+  #toc a.h2 { padding-left: 26px; }
+  #toc a.h3 { padding-left: 40px; font-size: 12px; color: var(--text-muted); }
+  #toc a.h4 { padding-left: 52px; font-size: 11.5px; color: var(--text-muted); }
+
+  #toc li.hidden { display: none; }
+
+  /* ============================================================
+     MAIN CONTENT AREA
+  ============================================================ */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1; min-width: 0;
+    padding: 52px 64px 96px;
+    max-width: calc(var(--sidebar-w) + 860px);
+  }
+
+  #content { max-width: 800px; }
+
+  /* ============================================================
+     TYPOGRAPHY
+  ============================================================ */
+  #content h1, #content h2,
+  #content h3, #content h4,
+  #content h5, #content h6 {
+    color: #e8e8e8; font-weight: 600; line-height: 1.3;
+    scroll-margin-top: calc(var(--header-h) + 24px);
+  }
+  #content h1 {
+    font-size: 2em; margin: 0 0 22px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  #content h2 {
+    font-size: 1.45em; margin: 44px 0 16px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border-soft);
+  }
+  #content h3 { font-size: 1.2em;  margin: 30px 0 12px; }
+  #content h4 { font-size: 1.05em; margin: 22px 0 10px; }
+  #content h5 { font-size: 1em;    margin: 16px 0 8px; color: var(--text); }
+  #content h6 { font-size: .95em;  margin: 14px 0 8px; color: var(--text-soft); }
+
+  /* Anchor links on headings */
+  .h-anchor {
+    opacity: 0; margin-left: 8px;
+    color: var(--accent); text-decoration: none;
+    font-size: .75em; font-weight: 400;
+    transition: opacity .15s;
+    user-select: none;
+  }
+  #content h1:hover .h-anchor,
+  #content h2:hover .h-anchor,
+  #content h3:hover .h-anchor,
+  #content h4:hover .h-anchor { opacity: 1; }
+
+  #content p          { margin: 0 0 14px; }
+  #content ul, #content ol { margin: 0 0 14px 22px; }
+  #content li         { margin-bottom: 4px; }
+  #content ul li::marker { color: var(--accent); }
+  #content ol li::marker { color: var(--accent); }
+  #content ul ul, #content ol ol,
+  #content ul ol, #content ol ul { margin: 4px 0 4px 20px; }
+
+  #content a { color: var(--green); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s; }
+  #content a:hover { border-bottom-color: var(--green); }
+
+  #content strong { color: #e8e8e8; font-weight: 600; }
+  #content em     { color: var(--yellow); font-style: italic; }
+  #content del    { color: var(--text-muted); }
+
+  /* Inline code */
+  #content :not(pre) > code {
+    background: var(--bg-card);
+    color: var(--orange);
+    padding: 1px 6px;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: .875em;
+    border: 1px solid var(--border);
+  }
+
+  /* ============================================================
+     CODE BLOCKS
+  ============================================================ */
+  .cb-wrap {
+    margin: 20px 0;
+    border: 1px solid var(--border);
+  }
+
+  .cb-head {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1a1a1a;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 6px 14px;
+  }
+
+  .cb-lang {
+    font-size: 11.5px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    color: var(--text-muted); letter-spacing: .05em;
+  }
+
+  .cb-copy {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer;
+    padding: 1px 10px; font-size: 11px;
+    font-family: inherit;
+    transition: color .14s, border-color .14s, background .14s;
+  }
+  .cb-copy:hover         { color: var(--text); border-color: #5a5a5e; background: var(--bg-card); }
+  .cb-copy.ok            { color: var(--green); border-color: var(--green); }
+
+  .cb-wrap pre {
+    margin: 0 !important;
+    background: var(--bg-code) !important;
+    overflow-x: auto;
+  }
+  .cb-wrap pre code.hljs {
+    padding: 18px 20px !important;
+    font-size: 13.5px !important;
+    line-height: 1.65 !important;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace !important;
+    background: transparent !important;
+    border: none !important;
+    display: block;
+  }
+
+  /* ============================================================
+     BLOCKQUOTE
+  ============================================================ */
+  #content blockquote {
+    margin: 20px 0;
+    padding: 14px 20px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-glow);
+    color: var(--text-soft);
+  }
+  #content blockquote p:last-child { margin-bottom: 0; }
+
+  /* ============================================================
+     TABLES
+  ============================================================ */
+  .tbl-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+  }
+  #content table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  #content thead         { background: var(--bg-card); }
+  #content th {
+    padding: 9px 16px; text-align: left;
+    color: #e8e8e8; font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  #content td {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  #content tr:last-child td          { border-bottom: none; }
+  #content tbody tr:nth-child(even)  { background: rgba(255,255,255,.02); }
+  #content tbody tr:hover            { background: var(--bg-hover); }
+
+  /* ============================================================
+     HR
+  ============================================================ */
+  #content hr {
+    border: none; border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* ============================================================
+     IMAGES
+  ============================================================ */
+  #content img {
+    max-width: 100%; display: block;
+    border: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ============================================================
+     BACK TO TOP
+  ============================================================ */
+  #to-top {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 36px; height: 36px;
+    background: var(--bg-side); border: 1px solid var(--border);
+    color: var(--text-soft); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s, color .15s, border-color .15s;
+    z-index: 400;
+  }
+  #to-top.on                { opacity: 1; pointer-events: auto; }
+  #to-top:hover             { color: var(--text); border-color: var(--accent); }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
+  @media (max-width: 960px) {
+    #main { padding: 40px 36px 72px; }
+  }
+
+  @media (max-width: 768px) {
+    #sidebar        { transform: translateX(-100%); }
+    #sidebar.open   { transform: translateX(0); }
+    #main           { margin-left: 0; padding: 28px 20px 60px; }
+    #hdr-menu       { display: flex; }
+    #hdr-search     { display: none; }
+    #content h1     { font-size: 1.65em; }
+    #content h2     { font-size: 1.3em; }
+    .cb-wrap pre code.hljs { font-size: 12px !important; }
+  }
+
+  @media (max-width: 480px) {
+    #main { padding: 20px 14px 50px; }
+    #content h1 { font-size: 1.45em; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header id="hdr">
+  <button id="hdr-menu" aria-label="Меню" onclick="toggleSidebar()">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+      <rect x="1" y="3"    width="16" height="1.8"/>
+      <rect x="1" y="8.1"  width="16" height="1.8"/>
+      <rect x="1" y="13.2" width="16" height="1.8"/>
+    </svg>
+  </button>
+
+  <a id="hdr-logo" href="#">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <rect x="3" y="1" width="14" height="18" stroke="#007acc" stroke-width="1.6" fill="none"/>
+      <line x1="6" y1="6"    x2="14" y2="6"    stroke="#007acc" stroke-width="1.4"/>
+      <line x1="6" y1="9.5"  x2="14" y2="9.5"  stroke="#3e3e42" stroke-width="1.2"/>
+      <line x1="6" y1="13"   x2="11" y2="13"   stroke="#3e3e42" stroke-width="1.2"/>
+    </svg>
+    <span id="doc-title">Документация</span>
+    <span class="dot">·</span>
+    <span id="doc-name" style="color:var(--text-soft); font-weight:400;">TandemSites</span>
+  </a>
+
+  <div id="hdr-badge">v1.0</div>
+  <div id="hdr-space"></div>
+
+  <div id="hdr-search">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+      <circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+    </svg>
+    <input id="search-inp" type="text" placeholder="Поиск по разделам…" oninput="searchTOC(this.value)" autocomplete="off" spellcheck="false">
+  </div>
+</header>
+
+<!-- Overlay (mobile) -->
+<div id="overlay" onclick="toggleSidebar(false)"></div>
+
+<!-- ============================================================
+     LAYOUT
+============================================================ -->
+<div id="wrap">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div id="sidebar-lbl">Содержание</div>
+    <ul id="toc"></ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <article id="content"></article>
+  </main>
+
+</div>
+
+<!-- Back to top -->
+<button id="to-top" onclick="scrollToTop()" title="Наверх">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+    <path d="M7 2 L13 10 H1 Z"/>
+  </svg>
+</button>
+
+<!-- ============================================================
+     ▼▼▼  ВСТАВЬТЕ ВАШ MARKDOWN ЗДЕСЬ  ▼▼▼
+============================================================ -->
+<script id="md" type="text/markdown">
+# Документация tandem-sites.ru
+
+> Внутренняя документация для разработчиков студии **Tandem Sites**.
+> Актуально на март 2026 г. При значительных изменениях — обновлять этот файл.
+
+---
+
+## 1. Обзор проекта
+
+**Tandem Sites** — студия по разработке премиальных лендингов на чистом HTML/CSS/JS. Сайт является одновременно:
+
+- **Витриной студии** (главная страница с описанием услуг и ценами)
+- **Интерактивным портфолио** (Viewer — просмотрщик демо-проектов в iframe)
+- **Юридическим инструментом** (страница договора с криптографической подписью)
+
+**Ключевая философия:** никаких фреймворков и сборщиков — весь код на ванильном HTML/CSS/JS.
+
+---
+
+## 2. Стек и принципы разработки
+
+| Категория    | Решение                                              |
+|--------------|------------------------------------------------------|
+| Языки        | HTML5, CSS3, ES2020+ (vanilla JS)                    |
+| Фреймворки   | **Нет** — намеренно                                  |
+| Сборщик      | **Нет** — файлы статические, деплоятся as-is         |
+| Шрифты       | Google Fonts (Syne, Inter, Raleway, Exo 2)           |
+| Хостинг      | GitHub Pages                                         |
+| SW-стратегия | NO-CACHE passthrough                                 |
+| Криптография | Web Crypto API (`SHA-256`, `AES-GCM`, `PBKDF2`, WebAuthn) |
+
+**Правила:**
+- Не добавлять зависимости без явной необходимости
+- Поддерживать работу без JS там, где это разумно
+- Всегда проверять в Chrome / Firefox / Safari на мобиле
+
+---
+
+## 3. Структура репозитория
+
+```
+tandem-sites.ru/
+├── index.htm               ← Главная страница (5 слайдов)
+├── index.app.js            ← JS главной страницы
+├── index-ui.css            ← CSS главной страницы
+├── sw.js                   ← Service Worker
+├── manifest.json           ← PWA-манифест
+├── status.json             ← Флаг {"isActive": true/false}
+├── 404.htm                 ← Кастомная 404-страница
+├── viewer/                 ← Портфолио-вьювер
+│   ├── projects.db.json    ← БД проектов (плоский JSON-массив)
+│   └── app/code/           ← JS-модули
+├── agreement/              ← Страница договора
+├── security/libs/          ← tandemsign.js
+└── staff/tools/            ← Внутренние инструменты
+```
+
+---
+
+## 4. Хостинг и деплой
+
+Хостинг — **GitHub Pages**, ветка `main`. Автодеплой при каждом `git push`.
+
+**Кастомный домен:** задаётся через файл `CNAME` в корне репозитория. Файл `CXNAME` — резервный алиас.
+
+```bash
+# Деплой
+git add .
+git commit -m "chore: update docs"
+git push origin main
+```
+
+> **Важно:** репозиторий публичный. Не коммитить ключи, пароли, токены.
+
+---
+
+## 5. Главная страница — `index.htm`
+
+### Full-page слайдер
+
+Пять слайдов на CSS-переменных + JS-контроллер в `index.app.js`. Слайды переключаются колесом мыши, свайпом и стрелками.
+
+```javascript
+// Пример переключения слайда
+function goTo(index) {
+  currentSlide = Math.max(0, Math.min(index, SLIDES_TOTAL - 1));
+  document.documentElement.style.setProperty('--slide', currentSlide);
+  updateIndicators();
+}
+```
+
+### Анимации и Canvas-эффекты
+
+На первом слайде работает Canvas-анимация частиц. Автоматически отключается при `prefers-reduced-motion`.
+
+### SEO и мета-разметка
+
+- Open Graph (`og:title`, `og:description`, `og:image`)
+- Twitter Card
+- JSON-LD `Organization`
+
+### PWA
+
+Манифест подключён, Service Worker регистрируется при загрузке. Offline-страница отдаётся из кеша SW.
+
+---
+
+## 6. Service Worker — `sw.js`
+
+### Стратегия кеширования
+
+| Паттерн URL             | Стратегия          |
+|-------------------------|--------------------|
+| `/*` (общие ресурсы)    | Network-first      |
+| `/viewer/works/*`       | Sandbox-guard      |
+| Офлайн-фолбэк           | Cache-first        |
+
+### Sandbox guard для `/viewer/works/*`
+
+Прямой запрос к демо-проектам (не через iframe вьювера) перехватывается SW и редиректится на `/viewer/sandbox-escape-error/`.
+
+```javascript
+// sw.js — sandbox guard
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/viewer/works/')) {
+    const referer = event.request.referrer;
+    if (!referer.includes('/viewer/')) {
+      event.respondWith(
+        Response.redirect('/viewer/sandbox-escape-error/', 302)
+      );
+    }
+  }
+});
+```
+
+---
+
+## 7. Portfolio Viewer — `/viewer/`
+
+### Архитектура модулей
+
+```
+app/code/
+├── app.viewer.init.js      ← Bootstrap, связывание модулей
+├── app.viewer.js           ← Основная логика iframe
+├── app.viewer.loader.js    ← Логика загрузки / прелоад
+├── app.viewer.mobile.js    ← Phone-режим
+├── app.viewer.preload.js   ← SmartPreload
+├── app.toolbox.events.js   ← Обработка событий тулбара
+├── app.toolbox.modal.js    ← Модальные окна
+├── app.toolbox.navigation.js ← Навигация по проектам
+└── modules/
+    ├── xfetcher.js         ← HTTP-клиент с очередью
+    └── http-to-https.js    ← Редирект HTTP→HTTPS
+```
+
+### База данных проектов
+
+`projects.db.json` — плоский JSON-массив объектов:
+
+```json
+[
+  {
+    "id": 1,
+    "slug": "example-astra",
+    "title": "Astra",
+    "category": "landing",
+    "url": "/viewer/works/example-astra/"
+  }
+]
+```
+
+### Жизненный цикл загрузки сайта
+
+1. `init.js` → загрузка `projects.db.json`
+2. Рендер карточек в домашнем экране
+3. Клик → `loader.js` создаёт `<iframe>`
+4. `preload.js` запускает SmartPreload следующих проектов
+
+---
+
+## 8. Утилиты-модули
+
+### `xfetcher.js`
+
+HTTP-клиент с очередью запросов и таймаутами. Используется во вьювере для загрузки `projects.db.json`.
+
+```javascript
+import { xfetch } from './modules/xfetcher.js';
+
+const data = await xfetch('/viewer/projects.db.json', { timeout: 5000 });
+```
+
+### `http-to-https.js`
+
+Модуль автоматически редиректит пользователя на HTTPS если страница открыта по HTTP.
+
+---
+
+## 11. TandemSign — `/security/libs/tandemsign.js`
+
+Криптографическая библиотека для создания и верификации цепочки подписи договора.
+
+**Алгоритм:** `SHA-256` → `PBKDF2` → `AES-GCM`
+
+```javascript
+// Создание подписи
+const signature = await TandemSign.create({
+  contractId: 'CTR-2024-001',
+  clientEmail: 'client@example.com',
+  timestamp: Date.now()
+});
+
+// Верификация
+const isValid = await TandemSign.verify(signature, publicKey);
+```
+
+---
+
+## 16. CSS-переменные и дизайн-система
+
+```css
+:root {
+  /* Цвета */
+  --color-primary:    #0a0a0a;
+  --color-accent:     #b4a06e;
+  --color-text:       #f0ede8;
+  --color-text-muted: rgba(240, 237, 232, 0.5);
+
+  /* Типографика */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Inter', sans-serif;
+
+  /* Отступы */
+  --gap-sm:  12px;
+  --gap-md:  24px;
+  --gap-lg:  48px;
+  --gap-xl:  80px;
+}
+```
+
+---
+
+## 17. Советы по разработке
+
+- Всегда тестировать SW в режиме инкогнито (чистый кеш)
+- При изменении структуры URL — обновлять SW `CACHE_VERSION`
+- Для новых шрифтов использовать `font-display: swap`
+- Избегать `!important` — вместо этого повышать специфичность
+- Все `console.log` удалять перед `git push`
+</script>
+<!-- ▲▲▲  КОНЕЦ MARKDOWN  ▲▲▲ -->
+
+
+<script>
+/* ============================================================
+   HELPERS
+============================================================ */
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\wа-яёА-ЯЁ\s\-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================================================
+   RENDER
+============================================================ */
+function render() {
+  const src = document.getElementById('md');
+  if (!src) return;
+
+  // Dedent — убираем общий отступ (если MD написан с отступом внутри <script>)
+  let raw = src.textContent.replace(/^\n/, '');
+  const indent = raw.match(/^(\s+)/)?.[1] ?? '';
+  if (indent) raw = raw.split('\n').map(l => l.startsWith(indent) ? l.slice(indent.length) : l).join('\n');
+
+  // Marked: базовые опции
+  const html = marked.parse(raw.trim(), { gfm: true, breaks: true });
+  const content = document.getElementById('content');
+  content.innerHTML = html;
+
+  // --- 1. Обработка заголовков: id + anchor ---
+  const headings = content.querySelectorAll('h1,h2,h3,h4,h5,h6');
+  const usedIds = {};
+  headings.forEach(h => {
+    let id = slugify(h.textContent);
+    if (usedIds[id] != null) { usedIds[id]++; id += '-' + usedIds[id]; } else { usedIds[id] = 0; }
+    h.id = id;
+    const anchor = document.createElement('a');
+    anchor.href = '#' + id;
+    anchor.className = 'h-anchor';
+    anchor.textContent = '#';
+    anchor.onclick = e => { e.preventDefault(); h.scrollIntoView({ behavior: 'smooth' }); history.pushState(null, '', '#' + id); };
+    h.appendChild(anchor);
+  });
+
+  // --- 2. Подсветка кода + обёртка с хедером ---
+  content.querySelectorAll('pre > code').forEach(block => {
+    const langClass = Array.from(block.classList).find(c => c.startsWith('language-'));
+    const lang = langClass ? langClass.replace('language-', '') : '';
+
+    hljs.highlightElement(block);
+
+    const pre = block.parentElement;
+    const wrap = document.createElement('div');
+    wrap.className = 'cb-wrap';
+
+    const head = document.createElement('div');
+    head.className = 'cb-head';
+    head.innerHTML = `<span class="cb-lang">${escHtml(lang || 'text')}</span><button class="cb-copy">copy</button>`;
+    head.querySelector('.cb-copy').addEventListener('click', function () {
+      navigator.clipboard.writeText(block.textContent.replace(/\n$/, '')).then(() => {
+        this.textContent = 'copied!'; this.classList.add('ok');
+        setTimeout(() => { this.textContent = 'copy'; this.classList.remove('ok'); }, 1800);
+      });
+    });
+
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(head);
+    wrap.appendChild(pre);
+  });
+
+  // --- 3. Оборачиваем таблицы в scroll-обёртку ---
+  content.querySelectorAll('table').forEach(tbl => {
+    if (tbl.parentElement.classList.contains('tbl-wrap')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'tbl-wrap';
+    tbl.parentNode.insertBefore(wrap, tbl);
+    wrap.appendChild(tbl);
+  });
+
+  // --- 4. Строим TOC ---
+  buildTOC(content);
+
+  // --- 5. Scroll-spy ---
+  initSpy();
+}
+
+/* ============================================================
+   TABLE OF CONTENTS
+============================================================ */
+function buildTOC(content) {
+  const toc  = document.getElementById('toc');
+  const headings = content.querySelectorAll('h1,h2,h3,h4');
+  toc.innerHTML = '';
+
+  headings.forEach(h => {
+    const level = parseInt(h.tagName[1]);
+    const li    = document.createElement('li');
+    const a     = document.createElement('a');
+    a.href       = '#' + h.id;
+    a.textContent = h.childNodes[0]?.textContent?.trim() ?? h.textContent.replace('#','').trim();
+    a.className  = 'h' + level;
+    a.dataset.id = h.id;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById(a.dataset.id)?.scrollIntoView({ behavior: 'smooth' });
+      if (window.innerWidth <= 768) toggleSidebar(false);
+    });
+    li.appendChild(a);
+    toc.appendChild(li);
+  });
+}
+
+/* ============================================================
+   SCROLL SPY
+============================================================ */
+function initSpy() {
+  const headings = document.querySelectorAll('#content h1,#content h2,#content h3,#content h4');
+  if (!headings.length) return;
+
+  const hdrH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 48;
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
+      const link = document.querySelector(`#toc a[data-id="${entry.target.id}"]`);
+      if (link) {
+        link.classList.add('active');
+        // Прокручиваем TOC чтобы активная ссылка была видна
+        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    });
+  }, { rootMargin: `-${hdrH + 8}px 0px -55% 0px` });
+
+  headings.forEach(h => obs.observe(h));
+}
+
+/* ============================================================
+   SEARCH IN TOC
+============================================================ */
+function searchTOC(q) {
+  const query = q.trim().toLowerCase();
+  document.querySelectorAll('#toc li').forEach(li => {
+    const a = li.querySelector('a');
+    li.classList.toggle('hidden', !!query && !a.textContent.toLowerCase().includes(query));
+  });
+}
+
+/* ============================================================
+   SIDEBAR TOGGLE
+============================================================ */
+function toggleSidebar(state) {
+  const sb  = document.getElementById('sidebar');
+  const ov  = document.getElementById('overlay');
+  const open = state !== undefined ? state : !sb.classList.contains('open');
+  sb.classList.toggle('open', open);
+  ov.classList.toggle('on',   open);
+}
+
+/* ============================================================
+   BACK TO TOP
+============================================================ */
+const toTopBtn = document.getElementById('to-top');
+window.addEventListener('scroll', () => {
+  toTopBtn.classList.toggle('on', window.scrollY > 320);
+}, { passive: true });
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+/* ============================================================
+   INIT
+============================================================ */
+document.addEventListener('DOMContentLoaded', render);
+</script>
+
+</body>
+</html>

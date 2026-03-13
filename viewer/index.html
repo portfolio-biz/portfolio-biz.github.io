@@ -19,6 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="manifest" href="/manifest.json" />
 </head>
 
 <body>
@@ -233,14 +234,7 @@
 
     <!-- ── ENGINE (порядок важен!) ── -->
     <!-- Smart Preload: скрытый фрейм для фоновой загрузки следующего сайта -->
-    <iframe
-        id="preload-frame"
-        src="about:blank"
-        style="position:fixed;top:0;left:0;width:0;height:0;border:none;pointer-events:none;opacity:0;visibility:hidden;z-index:-9999;"
-        tabindex="-1"
-        aria-hidden="true"
-        title=""
-    ></iframe>
+    <iframe id="preload-frame" src="about:blank" style="position:fixed;top:0;left:0;width:0;height:0;border:none;pointer-events:none;opacity:0;visibility:hidden;z-index:-9999;" tabindex="-1" aria-hidden="true" title=""></iframe>
 
     <!-- viewer: state, utils, loader, phone-preview -->
     <script src="/viewer/app/code/app.viewer.js"></script>
