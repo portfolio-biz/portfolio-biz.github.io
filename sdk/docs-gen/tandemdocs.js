@@ -763,7 +763,10 @@
       a.addEventListener('click', function (e) {
         e.preventDefault();
         var target = document.getElementById(a.dataset.id);
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+          history.pushState(null, '', '#' + a.dataset.id);
+        }
         if (window.innerWidth <= 768) _toggleSidebar(false);
       });
 
@@ -793,6 +796,7 @@
         if (link) {
           link.classList.add('active');
           link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          history.replaceState(null, '', '#' + entry.target.id);
         }
       });
     }, { rootMargin: '-56px 0px -55% 0px' });
@@ -899,14 +903,14 @@
       var loading = document.getElementById('td-loading');
       if (loading) loading.parentNode.removeChild(loading);
 
-      // Скролл к якорю из URL
+      // Скролл к якорю из URL (после перезагрузки)
       if (location.hash) {
-        var target = document.querySelector(location.hash);
-        if (target) {
-          setTimeout(function () {
-            target.scrollIntoView({ behavior: 'smooth' });
-          }, 80);
-        }
+        var hashId = decodeURIComponent(location.hash.slice(1));
+        setTimeout(function () {
+          var target = document.getElementById(hashId)
+            || document.querySelector('[id="' + hashId.replace(/"/g, '') + '"]');
+          if (target) target.scrollIntoView({ behavior: 'smooth' });
+        }, 120);
       }
     }).catch(function (err) {
       console.error('[TandemDocs]', err);
