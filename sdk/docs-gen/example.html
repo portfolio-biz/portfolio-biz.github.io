@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <!--
+    TandemDocs — пример использования.
+    Достаточно подключить один скрипт, написать конфиг и контент.
+  -->
+  <script src="https://tandem-sites.ru/sdk/docs-gen/tandemdocs.js"></script>
+</head>
+<body>
+
+  <!-- ① КОНФИГ — JSON с метаданными страницы -->
+  <script type="tandemdocs/config">
+  {
+    "title":   "Документация",
+    "project": "MyProject",
+    "version": "v1.0"
+  }
+  </script>
+
+  <!-- ② КОНТЕНТ — чистый Markdown -->
+  <script type="tandemdocs/content">
+# Добро пожаловать
+
+> Это пример документации, сгенерированной через **TandemDocs.js**.
+> Вставь свой Markdown — и готово.
+
+---
+
+## Быстрый старт
+
+Создай пустой `.html` файл и подключи скрипт:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://tandem-sites.ru/sdk/docs-gen/tandemdocs.js"></script>
+</head>
+<body>
+
+  <script type="tandemdocs/config">
+  { "title": "Документация", "project": "MyApp", "version": "v2.0" }
+  </script>
+
+  <script type="tandemdocs/content">
+  # Твой Markdown здесь
+  </script>
+
+</body>
+</html>
+```
+
+## Поля конфига
+
+| Поле      | Тип    | Описание                              |
+|-----------|--------|---------------------------------------|
+| `title`   | string | Название документации (слева в шапке) |
+| `project` | string | Название проекта (после «·»)          |
+| `version` | string | Версия — бейдж в шапке               |
+| `favicon` | string | URL иконки вкладки (опционально)      |
+
+## Поддерживаемый Markdown
+
+### Заголовки, параграфы, списки
+
+Стандартный GFM-синтаксис. Заголовки `h1`–`h4` автоматически
+попадают в боковое оглавление с навигацией.
+
+- Маркированные списки
+- С акцентом синим цветом
+  - Вложенные уровни
+
+1. Нумерованные списки
+2. Тоже поддерживаются
+
+### Выделение текста
+
+**Жирный**, *курсив*, ~~зачёркнутый~~, `инлайн-код`.
+
+Ссылки: [GitHub](https://github.com)
+
+### Цитаты
+
+> Цитата с синей левой полосой и приглушённым текстом.
+> Можно несколько строк.
+
+### Блоки кода с подсветкой
+
+```javascript
+// JavaScript
+async function fetchData(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(res.statusText);
+  return res.json();
+}
+```
+
+```css
+/* CSS */
+:root {
+  --color-accent: #007acc;
+  --font-mono: 'Cascadia Code', Consolas, monospace;
+}
+```
+
+```bash
+# Shell
+git add .
+git commit -m "feat: add TandemDocs"
+git push origin main
+```
+
+```text
+Блоки без языка или с language-text
+не подсвечиваются — просто моноширинный текст.
+```
+
+### Таблицы
+
+| Язык       | Синтаксис     | Тип       |
+|------------|---------------|-----------|
+| JavaScript | `js`          | Скриптовый|
+| TypeScript | `ts`          | Строготип.|
+| Python     | `py`          | Скриптовый|
+| Rust       | `rust`        | Системный |
+
+---
+
+## Хостинг
+
+Файлы библиотеки живут на `tandem-sites.ru`:
+
+```text
+tandem-sites.ru/
+├── sdk/
+│   └── docs-gen/
+│       ├── tandemdocs.js   ← основной скрипт
+│       └── example.html    ← этот файл
+└── docs-engine/
+    ├── marked.min.js       ← markdown parser
+    ├── highlight.min.js    ← syntax highlighter
+    └── vs2015.min.css      ← VS Code тема
+```
+
+Все зависимости подгружаются автоматически при первом использовании.
+  </script>
+
+</body>
+</html>
